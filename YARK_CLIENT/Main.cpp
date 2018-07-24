@@ -1,76 +1,104 @@
 #include <iostream>
-#include "TCPClient.h"
+#include "Client\Client.h"
+#include <iostream>
+#include <string>
+#include <sstream>
+#include <algorithm>
+#include <iterator>
 
-TCPClient* client;
+#include "Engine\Window.h" //include last due to conflicts with "DrawText"
+#include "Widgets\Console.h"
+#include "Widgets\NavBall.h"
 
-#pragma pack(push, 1)
-struct DataIn {
-	char HEADER_0;
-	char HEADER_1;
-	int ID;
-	char status; //0 = 
-	float Roll;
-	float Pitch;
-	float Heading;
-	float Lat;
-	float Lon;
-	float LiquidFuelTot;
-	float LiquidFuel;
-	float OxidizerTot;
-	float Oxidizer;
-	float EChargeTot;
-	float ECharge;
-	float MonoPropTot;
-	float MonoProp;
-	float IntakeAirTot;
-	float IntakeAir;
-	float SolidFuelTot;
-	float SolidFuel;
-	float XenonGasTot;
-	float XenonGas;
-	float LiquidFuelTotS;
-	float LiquidFuelS;
-	float OxidizerTotS;
-	float OxidizerS;
-};
+Client* client;
+Window* win;
+Font* f;
+Cam* cam;
 
-DataIn* dataIn = new DataIn();
+#define WIDTH 800
+#define HEIGHT 600
 
-void clientCallback(char data[], TCPClient* client) {
-	memcpy(dataIn, data, sizeof(DataIn));
+Console* console;
+NavBall* navball;
 
-	if (data[0] == (char)0xDE && data[1] == (char)0xAD) {
-		std::cout << "data::" << "\n";
-		if (dataIn->status) {
-			std::cout << "flight\n";
+void Tick(float delta, Draw* draw) {
+	cam->SetViewPort(0, 0, win->size.x, win->size.y);
+	if (client) {
+		if (client->state == TCPCLIENT_FAILED) {
+			console->colorCur = 1;
+			console->DispLine("client disconnected: " + client->error);
+			delete client;
+			client = NULL;
 		}
-		else {
-			std::cout << "ground\n";
+		else if (client->state == TCPCLIENT_CONNECTED) {
+			client->CP.Pitch = 300;
+			client->SendControls();
 		}
-		std::cout << "ID: " << dataIn->ID;
-		std::cout << "pitch: " << dataIn->Pitch << "\n";
 	}
-	else {
-		std::cout << (int)data[0];
-		std::cout << "\n";
-		std::cout << (int)data[1];
-		std::cout << "\n";
-		std::cout << "BAD \n";
+
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
+
+	console->Tick(draw);
+	navball->Tick(draw);
+}
+
+std::vector<std::string> split(const std::string s, char delim) {
+	std::istringstream iss(s);
+	std::vector<std::string> tokens{ std::istream_iterator<std::string>{iss},
+		std::istream_iterator<std::string>{} };
+	return tokens;
+}
+
+void commandExe(std::string com) {
+	console->colorCur = 0;
+	console->DispLine(">" + com);
+	std::vector<std::string> elems = split(com, ' ');
+	if (!elems[0].compare("connect")) {
+		console->DispLine("connecting...");
+		client = new Client(elems[1], elems[2]);
+		while (client->state == TCPCLIENT_CONNECTING) {
+
+		}
+		if (client->state == TCPCLIENT_CONNECTED) {
+			console->colorCur = 2;
+			console->DispLine("conneced");
+		}
+		else if (client->state == TCPCLIENT_FAILED) {
+			console->colorCur = 1;
+			console->DispLine("error: " + client->error);
+			delete client;
+			client = NULL;
+		}
 	}
 }
 
-int main() {
-	client = new TCPClient("localhost", "9999", &clientCallback);
-	std::cout << "Start:\n";
-	while (client->state == TCPCLIENT_CONNECTING);
-	if (client->state == TCPCLIENT_FAILED) {
-		std::cout << "failed\n";
-	}
-	while (client->state == TCPCLIENT_CONNECTED) {
+void command(std::string com) {
+	std::thread t(&commandExe, com);
+	t.detach();
+}
 
+void main() {
+	int error = 0;
+	XYi size = XYi{ 720,720 };
+	win = new Window(size, 0, &error);
+	if (error) {
+		std::cout << "error opening SDL window\n";
+		return;
 	}
-	int foo;
-	std::cin >> foo;
-	return 0;
+	win->SetTargetFPS(60);
+	f = new Font(32, 32, "C:\\Windows\\Fonts\\arial.ttf");
+
+	cam = new Cam(0, 0, glm::vec3{ 0,0,0 });
+	cam->fov = glm::radians(45.f);
+	cam->orthro = true;
+	
+	console = new Console(win, XY{ 0,0 });
+	//console->DispLine("123 test aoisudn");
+	//console->DispLine("line");
+	command("connect localhost 9999");
+	navball = new NavBall(&client, XY{ 300,100 },cam,win,f);
+	win->Run(&Tick);
 
 }
+

@@ -5,19 +5,24 @@
 #include <ws2tcpip.h>
 #include <windows.h>
 #include <thread>
+#include "Struts.h"
 #define TCPCLIENT_CONNECTING 0
 #define TCPCLIENT_FAILED 1
 #define TCPCLIENT_CONNECTED 2
 
-class TCPClient {
+class Client {
 	SOCKET ConnectSocket;
-	void TCPClientRun(std::string IP, std::string PORT, void(*callback_proccess)(char[], TCPClient*));
+	void TCPClientRun(std::string IP, std::string PORT);
+	Header hed;
 public:
+	Status status;
+	DataIn dataIn;
+	ControlPacket CP;
 	std::thread recLoop;
 	bool Running;
 	int state = TCPCLIENT_CONNECTING;
 	std::string error;
-	int ClientSend(char sendbuff[]);
-	TCPClient(std::string IP, std::string PORT, void(*callback_proccess)(char[], TCPClient*));
+	Client(std::string IP, std::string PORT);
+	void SendControls();
 	void Shutdown();
 };

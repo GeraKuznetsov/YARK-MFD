@@ -10,20 +10,20 @@
 #pragma comment (lib, "Ws2_32.lib")
 #pragma comment (lib, "Mswsock.lib")
 #pragma comment (lib, "AdvApi32.lib")
-#include "TCPClient.h"
+#include "Client.h"
 
-int TCPClient::ClientSend(char sendbuff[]) {
-	int	iResult = send(ConnectSocket, sendbuff, (int)strlen(sendbuff), 0);
+void Client::SendControls() {
+	int	iResult = send(ConnectSocket, (char*)&CP, sizeof(ControlPacket), 0);
 	if (iResult == SOCKET_ERROR) {
 		printf("send failed with error: %d\n", WSAGetLastError());
 		closesocket(ConnectSocket);
 		WSACleanup();
-		return 1;
 	}
-	return 0;
+	CP.ID++;
 }
 
-void TCPClient::TCPClientRun(std::string IP, std::string PORT, void(*callback_proccess)(char[], TCPClient*)) {
+void Client::TCPClientRun(std::string IP, std::string PORT) {
+#pragma region winsock stuff
 	WSADATA wsaData;
 	struct addrinfo *result = NULL,
 		*ptr = NULL,
@@ -94,30 +94,35 @@ void TCPClient::TCPClientRun(std::string IP, std::string PORT, void(*callback_pr
 	}
 
 	std::cout << "cleint in revieve loop\n";
-	
-	//state = TCPCLIENT_CONNECTED;
 
+	state = TCPCLIENT_CONNECTED;
+
+#pragma endregion
 	Running = true;
 	do {
-		char recvbuf[256];
-		iResult = recv(ConnectSocket, recvbuf, 256, 0);
+		iResult = recv(ConnectSocket, (char*)&hed, sizeof(Header), 0);
 		if (iResult > 0) {
-			/*printf("Bytes received: %d\n", iResult);
-			for (int i = 0; i < iResult; i++) {
-				std::cout << (int)recvbuf[i] << " : " ;
+			if (hed.HEADER_0 == (char)0xDE && hed.HEADER_1 == (char)0xAD) {
+				if (hed.packetType == (char)1) {
+					recv(ConnectSocket, (char*)&status, sizeof(Status), 0);
+					std::cout << "status: " << (status.status ? "true" : "false") << " name: " << std::string(status.vessalName) << "\n";
+				}
+				else if (hed.packetType == (char)2) {
+					recv(ConnectSocket, (char*)&dataIn, sizeof(DataIn), 0);
+				}
 			}
-			std::cout << "\n";*/
-			callback_proccess(recvbuf, this);
+			else {
+				std::cout << "malformed packet\n:";
+				std::cout << (int)hed.HEADER_0 << " : " << (int)hed.HEADER_1 << "\n";
+			}
 		}
 		else if (iResult == 0) {
 			error = "recv failed";
-			//SERVER_LIST_PROMPT = SERVER_LIST_PROMPT_ERROR;
 			state = TCPCLIENT_FAILED;
 			printf("Connection closed\n");
 		}
 		else {
 			error = "con closed";
-			//SERVER_LIST_PROMPT = SERVER_LIST_PROMPT_ERROR;
 			state = TCPCLIENT_FAILED;
 			printf("recv failed with error: %d\n", WSAGetLastError());
 		}
@@ -127,13 +132,17 @@ void TCPClient::TCPClientRun(std::string IP, std::string PORT, void(*callback_pr
 	}
 }
 
-TCPClient::TCPClient(std::string IP, std::string PORT, void(*callback_proccess)(char[], TCPClient*))
+Client::Client(std::string IP, std::string PORT)
 {
-	recLoop = std::thread(&TCPClient::TCPClientRun, this, IP, PORT, callback_proccess);
+	memset((char*)&CP, 0, sizeof(CP));
+	CP.HEADER_0 = 0xDE;
+	CP.HEADER_1 = 0xAD;
+	CP.ID = 0;
+	recLoop = std::thread(&Client::TCPClientRun, this, IP, PORT);
 	recLoop.detach();
 }
 
-void TCPClient::Shutdown() {
+void Client::Shutdown() {
 	state = TCPCLIENT_FAILED;
 	std::cout << "thread shutdown\n";
 	Running = false;

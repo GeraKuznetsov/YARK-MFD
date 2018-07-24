@@ -85,7 +85,12 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>C:\Users\foobar\Desktop\KSP_CONT_PAN\YARK_CLIENT\freetype\include;C:\Users\foobar\Desktop\KSP_CONT_PAN\YARK_CLIENT\OpenGL\glew-2.0.0\include\GL;C:\Users\foobar\Desktop\KSP_CONT_PAN\YARK_CLIENT\OpenGL\SDL2\include;C:\Users\foobar\Desktop\KSP_CONT_PAN\YARK_CLIENT\OpenGL\glm\</AdditionalIncludeDirectories>
     </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>C:\Users\foobar\Desktop\KSP_CONT_PAN\YARK_CLIENT\freetype\win64;C:\Users\foobar\Desktop\KSP_CONT_PAN\YARK_CLIENT\OpenGL\glew-2.0.0\lib\Release\x64;C:\Users\foobar\Desktop\KSP_CONT_PAN\YARK_CLIENT\OpenGL\SDL2\lib\x64</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glu32.lib;SDL2.lib;freetype271.lib;opengl32.lib;glew32s.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -116,11 +121,49 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Engine\Alert.cpp" />
+    <ClCompile Include="Engine\Cam.cpp" />
+    <ClCompile Include="Engine\Draw.cpp" />
+    <ClCompile Include="Engine\Draw2DShader.cpp" />
+    <ClCompile Include="Engine\Draw3DShader.cpp" />
+    <ClCompile Include="Engine\Font.cpp" />
+    <ClCompile Include="Engine\Math.cpp" />
+    <ClCompile Include="Engine\Misc.cpp" />
+    <ClCompile Include="Engine\Shader.cpp" />
+    <ClCompile Include="Engine\TextShader.cpp" />
+    <ClCompile Include="Engine\Texture.cpp" />
+    <ClCompile Include="Engine\Window.cpp" />
+    <ClCompile Include="lodepng\lodepng.cpp" />
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="TCPClient.cpp" />
+    <ClCompile Include="Client\Client.cpp" />
+    <ClCompile Include="Widgets\Console.cpp" />
+    <ClCompile Include="Widgets\NavBall.cpp" />
+    <ClCompile Include="Widgets\Widget.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="TCPClient.h" />
+    <ClInclude Include="Client\Struts.h" />
+    <ClInclude Include="Comp.h" />
+    <ClInclude Include="Engine\Alert.h" />
+    <ClInclude Include="Engine\Cam.h" />
+    <ClInclude Include="Engine\Draw.h" />
+    <ClInclude Include="Engine\Draw2DShader.h" />
+    <ClInclude Include="Engine\Draw3DShader.h" />
+    <ClInclude Include="Engine\Font.h" />
+    <ClInclude Include="Engine\Math.h" />
+    <ClInclude Include="Engine\Misc.h" />
+    <ClInclude Include="Engine\Shader.h" />
+    <ClInclude Include="Engine\TextShader.h" />
+    <ClInclude Include="Engine\Texture.h" />
+    <ClInclude Include="Engine\Window.h" />
+    <ClInclude Include="lodepng\lodepng.h" />
+    <ClInclude Include="Client\Client.h" />
+    <ClInclude Include="Widgets\Console.h" />
+    <ClInclude Include="Widgets\NavBall.h" />
+    <ClInclude Include="Widgets\Widget.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\sphere.frag" />
+    <None Include="Shaders\sphere.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
