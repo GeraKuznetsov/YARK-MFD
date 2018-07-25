@@ -1,9 +1,7 @@
-
 #version 330 core
 
 uniform sampler2D tex;
 uniform mat4 rot;
-uniform mat4 roll;
 in vec2 pos;
 out vec4 FragColor;
 
@@ -17,26 +15,27 @@ float atan2(in float y, in float x)
 
 void main(){
 	float r2 = pos.x * pos.x + pos.y * pos.y;
-	if(r2>=1){discard;}
-	//FragColor = vec4(0,1,1,1);
 
-	vec4 pos3D = vec4(pos, sqrt(1 - r2), 1);
-
-	pos3D = roll * pos3D;
-	pos3D = rot * pos3D;
-
-	vec2 uv = vec2(atan2(pos3D.y,pos3D.x)/(PI),acos(pos3D.z/1)/(PI));  
+	vec4 col;
 	
-	//float s = sin(roll);
-	//float c = cos(roll);
-	//uv-=vec2(.5f,0.5f);
-	//uv = vec2(uv.x*c-uv.y*s,uv.x*s+uv.y*c);
-	//uv+=vec2(.5f,0.5f);
-
-	uv.x = uv.x / 2;
-	uv.x = 1 - uv.x;
-	uv.y = uv.y/2;
+	if(r2<1){
+		vec4 pos3D = rot *vec4(pos, sqrt(1 - r2), 1);
 		
-	FragColor = texture2D(tex,uv);
+		vec2 uv = vec2(atan2(pos3D.y,pos3D.x)/(PI),acos(pos3D.z/1)/(PI));  
+			
+		uv.x = uv.x / 2;
+		uv.x = 1 - uv.x;
+		uv.y = uv.y/2;
+			
+		col = texture2D(tex,uv);
+
+	}else if(r2<sqrt(1.1)){
+		col = vec4(0,0,0,1);
+	}else if(r2<sqrt(1.2)){
+		col = vec4(1,1,1,1);
+	}else{
+		discard;
+	}
+	FragColor = col;
 }
 

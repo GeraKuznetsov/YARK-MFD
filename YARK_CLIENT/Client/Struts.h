@@ -33,14 +33,46 @@ struct Status {
 	char vessalName[16];
 };
 
+struct vector {
+	float x, y, z;
+};
+
 struct DataIn {
 	int64_t  ID;
-	float Roll;
+	//##### CRAFT ######
 	float Pitch;
+	float Roll;
 	float Heading;
-	float t1, t2, t3, t4;
+
+	vector Prograde;
+
+	int16_t ActionGroups; //  status bit order:SAS, RCS, Light, Gear, Brakes, Abort, Custom01 - 10 
+	float VVI;
+	float G;
+	float RAlt;
+	float Alt;
+	float Vsurf;
+	char MaxOverHeat;    //  Max part overheat (% percent)
+	float IAS;           //  Indicated Air Speed
+
+					//###### ORBITAL ######
+	float VOrbit;
+	float AP;
+	float PE;
+	int TAp;
+	int TPe;
+	float SemiMajorAxis;
+	float SemiMinorAxis;
+	float e;
+	float inc;
+	int period;
+	float TrueAnomaly;
 	float Lat;
 	float Lon;
+
+	//###### FUEL #######
+	char CurrentStage;   //  Current stage number
+	char TotalStage;     //  TotalNumber of stages
 	float LiquidFuelTot;
 	float LiquidFuel;
 	float OxidizerTot;
@@ -59,5 +91,19 @@ struct DataIn {
 	float LiquidFuelS;
 	float OxidizerTotS;
 	float OxidizerS;
+
+	//### MISC ###
+	int32_t MissionTime;
+	int32_t MNTime;
+	float MNDeltaV;
+	float TargetDist;    //  Distance to targeted vessel (m)
+	float TargetV;       //  Target vessel relative velocity (m/s)
+	char SOINumber;      //  SOI Number (decimal format: sun-planet-moon e.g. 130 = kerbin, 131 = mun)
+	char NavballSASMode; //  Combined byte for navball target mode and SAS mode
+								// First four bits indicate AutoPilot mode:
+								// 0 SAS is off  //1 = Regular Stability Assist //2 = Prograde
+								// 3 = RetroGrade //4 = Normal //5 = Antinormal //6 = Radial In
+								// 7 = Radial Out //8 = Target //9 = Anti-Target //10 = Maneuver node
+								// Last 4 bits set navball mode. (0=ignore,1=ORBIT,2=SURFACE,3=TARGET)}
 };
 #pragma pack(pop)

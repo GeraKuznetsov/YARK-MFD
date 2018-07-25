@@ -7,13 +7,13 @@
 #include "../Engine/Draw.h"
 
 class NavBall : public Widget {
-	GLuint vao, vbo, shader, proj, model, rot,roll;
+	GLuint vao, vbo, shader, proj, model, rot;
 	Texture* navballTex;
+	Texture* chevron;
+	
 	Cam* cam;
-	Window* win;
 	Client** client;
-	Font* f;
 public:
-	NavBall(Client** client, XY pos, Cam* cam, Window* win, Font* font); //REMOVE WINDOW
+	NavBall(XY pos, XY size, std::string title, Font* font, Client** client,Cam* cam);
 	void Tick(Draw* draw);
 };

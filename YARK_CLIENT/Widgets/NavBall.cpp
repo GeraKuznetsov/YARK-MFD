@@ -1,26 +1,23 @@
 #include "NavBall.h"
 
-NavBall::NavBall(Client** client, XY pos, Cam* cam, Window* win,Font* font) {
-	this->f = font;
-	this->win = win;
-	this->cam = cam;
-	this->pos = pos;
-	this->client = client;
+#define BORDER_SCALE 1.05f
 
+NavBall::NavBall(XY pos, XY size, std::string title, Font* font, Client** client, Cam* cam) : Widget(pos, size, title, font) {
+	this->client = client;
+	this->cam = cam;
 	shader = LoadRawShader("Shaders/sphere.vert", "Shaders/sphere.frag");
 	glUseProgram(shader);
 	proj = glGetUniformLocation(shader, "proj");
 	model = glGetUniformLocation(shader, "model");
 	rot = glGetUniformLocation(shader, "rot");
-	roll = glGetUniformLocation(shader, "roll");
 
 	GLfloat vertices[6][2] = {
-		{-1.f,-1.f},
-		{ -1.f,1.f},
-		{ 1.f,-1.f},
-		{ 1.f,-1.f},
-		{ -1.f,1.f},
-		{ 1.f,1.f}
+		{-1.f*BORDER_SCALE,-1.f*BORDER_SCALE },
+		{ -1.f*BORDER_SCALE,1.f*BORDER_SCALE},
+		{ 1.f*BORDER_SCALE,-1.f*BORDER_SCALE},
+		{ 1.f*BORDER_SCALE,-1.f*BORDER_SCALE},
+		{ -1.f*BORDER_SCALE,1.f*BORDER_SCALE},
+		{ 1.f*BORDER_SCALE,1.f*BORDER_SCALE }
 	};
 
 	glGenBuffers(1, &vbo);
@@ -36,7 +33,8 @@ NavBall::NavBall(Client** client, XY pos, Cam* cam, Window* win,Font* font) {
 	glBindVertexArray(0);
 
 
-	navballTex = new Texture("Tex/navball3.png");
+	navballTex = new Texture("Tex/navball/navball.png");
+	chevron = new Texture("Tex/navball/chevron.png");
 	size = XY{ 400,400 };
 }
 
@@ -45,54 +43,46 @@ NavBall::NavBall(Client** client, XY pos, Cam* cam, Window* win,Font* font) {
 #include "gtx/quaternion.hpp"
 
 void NavBall::Tick(Draw* draw) {
-	draw->BindDraw2DShader();
-	draw->SetDrawColor2D(0, 1, 0);
-	draw->DrawRect2D(pos.x, pos.y, pos.x + size.x, pos.y + size.y);
+	RenderWindow(draw);
 
-
-	DataIn DI = (*client)? (*client)->dataIn : DataIn();
+	DataIn DI = (*client) ? (*client)->dataIn : DataIn();
 
 	draw->BindTextShader();
-	draw->SetDrawColor2D(0,1,0);
-	draw->DrawString(f, std::to_string(DI.Pitch), 10, 30);
-	draw->DrawString(f, std::to_string(DI.Heading), 10, 60);
-	draw->DrawString(f, std::to_string(DI.Roll), 10, 90);
+	draw->SetDrawColor2D(0, 1, 0);
 
-	cam->Calculate();
+	draw->DrawString(f, std::to_string(DI.Prograde.x), 10, 30);
+	draw->DrawString(f, std::to_string(DI.Prograde.y), 10, 60);
+	draw->DrawString(f, std::to_string(DI.Prograde.z), 10, 90);
+
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, navballTex->textureID);
 
-	float rad = size.x / 2;
+	float rad = (size.x-200) / 2;
 
 	glUseProgram(shader);
+	cam->Calculate();
 	SetShaderMat4(proj, cam->projection);
 
 	glm::mat4 modelMat = glm::mat4(1);
-	modelMat = glm::translate(modelMat, glm::vec3(pos.x+size.x/2, pos.y+size.y/2, 0));
-	modelMat = glm::scale(modelMat, glm::vec3(rad, rad, rad));
+	modelMat = glm::translate(modelMat, glm::vec3(pos.x + size.x / 2, pos.y + size.y / 2, 0));
+	modelMat = glm::scale(modelMat, glm::vec3(rad/ BORDER_SCALE, rad/ BORDER_SCALE, rad/ BORDER_SCALE));
 	SetShaderMat4(model, modelMat);
-
-
 
 	glm::mat4 rotMat = glm::mat4(1);
 
-	glm::mat4 rotMat2 = glm::mat4(1);
-	if (*client) {
-		//std::cout << "Roll: " << (*client)->dataIn.t1 << "\n";
-	//	rotMat = glm::toMat4(glm::quat((*client)->dataIn.t1, (*client)->dataIn.t2, (*client)->dataIn.t3, (*client)->dataIn.t4));
-	
-		rotMat2 = glm::rotate(rotMat2, glm::radians(-(*client)->dataIn.Roll), glm::vec3(0,	0, 1));
-		
-		rotMat = glm::rotate(rotMat, glm::radians(-(*client)->dataIn.Heading + 90), glm::vec3(0, 0, 1));
-		rotMat = glm::rotate(rotMat, glm::radians((*client)->dataIn.Pitch-90), glm::vec3(1, 0, 0));
-		//glUniform1f(roll, glm::radians(5.f)); //-(*client)->dataIn.Roll
+	rotMat = glm::rotate(rotMat, glm::radians(-DI.Heading + 90), glm::vec3(0, 0, 1));
+	rotMat = glm::rotate(rotMat, glm::radians(DI.Pitch - 90), glm::vec3(1, 0, 0));
+	rotMat = rotMat * glm::rotate(glm::mat4(1), glm::radians(-DI.Roll), glm::vec3(0, 0, 1));
 
-	}
 	SetShaderMat4(rot, rotMat);
-	SetShaderMat4(roll, rotMat2);
-	//glUniformMatrix3fv(unif, 1, false, glm::value_ptr(rotMat2));
 
 	glBindVertexArray(vao);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glBindVertexArray(0);
+
+	draw->BindDraw2DShader();
+	draw->SetDrawColor2D(1, 1, 1);
+	draw->BindTex2D(chevron->textureID);
+
+	draw->DrawRectUV2D(pos.x + size.x / 2 - 90, pos.y + size.y / 2 - 35, pos.x + size.x / 2 + 90, pos.y + size.y / 2 + 35, 0.f / 256.f, 0.f / 256.f, 180.f / 256.f, 70.f / 256.f);
 }

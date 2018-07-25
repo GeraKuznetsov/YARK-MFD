@@ -31,7 +31,6 @@ void Tick(float delta, Draw* draw) {
 			client = NULL;
 		}
 		else if (client->state == TCPCLIENT_CONNECTED) {
-			client->CP.Pitch = 300;
 			client->SendControls();
 		}
 	}
@@ -87,7 +86,7 @@ void main() {
 		return;
 	}
 	win->SetTargetFPS(60);
-	f = new Font(32, 32, "C:\\Windows\\Fonts\\arial.ttf");
+	f = new Font(16, 16, "C:\\Windows\\Fonts\\arial.ttf");
 
 	cam = new Cam(0, 0, glm::vec3{ 0,0,0 });
 	cam->fov = glm::radians(45.f);
@@ -97,7 +96,7 @@ void main() {
 	//console->DispLine("123 test aoisudn");
 	//console->DispLine("line");
 	command("connect localhost 9999");
-	navball = new NavBall(&client, XY{ 300,100 },cam,win,f);
+	navball = new NavBall(XY{ 50,50 }, XY{ 500,500 }, "NavBall", f, &client, cam);
 	win->Run(&Tick);
 
 }
