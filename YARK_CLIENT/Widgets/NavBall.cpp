@@ -50,9 +50,10 @@ void NavBall::Tick(Draw* draw) {
 	draw->BindTextShader();
 	draw->SetDrawColor2D(0, 1, 0);
 
-	draw->DrawString(f, std::to_string(DI.Prograde.x), 10, 30);
-	draw->DrawString(f, std::to_string(DI.Prograde.y), 10, 60);
-	draw->DrawString(f, std::to_string(DI.Prograde.z), 10, 90);
+	draw->DrawString(f, std::to_string((DI.Prograde.Heading)), 10, 30);
+	draw->DrawString(f, std::to_string((DI.Prograde.Pitch)), 10, 60);
+	
+	draw->DrawString(f, std::to_string(DI.Pitch), 10, 90);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, navballTex->textureID);

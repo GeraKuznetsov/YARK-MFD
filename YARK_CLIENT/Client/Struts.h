@@ -33,8 +33,8 @@ struct Status {
 	char vessalName[16];
 };
 
-struct vector {
-	float x, y, z;
+struct NavHeading {
+	float Heading, Pitch;
 };
 
 struct DataIn {
@@ -44,7 +44,7 @@ struct DataIn {
 	float Roll;
 	float Heading;
 
-	vector Prograde;
+	NavHeading Prograde;
 
 	int16_t ActionGroups; //  status bit order:SAS, RCS, Light, Gear, Brakes, Abort, Custom01 - 10 
 	float VVI;
