@@ -8,12 +8,13 @@
 
 class NavBall : public Widget {
 	GLuint vao, vbo, shader, proj, model, rot;
-	Texture* navballTex;
-	Texture* chevron;
-	
+	GLuint navballTex;
+	GLuint chevron, PGTex, RGTex, RITex, ROTex, NTex, ANTex, TRGTex, TPGTex, MTex;
+
 	Cam* cam;
 	Client** client;
 public:
-	NavBall(XY pos, XY size, std::string title, Font* font, Client** client,Cam* cam);
+	Window * win;
+	NavBall(XY pos, XY size, std::string title, Font* font, Client** client, Cam* cam);
 	void Tick(Draw* draw);
 };

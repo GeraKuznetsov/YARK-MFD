@@ -121,13 +121,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Engine\Alert.cpp" />
+    <ClCompile Include="Client\ExcampleClient.cpp" />
     <ClCompile Include="Engine\Cam.cpp" />
     <ClCompile Include="Engine\Draw.cpp" />
     <ClCompile Include="Engine\Draw2DShader.cpp" />
     <ClCompile Include="Engine\Draw3DShader.cpp" />
     <ClCompile Include="Engine\Font.cpp" />
-    <ClCompile Include="Engine\Math.cpp" />
     <ClCompile Include="Engine\Misc.cpp" />
     <ClCompile Include="Engine\Shader.cpp" />
     <ClCompile Include="Engine\TextShader.cpp" />
@@ -141,15 +140,12 @@
     <ClCompile Include="Widgets\Widget.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Client\Struts.h" />
-    <ClInclude Include="Comp.h" />
-    <ClInclude Include="Engine\Alert.h" />
+    <ClInclude Include="Client\Structs.h" />
     <ClInclude Include="Engine\Cam.h" />
     <ClInclude Include="Engine\Draw.h" />
     <ClInclude Include="Engine\Draw2DShader.h" />
     <ClInclude Include="Engine\Draw3DShader.h" />
     <ClInclude Include="Engine\Font.h" />
-    <ClInclude Include="Engine\Math.h" />
     <ClInclude Include="Engine\Misc.h" />
     <ClInclude Include="Engine\Shader.h" />
     <ClInclude Include="Engine\TextShader.h" />

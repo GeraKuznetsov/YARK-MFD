@@ -13,13 +13,13 @@
 #include "Client.h"
 
 void Client::SendControls() {
-	int	iResult = send(ConnectSocket, (char*)&CP, sizeof(ControlPacket), 0);
+	int	iResult = send(ConnectSocket, (char*)&ControlPacket, sizeof(ControlPacket), 0);
 	if (iResult == SOCKET_ERROR) {
 		printf("send failed with error: %d\n", WSAGetLastError());
 		closesocket(ConnectSocket);
 		WSACleanup();
 	}
-	CP.ID++;
+	ControlPacket.ID++;
 }
 
 void Client::TCPClientRun(std::string IP, std::string PORT) {
@@ -104,11 +104,10 @@ void Client::TCPClientRun(std::string IP, std::string PORT) {
 		if (iResult > 0) {
 			if (hed.HEADER_0 == (char)0xDE && hed.HEADER_1 == (char)0xAD) {
 				if (hed.packetType == (char)1) {
-					recv(ConnectSocket, (char*)&status, sizeof(Status), 0);
-					std::cout << "status: " << (status.status ? "true" : "false") << " name: " << std::string(status.vessalName) << "\n";
+					recv(ConnectSocket, (char*)&statusPacket, sizeof(StatusPacket), 0);
 				}
 				else if (hed.packetType == (char)2) {
-					recv(ConnectSocket, (char*)&dataIn, sizeof(DataIn), 0);
+					recv(ConnectSocket, (char*)&vesselPacket, sizeof(VesselPacket), 0);
 				}
 			}
 			else {
@@ -134,10 +133,12 @@ void Client::TCPClientRun(std::string IP, std::string PORT) {
 
 Client::Client(std::string IP, std::string PORT)
 {
-	memset((char*)&CP, 0, sizeof(CP));
-	CP.HEADER_0 = 0xDE;
-	CP.HEADER_1 = 0xAD;
-	CP.ID = 0;
+	memset((char*)&ControlPacket, 0, sizeof(ControlPacket));
+	memset((char*)&vesselPacket, 0, sizeof(vesselPacket));
+	memset((char*)&statusPacket, 0, sizeof(statusPacket));
+	ControlPacket.HEADER_0 = 0xDE;
+	ControlPacket.HEADER_1 = 0xAD;
+	ControlPacket.ID = 0;
 	recLoop = std::thread(&Client::TCPClientRun, this, IP, PORT);
 	recLoop.detach();
 }

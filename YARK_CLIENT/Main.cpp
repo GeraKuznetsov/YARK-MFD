@@ -93,10 +93,9 @@ void main() {
 	cam->orthro = true;
 	
 	console = new Console(win, XY{ 0,0 });
-	//console->DispLine("123 test aoisudn");
-	//console->DispLine("line");
 	command("connect localhost 9999");
 	navball = new NavBall(XY{ 50,50 }, XY{ 500,500 }, "NavBall", f, &client, cam);
+	navball->win = win;
 	win->Run(&Tick);
 
 }

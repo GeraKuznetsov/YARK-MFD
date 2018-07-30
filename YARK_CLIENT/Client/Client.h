@@ -5,7 +5,7 @@
 #include <ws2tcpip.h>
 #include <windows.h>
 #include <thread>
-#include "Struts.h"
+#include "Structs.h"
 #define TCPCLIENT_CONNECTING 0
 #define TCPCLIENT_FAILED 1
 #define TCPCLIENT_CONNECTED 2
@@ -15,9 +15,9 @@ class Client {
 	void TCPClientRun(std::string IP, std::string PORT);
 	Header hed;
 public:
-	Status status;
-	DataIn dataIn;
-	ControlPacket CP;
+	StatusPacket statusPacket;
+	VesselPacket vesselPacket;
+	ControlPacket ControlPacket;
 	std::thread recLoop;
 	bool Running;
 	int state = TCPCLIENT_CONNECTING;
