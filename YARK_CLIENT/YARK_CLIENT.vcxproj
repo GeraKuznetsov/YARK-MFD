@@ -85,10 +85,11 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\foobar\Desktop\KSP_CONT_PAN\YARK_CLIENT\freetype\include;C:\Users\foobar\Desktop\KSP_CONT_PAN\YARK_CLIENT\OpenGL\glew-2.0.0\include\GL;C:\Users\foobar\Desktop\KSP_CONT_PAN\YARK_CLIENT\OpenGL\SDL2\include;C:\Users\foobar\Desktop\KSP_CONT_PAN\YARK_CLIENT\OpenGL\glm\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\foobar\Desktop\KSP_CONT_PAN\YARK_CLIENT\Lib\freetype\include;C:\Users\foobar\Desktop\KSP_CONT_PAN\YARK_CLIENT\Lib\glew-2.0.0\include\GL;C:\Users\foobar\Desktop\KSP_CONT_PAN\YARK_CLIENT\Lib\SDL2\include;C:\Users\foobar\Desktop\KSP_CONT_PAN\YARK_CLIENT\Lib\glm\</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>false</MultiProcessorCompilation>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>C:\Users\foobar\Desktop\KSP_CONT_PAN\YARK_CLIENT\freetype\win64;C:\Users\foobar\Desktop\KSP_CONT_PAN\YARK_CLIENT\OpenGL\glew-2.0.0\lib\Release\x64;C:\Users\foobar\Desktop\KSP_CONT_PAN\YARK_CLIENT\OpenGL\SDL2\lib\x64</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\foobar\Desktop\KSP_CONT_PAN\YARK_CLIENT\Lib\freetype\win64;C:\Users\foobar\Desktop\KSP_CONT_PAN\YARK_CLIENT\Lib\glew-2.0.0\lib\Release\x64;C:\Users\foobar\Desktop\KSP_CONT_PAN\YARK_CLIENT\Lib\SDL2\lib\x64</AdditionalLibraryDirectories>
       <AdditionalDependencies>glu32.lib;SDL2.lib;freetype271.lib;opengl32.lib;glew32s.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -127,7 +128,6 @@
     <ClCompile Include="Engine\Draw2DShader.cpp" />
     <ClCompile Include="Engine\Draw3DShader.cpp" />
     <ClCompile Include="Engine\Font.cpp" />
-    <ClCompile Include="Engine\Misc.cpp" />
     <ClCompile Include="Engine\Shader.cpp" />
     <ClCompile Include="Engine\TextShader.cpp" />
     <ClCompile Include="Engine\Texture.cpp" />
@@ -141,12 +141,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Client\Structs.h" />
+    <ClInclude Include="Command.h" />
     <ClInclude Include="Engine\Cam.h" />
     <ClInclude Include="Engine\Draw.h" />
     <ClInclude Include="Engine\Draw2DShader.h" />
     <ClInclude Include="Engine\Draw3DShader.h" />
     <ClInclude Include="Engine\Font.h" />
-    <ClInclude Include="Engine\Misc.h" />
     <ClInclude Include="Engine\Shader.h" />
     <ClInclude Include="Engine\TextShader.h" />
     <ClInclude Include="Engine\Texture.h" />
@@ -160,6 +160,9 @@
   <ItemGroup>
     <None Include="Shaders\sphere.frag" />
     <None Include="Shaders\sphere.vert" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="config.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

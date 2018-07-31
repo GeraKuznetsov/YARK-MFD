@@ -2,13 +2,20 @@
 
 #define BAR_HEIGHT 15
 
-Widget::Widget(XY pos, XY size, std::string title,Font* f) {
+Widget::Widget(XY pos, XY size, std::string title, Font* f) {
+	Resize(pos, size);
+	this->f = f;
+	this->title = title;
+}
+void Widget::Resize(XY pos, XY size) {
 	this->pos = pos;
 	this->size = size;
-	this->title = title;
-	this->f = f;
-	pos.y += BAR_HEIGHT;
-	size.y -= BAR_HEIGHT;
+	this->pos.y += BAR_HEIGHT;
+	this->size.y -= BAR_HEIGHT;
+}
+
+void Widget::Tick(Draw* draw) {
+	RenderWindow(draw);
 }
 
 void Widget::RenderWindow(Draw* draw) {

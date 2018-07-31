@@ -2,9 +2,8 @@
 #include <iostream>
 #define BORDER_SCALE 1.05f
 
-NavBall::NavBall(XY pos, XY size, std::string title, Font* font, Client** client, Cam* cam) : Widget(pos, size, title, font) {
+NavBall::NavBall(XY pos, XY size, std::string title, Font* font, Client** client) : Widget(pos, size, title, font) {
 	this->client = client;
-	this->cam = cam;
 	shader = LoadRawShader("Shaders/sphere.vert", "Shaders/sphere.frag");
 	glUseProgram(shader);
 	proj = glGetUniformLocation(shader, "proj");
@@ -44,14 +43,11 @@ NavBall::NavBall(XY pos, XY size, std::string title, Font* font, Client** client
 	TPGTex = loadTexture("Tex/navball/TPG.png");
 	TRGTex = loadTexture("Tex/navball/TRG.png");
 	MTex = loadTexture("Tex/navball/M.png");
-	size = XY{ 400,400 };
 }
 
-#include "gtc\matrix_transform.hpp"
 #define GLM_ENABLE_EXPERIMENTAL
-#include "gtx/quaternion.hpp"
+#include "gtc\matrix_transform.hpp"
 #include "gtx/rotate_vector.hpp"
-#include "gtx/string_cast.hpp"
 
 void renderNavHeading(NavHeading NH, VesselPacket *DI, Draw* draw, glm::mat4 *modelMat, GLuint Tex);
 void NavBall::Tick(Draw* draw) {
@@ -59,24 +55,13 @@ void NavBall::Tick(Draw* draw) {
 
 	VesselPacket VP = (*client) ? (*client)->vesselPacket : VesselPacket();
 
-	draw->BindTextShader();
-	draw->SetDrawColor2D(0, 1, 0);
-
-	draw->DrawString(f, std::to_string((VP.Prograde.Heading)), 10, 30);
-	draw->DrawString(f, std::to_string((VP.Prograde.Pitch)), 10, 60);
-
-	draw->DrawString(f, std::to_string(VP.Heading), 10, 90);
-
-	glActiveTexture(GL_TEXTURE0);
+ 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, navballTex);
 
 	float rad = (size.x - 200) / 2;
 
 	glUseProgram(shader);
-	cam->Calculate();
-	SetShaderMat4(proj, cam->projection);
-
-	//DI.Roll = navC;
+	SetShaderMat4(proj, draw->GetOrthroMat());
 
 	glm::mat4 modelMat = glm::mat4(1);
 	modelMat = glm::translate(modelMat, glm::vec3(pos.x + size.x / 2, pos.y + size.y / 2, 1));
@@ -105,15 +90,13 @@ void NavBall::Tick(Draw* draw) {
 	renderNavHeading(VP.Prograde, &VP, draw, &modelMat, PGTex);
 	renderNavHeading(NavHeading(-VP.Prograde.Pitch, VP.Prograde.Heading + 180), &VP, draw, &modelMat, RGTex);
 
-	std::cout << (int)VP.SpeedMode << "\n";
-
 	if (VP.SpeedMode == 1) {
 		renderNavHeading(NavHeading(90.f, 0), &VP, draw, &modelMat, ROTex);
 		renderNavHeading(NavHeading(-90.f, 0), &VP, draw, &modelMat, RITex);
-	
+
 		renderNavHeading(NavHeading(0.f, VP.NormalHeading), &VP, draw, &modelMat, NTex);
 		renderNavHeading(NavHeading(0.f, VP.NormalHeading + 180), &VP, draw, &modelMat, ANTex);
-		}
+	}
 
 	if (VP.MNDeltaV) {
 		renderNavHeading(VP.Maneuver, &VP, draw, &modelMat, MTex);
@@ -121,8 +104,8 @@ void NavBall::Tick(Draw* draw) {
 	if (VP.HasTarget) {
 		renderNavHeading(VP.Target, &VP, draw, &modelMat, TPGTex);
 		renderNavHeading(NavHeading(-VP.Target.Pitch, VP.Target.Heading + 180), &VP, draw, &modelMat, TRGTex);
-	 }
 	}
+}
 
 void renderNavHeading(NavHeading NH, VesselPacket *VP, Draw* draw, glm::mat4 *modelMat, GLuint Tex) {
 	float tempHeading = glm::radians(NH.Heading);
@@ -137,8 +120,8 @@ void renderNavHeading(NavHeading NH, VesselPacket *VP, Draw* draw, glm::mat4 *mo
 	NavVector = (*modelMat)*  NavVector;
 
 	draw->BindTex2D(Tex);
-	float alpha = NavVector.z > 0 ? 0.3f: 1.f;
-		
+	float alpha = NavVector.z > 0 ? 0.3f : 1.f;
+
 	draw->SetDrawColor2D(1, 1, 1, alpha);
 	draw->DrawRect2D(NavVector.x - 30, NavVector.y - 30, NavVector.x + 30, NavVector.y + 30);
 

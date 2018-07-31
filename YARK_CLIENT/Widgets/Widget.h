@@ -9,11 +9,12 @@ class Widget {
 protected:
 	XY pos;
 	XY size;
-	std::string title;
 	Font* f;
 
 public:
-	Widget(XY pos,XY size,std::string title,Font* f);
-	void Tick(Draw* draw);
+	std::string title;
+	Widget(XY pos, XY size, std::string title, Font* f);
+	void Resize(XY pos, XY size);
+	virtual void Tick(Draw* draw);
 	void RenderWindow(Draw* draw);
 };

@@ -1,0 +1,4 @@
+connect localhost 9999
+winsize 1000 800
+widget open navball 0 0 500 500
+widget resize console 0 500 250 250

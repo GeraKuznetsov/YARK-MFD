@@ -1,0 +1,8 @@
+To build, the project requires the following libraries:
+
+1) SDL2
+2) glew-2.0.0
+3) glm
+4) freetype
+
+Place the libraries here (or somewhere else) edit project's configuration properties as required.

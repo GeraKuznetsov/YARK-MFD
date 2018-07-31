@@ -1,0 +1,2 @@
+The code contained within this folder is a "watered down" version of a openGL wrapper that I may or may not someday release.
+It contains a lot of boilerplate SDL and openGL code, allowing me to start a new openGL project without much of a hassal.

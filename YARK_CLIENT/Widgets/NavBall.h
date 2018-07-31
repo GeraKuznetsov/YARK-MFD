@@ -11,10 +11,9 @@ class NavBall : public Widget {
 	GLuint navballTex;
 	GLuint chevron, PGTex, RGTex, RITex, ROTex, NTex, ANTex, TRGTex, TPGTex, MTex;
 
-	Cam* cam;
 	Client** client;
 public:
 	Window * win;
-	NavBall(XY pos, XY size, std::string title, Font* font, Client** client, Cam* cam);
+	NavBall(XY pos, XY size, std::string title, Font* font, Client** client);
 	void Tick(Draw* draw);
 };
