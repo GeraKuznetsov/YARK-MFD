@@ -8,6 +8,8 @@
 #define CONSOLE_HEIGHT 20
 #define CONSOLE_FONT_SIZE 14
 
+std::vector<std::string> split(const std::string s, char delim);
+
 class Console : public Widget{
 	Font* f;
 	Window* w;

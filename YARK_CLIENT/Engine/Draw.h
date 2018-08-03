@@ -49,6 +49,8 @@ public:
 	void SetTextColor(float r, float g, float b, float a = 1.f);
 	void DrawRect2D(float x1, float y1, float x2, float y2);
 	void DrawRectUV2D(float x1, float y1, float x2, float y2, float u1, float v1, float u2, float v2);
+	void DrawRectUV2D(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3, glm::vec2 p4, glm::vec2 uv1, glm::vec2 uv2, glm::vec2 uv3, glm::vec2 uv4);
+	void DrawLine2D(float x1, float y1, float x2, float y2);
 	void DrawString(Font* f, std::string text, GLfloat x, GLfloat y, GLfloat scale = 1.f);
 	void DrawChar(Font *f, char c, GLfloat x, GLfloat y, GLfloat scale = 1.f);
 };

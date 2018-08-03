@@ -242,3 +242,42 @@ void Draw::DrawRectUV2D(float x1, float y1, float x2, float y2, float u1, float 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glBindVertexArray(0);
 }
+void Draw::DrawRectUV2D(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3, glm::vec2 p4, glm::vec2 uv1, glm::vec2 uv2, glm::vec2 uv3, glm::vec2 uv4) {
+	GLfloat vertices[6][4] = {
+	{ p1.x,p1.y,uv1.x,uv1.y },
+	{ p4.x,p4.y,uv4.x,uv4.y },
+	{ p2.x,p2.y,uv2.x,uv2.y },
+	{ p4.x,p4.y,uv4.x,uv4.y },
+	{ p3.x,p3.y,uv3.x,uv3.y },
+	{ p2.x,p2.y,uv2.x,uv2.y }
+	};
+
+	glBindBuffer(GL_ARRAY_BUFFER, Dyn2DDrawVBOID);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glBindVertexArray(Dyn2DDrawVAOID);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glBindVertexArray(0);
+
+}
+
+void Draw::DrawLine2D(float x1, float y1, float x2, float y2) {
+	GLfloat vertices[6][4] = {
+		{ x1,y1,0.0,0.0 },
+		{ x2,y2,0.0,0.0 },
+		{ 0,0,0.0,0.0 },
+		{ 0,0,0.0,0.0 },
+		{ 0,0,0.0,0.0 },
+		{ 0,0,0.0,0.0 }
+	};
+
+	glBindBuffer(GL_ARRAY_BUFFER, Dyn2DDrawVBOID);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glBindVertexArray(Dyn2DDrawVAOID);
+	glDrawArrays(GL_LINES, 0, 2);
+	glBindVertexArray(0);
+
+}

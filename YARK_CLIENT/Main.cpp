@@ -7,6 +7,14 @@
 #include "Engine\Window.h"
 #include "Widgets\Console.h"
 #include "Widgets\NavBall.h"
+#include "Engine\Cam.h"
+
+#include <sstream>
+#include <algorithm>
+#include <iterator>
+#include <fstream>
+#include <thread>
+#include <iostream>
 
 Client* client;
 Window* win;
@@ -47,7 +55,26 @@ void Tick(float delta, Draw* draw) {
 
 void main() {
 	int error = 0;
+	std::string IP = "localhost", port = "9998";
 	XYi size = XYi{ DEFUALT_WIDTH,DEFUALT_HEIGHT };
+
+	std::ifstream in("config.txt");
+	if (!in) {
+		std::cout << "Cannot open input file.\n";
+	}
+	std::string str;
+	while (std::getline(in, str)) {
+		std::vector<std::string> elems = split(str, ' ');
+		if (!elems[0].compare("IP")) {
+			IP = elems[1];
+			port = elems[2];
+		}
+		else if (!elems[0].compare("winsize")) {
+			size.x = std::stoi(elems[1]);
+			size.y = std::stoi(elems[2]);
+		}
+	}
+
 	win = new Window(size, 0, &error);
 	if (error) {
 		std::cout << "error opening SDL window\n";
@@ -61,9 +88,12 @@ void main() {
 	cam->orthro = true;
 
 
-	console = new Console(XY{ 0,0 }, XY{ DEFUALT_WIDTH,DEFUALT_HEIGHT }, "Console", f, win, &client, &widgets);
+	console = new Console(XY{ 0,0 }, XY{ size.x,size.y }, "Console", f, win, &client, &widgets);
 	widgets.push_back(console);
-	console->command("config config.txt");
+	console->command("config start.txt");
+
+	client = new Client(IP, port);
+
 	win->Run(&Tick);
 
 }

@@ -1,5 +1,6 @@
 #include "Console.h"
 #include "NavBall.h"
+#include "AirGuide.h"
 
 #include <sstream>
 #include <algorithm>
@@ -30,25 +31,7 @@ void Console::command(std::string com) {
 	DispLine(">" + com);
 	colorCur = 0;
 	std::vector<std::string> elems = split(com, ' ');
-	if (!elems[0].compare("connect")) {
-		DispLine("connecting...");
-		(*client) = new Client(elems[1], elems[2]);
-		while ((*client)->state == TCPCLIENT_CONNECTING) {
-
-		}
-		if ((*client)->state == TCPCLIENT_CONNECTED) {
-			colorCur = 2;
-			DispLine("conneced");
-		}
-		else if ((*client)->state == TCPCLIENT_FAILED) {
-			colorCur = 1;
-			DispLine("error: " + (*client)->error);
-			delete (*client);
-			(*client) = NULL;
-		}
-		colorCur = 0;
-	}
-	else if (!elems[0].compare("config")) {
+	if (!elems[0].compare("config")) {
 		std::ifstream in(elems[1]);
 		if (!in) {
 			std::cout << "Cannot open input file.\n";
@@ -58,34 +41,32 @@ void Console::command(std::string com) {
 			command(str);
 		}
 	}
-	else if (!elems[0].compare("winsize")) {
-		XYi size;
-		size.x = std::stoi(elems[1]);
-		size.y = std::stoi(elems[2]);
-		w->SetSize(size);
-	}
-	else if (!elems[0].compare("widget")) {
-		if (!elems[1].compare("open")) {
+	else		if (!elems[0].compare("open")) {
 			XY pos;
-			pos.x = std::stoi(elems[3]);
-			pos.y = std::stoi(elems[4]);
+			pos.x = std::stoi(elems[2]);
+			pos.y = std::stoi(elems[3]);
 			XY size;
-			size.x = std::stoi(elems[5]);
-			size.y = std::stoi(elems[6]);
-			if (!elems[2].compare("navball")) {
+			size.x = std::stoi(elems[4]);
+			size.y = std::stoi(elems[5]);
+			if (!elems[1].compare("navball")) {
 				NavBall* navball = new NavBall(pos, size, "NavBall", f, client);
-				navball->win = w;
+				//navball->win = w;
 				widgets->push_back(navball);
 			}
+			else if (!elems[1].compare("airguide")) {
+				AirGuide* ag = new AirGuide(pos, size, "AirGuide", f, client);
+				//navball->win = w;
+				widgets->push_back(ag);
+			}
 		}
-		else if (!elems[1].compare("resize")) {
+		else if (!elems[0].compare("resize")) {
 			XY pos;
-			pos.x = std::stoi(elems[3]);
-			pos.y = std::stoi(elems[4]);
+			pos.x = std::stoi(elems[2]);
+			pos.y = std::stoi(elems[3]);
 			XY size;
-			size.x = std::stoi(elems[5]);
-			size.y = std::stoi(elems[6]);
-			Widget* w = getWidget(elems[2], widgets);
+			size.x = std::stoi(elems[4]);
+			size.y = std::stoi(elems[5]);
+			Widget* w = getWidget(elems[1], widgets);
 			if (w) {
 				w->Resize(pos, size);
 			}
@@ -93,7 +74,7 @@ void Console::command(std::string com) {
 				std::cout << "null\n";
 			}
 		}
-	}
+
 }
 void Console::commandDetach(std::string com) {
 	std::thread t(&Console::command, this, com);

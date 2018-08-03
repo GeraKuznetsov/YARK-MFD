@@ -53,6 +53,10 @@ void renderNavHeading(NavHeading NH, VesselPacket *DI, Draw* draw, glm::mat4 *mo
 void NavBall::Tick(Draw* draw) {
 	RenderWindow(draw);
 
+	draw->BindDraw2DShader();
+	draw->SetDrawColor2D(0, 0, 0);
+	draw->DrawRect2D(pos.x, pos.y, pos.x + size.x, pos.y + size.y);
+
 	VesselPacket VP = (*client) ? (*client)->vesselPacket : VesselPacket();
 
  	glActiveTexture(GL_TEXTURE0);
