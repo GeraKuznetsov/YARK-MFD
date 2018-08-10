@@ -102,7 +102,7 @@ void Client::TCPClientRun(std::string IP, std::string PORT) {
 	do {
 		iResult = recv(ConnectSocket, (char*)&hed, sizeof(Header), 0);
 		if (iResult > 0) {
-			if (hed.HEADER_0 == (char)0xDE && hed.HEADER_1 == (char)0xAD) {
+			if (hed.HEADER_0 == (char)0xC4) {
 				if (hed.packetType == (char)1) {
 					recv(ConnectSocket, (char*)&statusPacket, sizeof(StatusPacket), 0);
 				}
@@ -112,7 +112,7 @@ void Client::TCPClientRun(std::string IP, std::string PORT) {
 			}
 			else {
 				std::cout << "malformed packet\n:";
-				std::cout << (int)hed.HEADER_0 << " : " << (int)hed.HEADER_1 << "\n";
+				std::cout << (int)hed.HEADER_0  << "\n";
 			}
 		}
 		else if (iResult == 0) {
@@ -136,8 +136,7 @@ Client::Client(std::string IP, std::string PORT)
 	memset((char*)&ControlPacket, 0, sizeof(ControlPacket));
 	memset((char*)&vesselPacket, 0, sizeof(vesselPacket));
 	memset((char*)&statusPacket, 0, sizeof(statusPacket));
-	ControlPacket.HEADER_0 = 0xDE;
-	ControlPacket.HEADER_1 = 0xAD;
+	ControlPacket.HEADER_0 = 0xC4;
 	ControlPacket.ID = 0;
 	recLoop = std::thread(&Client::TCPClientRun, this, IP, PORT);
 	recLoop.detach();

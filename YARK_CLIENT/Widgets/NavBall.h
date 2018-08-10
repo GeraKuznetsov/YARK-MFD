@@ -6,12 +6,11 @@
 #include "../Engine/Draw.h"
 
 class NavBall : public Widget {
-	GLuint vao, vbo, shader, proj, model, rot;
+	GLuint vao, vbo, shader, proj, modelUnif, rotUnif;
 	GLuint navballTex;
 	GLuint chevron, PGTex, RGTex, RITex, ROTex, NTex, ANTex, TRGTex, TPGTex, MTex;
 
-	Client** client;
 public:
-	NavBall(XY pos, XY size, std::string title, Font* font, Client** client);
+	NavBall(WidgetStuff ws);
 	void Tick(Draw* draw);
 };

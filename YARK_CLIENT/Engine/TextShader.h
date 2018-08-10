@@ -8,11 +8,12 @@
 class TextShader {
 public:
 	GLuint shaderID;
-	int unifColor, unifOrthro;
+	int unifColor, unifOrthro, unifview;
 	int orthroMatID = -1;
 
 	TextShader(GLuint shader);
 	TextShader(const GLchar* vertexPath, const GLchar* fragmentPath);
 	~TextShader();
+	void SetView(glm::mat4 view);
 	void SetColor(float r, float g, float b, float a = 1.f);
 };

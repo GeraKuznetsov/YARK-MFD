@@ -1,3 +1,6 @@
+//dont show le console
+#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
+
 #include <iostream>
 #include "Client\Client.h"
 #include <iostream>
@@ -27,7 +30,6 @@ std::vector<Widget*> widgets;
 #define DEFUALT_HEIGHT 600
 
 Console* console;
-//NavBall* navball;
 
 #include "Command.h"
 
@@ -47,10 +49,13 @@ void Tick(float delta, Draw* draw) {
 
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
+	glEnable(GL_SCISSOR_TEST);
 
 	for (int i = 0; i < widgets.size(); i++) {
+		glScissor(0, 0, win->size.x, win->size.y);
 		widgets[i]->Tick(draw);
 	}
+	glScissor(0, 0, win->size.x, win->size.y);
 }
 
 void main() {
@@ -87,13 +92,11 @@ void main() {
 	cam->fov = glm::radians(45.f);
 	cam->orthro = true;
 
-
-	console = new Console(XY{ 0,0 }, XY{ size.x,size.y }, "Console", f, win, &client, &widgets);
+	console = new Console(WidgetStuff{ XY{ 0,0 }, XY{ size.x,size.y }, "Console", f, win, &client }, &widgets);
 	widgets.push_back(console);
 	console->command("config start.txt");
 
 	client = new Client(IP, port);
-
 	win->Run(&Tick);
 
 }

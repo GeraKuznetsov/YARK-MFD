@@ -24,7 +24,6 @@
 struct ControlPacket
 {
 	int8_t HEADER_0;
-	int8_t HEADER_1;
 
 	int64_t ID;
 	int8_t MainControls;                  //SAS RCS Lights Gear Brakes Precision Abort Stage 
@@ -45,7 +44,6 @@ struct ControlPacket
 
 struct Header {
 	int8_t HEADER_0;
-	int8_t HEADER_1;
 	int8_t packetType;
 };
 

@@ -135,7 +135,8 @@
     <ClCompile Include="lodepng\lodepng.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Client\Client.cpp" />
-    <ClCompile Include="Widgets\AirGuide.cpp" />
+    <ClCompile Include="Widgets\AtitudeIndicator.cpp" />
+    <ClCompile Include="Widgets\AirMap.cpp" />
     <ClCompile Include="Widgets\Console.cpp" />
     <ClCompile Include="Widgets\NavBall.cpp" />
     <ClCompile Include="Widgets\Widget.cpp" />
@@ -154,7 +155,8 @@
     <ClInclude Include="Engine\Window.h" />
     <ClInclude Include="lodepng\lodepng.h" />
     <ClInclude Include="Client\Client.h" />
-    <ClInclude Include="Widgets\AirGuide.h" />
+    <ClInclude Include="Widgets\AtitudeIndicator.h" />
+    <ClInclude Include="Widgets\AirMap.h" />
     <ClInclude Include="Widgets\Console.h" />
     <ClInclude Include="Widgets\NavBall.h" />
     <ClInclude Include="Widgets\Widget.h" />

@@ -1,6 +1,7 @@
 #include "Console.h"
 #include "NavBall.h"
-#include "AirGuide.h"
+#include "AirMap.h"
+#include "AtitudeIndicator.h"
 
 #include <sstream>
 #include <algorithm>
@@ -41,49 +42,49 @@ void Console::command(std::string com) {
 			command(str);
 		}
 	}
-	else		if (!elems[0].compare("open")) {
-			XY pos;
-			pos.x = std::stoi(elems[2]);
-			pos.y = std::stoi(elems[3]);
-			XY size;
-			size.x = std::stoi(elems[4]);
-			size.y = std::stoi(elems[5]);
-			if (!elems[1].compare("navball")) {
-				NavBall* navball = new NavBall(pos, size, "NavBall", f, client);
-				//navball->win = w;
-				widgets->push_back(navball);
-			}
-			else if (!elems[1].compare("airguide")) {
-				AirGuide* ag = new AirGuide(pos, size, "AirGuide", f, client);
-				//navball->win = w;
-				widgets->push_back(ag);
-			}
+	else if (!elems[0].compare("open")) {
+		XY pos;
+		pos.x = std::stoi(elems[2]);
+		pos.y = std::stoi(elems[3]);
+		XY size;
+		size.x = std::stoi(elems[4]);
+		size.y = std::stoi(elems[5]);
+		if (!elems[1].compare("navball")) {
+			NavBall* navball = new NavBall(WidgetStuff{ pos, size, "NavBall", f, win , client });
+			widgets->push_back(navball);
 		}
-		else if (!elems[0].compare("resize")) {
-			XY pos;
-			pos.x = std::stoi(elems[2]);
-			pos.y = std::stoi(elems[3]);
-			XY size;
-			size.x = std::stoi(elems[4]);
-			size.y = std::stoi(elems[5]);
-			Widget* w = getWidget(elems[1], widgets);
-			if (w) {
-				w->Resize(pos, size);
-			}
-			else {
-				std::cout << "null\n";
-			}
+		else if (!elems[1].compare("airmap")) {
+			AirMap* ag = new AirMap(WidgetStuff{ pos, size, "Air Map", f, win, client });
+			widgets->push_back(ag);
 		}
+		else if (!elems[1].compare("ati-in")) {
+			AtitudeIndicator* navball = new AtitudeIndicator(WidgetStuff{ pos, size, "Atitude Indicator", f, win, client });
+			widgets->push_back(navball);
+		}
+	}
+	else if (!elems[0].compare("resize")) {
+		XY pos;
+		pos.x = std::stoi(elems[2]);
+		pos.y = std::stoi(elems[3]);
+		XY size;
+		size.x = std::stoi(elems[4]);
+		size.y = std::stoi(elems[5]);
+		Widget* w = getWidget(elems[1], widgets);
+		if (w) {
+			w->Resize(pos, size);
+		}
+		else {
+			std::cout << "null\n";
+		}
+	}
 
 }
 void Console::commandDetach(std::string com) {
 	std::thread t(&Console::command, this, com);
 	t.detach();
 }
-Console::Console(XY pos, XY size, std::string title, Font* font, Window* win, Client** client, std::vector<Widget*> *widgets) :Widget(pos, size, title, font) {
-	w = win;
+Console::Console(WidgetStuff ws, std::vector<Widget*> *widgets) :Widget(ws) {
 	this->widgets = widgets;
-	this->client = client;
 	f = new Font(16, 16, "C:\\Windows\\Fonts\\lucon.ttf");
 	for (int y = 0; y < CONSOLE_HEIGHT; y++) {
 		for (int x = 0; x < CONSOLE_WIDTH; x++) {
@@ -96,36 +97,56 @@ Console::Console(XY pos, XY size, std::string title, Font* font, Window* win, Cl
 	curPos = 0;
 }
 void Console::Tick(Draw* draw) {
-	RenderWindow(draw);
-	/*	if (curPos < CONSOLE_WIDTH) {
-		for (int i = SDL_SCANCODE_A; i <= SDL_SCANCODE_Z; i++) {
-			if (w->KeyRepeating(i)) {
-				type[curPos] = (i - SDL_SCANCODE_A + 'A');
-				curPos++;
-			}
-		}
-		for (int i = SDL_SCANCODE_0; i <= SDL_SCANCODE_9; i++) {
-			if (w->KeyRepeating(i)) {
-				type[curPos] = (i - SDL_SCANCODE_0 + '0');
-				curPos++;
-			}
-		}
-		if (w->KeyRepeating(SDL_SCANCODE_SPACE)) {
-			type[curPos] = ' ';
-			curPos++;
+	WindowUpdate(draw);
+	if (mouseInWindow) {
+		if (win->MouseClicked(SDL_BUTTON_LEFT)) {
+			focus = true;
 		}
 	}
-	if (curPos != 0) {
-		if (w->KeyRepeating(SDL_SCANCODE_BACKSPACE)) {
-			curPos--;
-			type[curPos] = 0;
+	else {
+		if (win->MouseDown(SDL_BUTTON_LEFT)) {
+			focus = false;
 		}
-		if (w->KeyTyped(SDL_SCANCODE_RETURN)) {
-			command(std::string(type));
-			memset(type, 0, CONSOLE_WIDTH);
-			curPos = 0;
+	}
+	if (focus) {
+		if (curPos < CONSOLE_WIDTH) {
+			for (int i = SDL_SCANCODE_A; i <= SDL_SCANCODE_Z; i++) {
+				if (win->KeyRepeating(i)) {
+					type[curPos] = (i - SDL_SCANCODE_A + 'a');
+					curPos++;
+				}
+			}
+			for (int i = SDL_SCANCODE_1; i <= SDL_SCANCODE_9; i++) {
+				if (win->KeyRepeating(i)) {
+					type[curPos] = (i - SDL_SCANCODE_1 + '1');
+					curPos++;
+				}
+			}
+			if (win->KeyRepeating(SDL_SCANCODE_0)) {
+				type[curPos] = '0';
+				curPos++;
+			}
+			if (win->KeyRepeating(SDL_SCANCODE_PERIOD) ){
+				type[curPos] = '.';
+				curPos++;
+			}
+			if (win->KeyRepeating(SDL_SCANCODE_SPACE)) {
+				type[curPos] = ' ';
+				curPos++;
+			}
 		}
-	}*/
+		if (curPos != 0) {
+			if (win->KeyRepeating(SDL_SCANCODE_BACKSPACE)) {
+				curPos--;
+				type[curPos] = 0;
+			}
+			if (win->KeyTyped(SDL_SCANCODE_RETURN)) {
+				command(std::string(type));
+				memset(type, 0, CONSOLE_WIDTH);
+				curPos = 0;
+			}
+		}
+	}
 
 	draw->BindTextShader();
 	for (int y = 0; y < CONSOLE_HEIGHT; y++) {
@@ -140,7 +161,7 @@ void Console::Tick(Draw* draw) {
 			else if (col == 2) {
 				draw->SetTextColor(0, 1, 0);
 			}
-			draw->DrawChar(f, data[(CONSOLE_HEIGHT - 1 - y)*CONSOLE_WIDTH + x], pos.x + x * CONSOLE_FONT_SIZE, pos.y + size.y - y * CONSOLE_FONT_SIZE);
+			draw->DrawChar(f, data[(CONSOLE_HEIGHT - 1 - y)*CONSOLE_WIDTH + x], pos.x + x * CONSOLE_FONT_SIZE, pos.y + size.y - y * CONSOLE_FONT_SIZE - CONSOLE_FONT_SIZE);
 		}
 	}
 
@@ -150,11 +171,14 @@ void Console::Tick(Draw* draw) {
 		if (type[x] == 0) {
 			break;
 		}
-		draw->DrawChar(f, type[x], pos.x + x * CONSOLE_FONT_SIZE, pos.y + CONSOLE_HEIGHT * CONSOLE_FONT_SIZE);
+		draw->DrawChar(f, type[x], pos.x + x * CONSOLE_FONT_SIZE, pos.y + size.y);
 	}
-	draw->DrawChar(f, '_', pos.x + x * CONSOLE_FONT_SIZE, pos.y + CONSOLE_HEIGHT * CONSOLE_FONT_SIZE);
+	draw->DrawChar(f, '_', pos.x + x * CONSOLE_FONT_SIZE, pos.y + size.y);
 }
 void Console::DispLine(std::string text) {
+	if (text.length() > CONSOLE_WIDTH) {
+		text = text.substr(0, CONSOLE_WIDTH);
+	}
 	memcpy(data, data + CONSOLE_WIDTH, CONSOLE_HEIGHT*CONSOLE_WIDTH - CONSOLE_WIDTH);
 	memset(data + CONSOLE_HEIGHT * CONSOLE_WIDTH - CONSOLE_WIDTH, ' ', CONSOLE_WIDTH);
 	memcpy(data + CONSOLE_HEIGHT * CONSOLE_WIDTH - CONSOLE_WIDTH, text.data(), text.length());

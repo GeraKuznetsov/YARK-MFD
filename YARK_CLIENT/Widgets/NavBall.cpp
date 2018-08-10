@@ -1,22 +1,22 @@
 #include "NavBall.h"
 #include <iostream>
+
 #define BORDER_SCALE 1.05f
 
-NavBall::NavBall(XY pos, XY size, std::string title, Font* font, Client** client) : Widget(pos, size, title, font) {
-	this->client = client;
-	shader = LoadRawShader("Shaders/sphere.vert", "Shaders/sphere.frag");
+NavBall::NavBall(WidgetStuff ws) : Widget(ws) {
+		shader = LoadRawShader("Shaders/sphere.vert", "Shaders/sphere.frag");
 	glUseProgram(shader);
 	proj = glGetUniformLocation(shader, "proj");
-	model = glGetUniformLocation(shader, "model");
-	rot = glGetUniformLocation(shader, "rot");
+	modelUnif = glGetUniformLocation(shader, "model");
+	rotUnif = glGetUniformLocation(shader, "rot");
 
 	GLfloat vertices[6][2] = {
-		{-1.f*BORDER_SCALE,-1.f*BORDER_SCALE },
-		{ -1.f*BORDER_SCALE,1.f*BORDER_SCALE},
-		{ 1.f*BORDER_SCALE,-1.f*BORDER_SCALE},
-		{ 1.f*BORDER_SCALE,-1.f*BORDER_SCALE},
-		{ -1.f*BORDER_SCALE,1.f*BORDER_SCALE},
-		{ 1.f*BORDER_SCALE,1.f*BORDER_SCALE }
+		{ -1.f*BORDER_SCALE,-1.f*BORDER_SCALE },
+	{ -1.f*BORDER_SCALE,1.f*BORDER_SCALE },
+	{ 1.f*BORDER_SCALE,-1.f*BORDER_SCALE },
+	{ 1.f*BORDER_SCALE,-1.f*BORDER_SCALE },
+	{ -1.f*BORDER_SCALE,1.f*BORDER_SCALE },
+	{ 1.f*BORDER_SCALE,1.f*BORDER_SCALE }
 	};
 
 	glGenBuffers(1, &vbo);
@@ -30,7 +30,6 @@ NavBall::NavBall(XY pos, XY size, std::string title, Font* font, Client** client
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(0);
 	glBindVertexArray(0);
-
 
 	navballTex = loadTexture("Tex/navball/navball.png");
 	chevron = loadTexture("Tex/navball/chevron.png");
@@ -51,7 +50,7 @@ NavBall::NavBall(XY pos, XY size, std::string title, Font* font, Client** client
 
 void renderNavHeading(NavHeading NH, VesselPacket *DI, Draw* draw, glm::mat4 *modelMat, GLuint Tex);
 void NavBall::Tick(Draw* draw) {
-	RenderWindow(draw);
+	WindowUpdate(draw);
 
 	draw->BindDraw2DShader();
 	draw->SetDrawColor2D(0, 0, 0);
@@ -59,25 +58,25 @@ void NavBall::Tick(Draw* draw) {
 
 	VesselPacket VP = (*client) ? (*client)->vesselPacket : VesselPacket();
 
- 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, navballTex);
-
-	float rad = (size.x - 200) / 2;
-
-	glUseProgram(shader);
-	SetShaderMat4(proj, draw->GetOrthroMat());
+	float rad = (size.x - 50) / 2;
 
 	glm::mat4 modelMat = glm::mat4(1);
 	modelMat = glm::translate(modelMat, glm::vec3(pos.x + size.x / 2, pos.y + size.y / 2, 1));
 	modelMat = glm::scale(modelMat, glm::vec3(rad / BORDER_SCALE, rad / BORDER_SCALE, rad / BORDER_SCALE));
-	SetShaderMat4(model, modelMat);
 
 	glm::mat4 rotMat = glm::mat4(1);
 	rotMat = glm::rotate(rotMat, glm::radians(-VP.Heading + 90), glm::vec3(0, 0, 1));
 	rotMat = glm::rotate(rotMat, glm::radians(VP.Pitch - 90), glm::vec3(1, 0, 0));
 	rotMat = rotMat * glm::rotate(glm::mat4(1), glm::radians(-VP.Roll), glm::vec3(0, 0, 1));
 
-	SetShaderMat4(rot, rotMat);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, navballTex);
+	glUseProgram(shader);
+	SetShaderMat4(proj, draw->GetOrthroMat());
+
+	SetShaderMat4(modelUnif, modelMat);
+
+	SetShaderMat4(rotUnif, rotMat);
 
 	glBindVertexArray(vao); //DRAW NAVBALL
 	glDrawArrays(GL_TRIANGLES, 0, 6);
