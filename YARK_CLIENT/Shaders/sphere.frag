@@ -25,7 +25,7 @@ void main(){
 			
 		uv.x = uv.x / 2;
 		uv.x = 1 - uv.x;
-		uv.y = uv.y/2;
+		uv.y = uv.y;
 			
 		col = texture2D(tex,uv);
 

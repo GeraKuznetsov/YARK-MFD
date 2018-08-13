@@ -21,6 +21,7 @@
 #define AG_9 1 << 9
 #define AG_10 1 << 10
 
+
 struct ControlPacket
 {
 	int8_t HEADER_0;

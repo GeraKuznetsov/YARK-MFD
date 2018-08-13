@@ -2,13 +2,15 @@
 #include "NavBall.h"
 #include "AirMap.h"
 #include "AtitudeIndicator.h"
-
+#include "SoyuzNavball.h"
 #include <sstream>
 #include <algorithm>
 #include <iterator>
 #include <fstream>
 #include <thread>
 #include <iostream>
+
+extern std::vector<Widget*> widgets;
 
 std::vector<std::string> split(const std::string s, char delim) {
 	std::istringstream iss(s);
@@ -17,12 +19,12 @@ std::vector<std::string> split(const std::string s, char delim) {
 	return tokens;
 }
 
-Widget* getWidget(std::string s, std::vector<Widget*> *widgets) {
-	for (int i = 0; i < widgets->size(); i++) {
-		std::string tit = (*widgets)[i]->title;
+Widget* getWidget(std::string s) {
+	for (int i = 0; i < widgets.size(); i++) {
+		std::string tit = widgets[i]->title;
 		std::transform(tit.begin(), tit.end(), tit.begin(), ::tolower);
 		if (!tit.compare(s)) {
-			return (*widgets)[i];
+			return widgets[i];
 		}
 	}
 	return 0;
@@ -42,6 +44,20 @@ void Console::command(std::string com) {
 			command(str);
 		}
 	}
+	else if (!elems[0].compare("savestate")) {
+		std::ofstream output("start.txt");
+		for (int i = 0; i < widgets.size(); i++) {
+			std::string out;
+			if ((void*)(widgets[i]) == (void*)this) {
+				out = "resize " + getSaveParams();
+			}
+			else {
+				out = "open " + widgets[i]->getSaveParams();
+			}
+			output.write(out.c_str(), out.size());
+		}
+		output.close();
+	}
 	else if (!elems[0].compare("open")) {
 		XY pos;
 		pos.x = std::stoi(elems[2]);
@@ -50,16 +66,20 @@ void Console::command(std::string com) {
 		size.x = std::stoi(elems[4]);
 		size.y = std::stoi(elems[5]);
 		if (!elems[1].compare("navball")) {
-			NavBall* navball = new NavBall(WidgetStuff{ pos, size, "NavBall", f, win , client });
-			widgets->push_back(navball);
+			NavBall* navball = new NavBall(WidgetStuff{ pos, size, "NavBall", f, win , client, TL,"navball" });
+			widgets.push_back(navball);
 		}
 		else if (!elems[1].compare("airmap")) {
-			AirMap* ag = new AirMap(WidgetStuff{ pos, size, "Air Map", f, win, client });
-			widgets->push_back(ag);
+			AirMap* ag = new AirMap(WidgetStuff{ pos, size, "Air Map", f, win, client, TL,"airmap" });
+			widgets.push_back(ag);
 		}
 		else if (!elems[1].compare("ati-in")) {
-			AtitudeIndicator* navball = new AtitudeIndicator(WidgetStuff{ pos, size, "Atitude Indicator", f, win, client });
-			widgets->push_back(navball);
+			AtitudeIndicator* navball = new AtitudeIndicator(WidgetStuff{ pos, size, "Atitude Indicator", f, win, client, TL,"ati-in" });
+			widgets.push_back(navball);
+		}
+		else if (!elems[1].compare("soyuznavball")) {
+			SoyuzNavBall* navball = new SoyuzNavBall(WidgetStuff{ pos, size, "Soyuz NavBall", f, win, client, TL,"soyuznavball" });
+			widgets.push_back(navball);
 		}
 	}
 	else if (!elems[0].compare("resize")) {
@@ -69,7 +89,7 @@ void Console::command(std::string com) {
 		XY size;
 		size.x = std::stoi(elems[4]);
 		size.y = std::stoi(elems[5]);
-		Widget* w = getWidget(elems[1], widgets);
+		Widget* w = getWidget(elems[1]);
 		if (w) {
 			w->Resize(pos, size);
 		}
@@ -83,8 +103,7 @@ void Console::commandDetach(std::string com) {
 	std::thread t(&Console::command, this, com);
 	t.detach();
 }
-Console::Console(WidgetStuff ws, std::vector<Widget*> *widgets) :Widget(ws) {
-	this->widgets = widgets;
+Console::Console(WidgetStuff ws) :Widget(ws) {
 	f = new Font(16, 16, "C:\\Windows\\Fonts\\lucon.ttf");
 	for (int y = 0; y < CONSOLE_HEIGHT; y++) {
 		for (int x = 0; x < CONSOLE_WIDTH; x++) {

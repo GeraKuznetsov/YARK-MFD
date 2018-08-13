@@ -129,6 +129,7 @@
     <ClCompile Include="Engine\Draw3DShader.cpp" />
     <ClCompile Include="Engine\Font.cpp" />
     <ClCompile Include="Engine\Shader.cpp" />
+    <ClCompile Include="Engine\Sound.cpp" />
     <ClCompile Include="Engine\TextShader.cpp" />
     <ClCompile Include="Engine\Texture.cpp" />
     <ClCompile Include="Engine\Window.cpp" />
@@ -139,26 +140,31 @@
     <ClCompile Include="Widgets\AirMap.cpp" />
     <ClCompile Include="Widgets\Console.cpp" />
     <ClCompile Include="Widgets\NavBall.cpp" />
+    <ClCompile Include="Widgets\SoyuzNavBall.cpp" />
+    <ClCompile Include="Widgets\Util\TextureLoader.cpp" />
     <ClCompile Include="Widgets\Widget.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Client\Structs.h" />
-    <ClInclude Include="Command.h" />
     <ClInclude Include="Engine\Cam.h" />
     <ClInclude Include="Engine\Draw.h" />
     <ClInclude Include="Engine\Draw2DShader.h" />
     <ClInclude Include="Engine\Draw3DShader.h" />
     <ClInclude Include="Engine\Font.h" />
     <ClInclude Include="Engine\Shader.h" />
+    <ClInclude Include="Engine\Sound.h" />
     <ClInclude Include="Engine\TextShader.h" />
     <ClInclude Include="Engine\Texture.h" />
     <ClInclude Include="Engine\Window.h" />
     <ClInclude Include="lodepng\lodepng.h" />
     <ClInclude Include="Client\Client.h" />
+    <ClInclude Include="AltiMeter.h" />
     <ClInclude Include="Widgets\AtitudeIndicator.h" />
     <ClInclude Include="Widgets\AirMap.h" />
     <ClInclude Include="Widgets\Console.h" />
     <ClInclude Include="Widgets\NavBall.h" />
+    <ClInclude Include="Widgets\SoyuzNavball.h" />
+    <ClInclude Include="Widgets\Util\TextureLoader.h" />
     <ClInclude Include="Widgets\Widget.h" />
   </ItemGroup>
   <ItemGroup>

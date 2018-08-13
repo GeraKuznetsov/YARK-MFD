@@ -1,19 +1,16 @@
 #pragma once
 #include "../Engine/Window.h"
 #include "../Client/Client.h"
-
-struct XY {
-	int x, y;
-};
+#include "Util\TextureLoader.h"
 
 struct WidgetStuff {
-	XY pos; XY size; std::string title; Font* f; Window* win; Client** client;
+	XY pos; XY size; std::string title; Font* f; Window* win; Client** client; TextureLoader *TL;  std::string startUpName;
 };
 
 class Widget {
-private: 
+private:
 	bool drag;
-	XYi windowDragStart; 
+	XY windowDragStart;
 	XY windowPosDragStart;
 protected:
 	XY pos;
@@ -22,10 +19,13 @@ protected:
 	Window* win;
 	Client** client;
 	bool mouseInWindow;
+	TextureLoader *TL;
+	std::string startUpName;
 public:
 	std::string title;
 	Widget(WidgetStuff ws);
 	void Resize(XY pos, XY size);
 	virtual void Tick(Draw* draw);
 	void WindowUpdate(Draw* draw);
+	std::string getSaveParams();
 };

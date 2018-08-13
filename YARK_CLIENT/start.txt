@@ -1,4 +1,4 @@
-open airmap 0 0 400 400
-open ati-in 400 0 400 400
-open navball 400 400 400 400
+open navball 0 0 400 400
+open soyuznavball 400 0 400 400
+open airmap 400 400 400 400
 resize console 0 400 400 400

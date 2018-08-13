@@ -16,11 +16,10 @@ class Console : public Widget{
 	char type[CONSOLE_WIDTH];
 	char color[CONSOLE_WIDTH * CONSOLE_HEIGHT];
 	char curPos;
-	std::vector<Widget*> *widgets;
 	bool focus;
 public:
 	char colorCur;
-	Console(WidgetStuff ws, std::vector<Widget*> *widgets);
+	Console(WidgetStuff ws);
 	void command(std::string com);
 	void commandDetach(std::string com);
 	void Tick(Draw* draw);

@@ -6,10 +6,14 @@
 #define VSYNC 1
 #define sout(x) std::cout << x << "\n"
 
-Window::Window(XYi s, int flags, int* error) {
+Window::Window(XY s, int flags, int* error) {
 	size = s;
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 		std::cout << "SDL cannot init with error " << SDL_GetError() << std::endl;
+		*error = 1;
+		return;
+	}
+	if (SDL_Init(SDL_INIT_AUDIO) < 0) {
 		*error = 1;
 		return;
 	}
@@ -85,7 +89,7 @@ Window::Window(XYi s, int flags, int* error) {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glViewport(0, 0, size.x, size.y);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	MouseScroll = mouseXY = mouseDXY = XYi{ 0,0 };
+	MouseScroll = mouseXY = mouseDXY = XY{ 0,0 };
 	targetRate = 0;
 	draw = new Draw(size.x, size.y);
 	*error = 0;
@@ -141,14 +145,14 @@ void Window::Run(void(*tick)(float delta, Draw* draw)) {
 			case SDL_MOUSEMOTION:
 				//mouseDXY = (mouseDXY - MouseXY)  + &XYi{ sdlEvent.motion.x, sdlEvent.motion.y } ;
 				//mouseDXY = mouseDXY + XYi{ sdlEvent.motion.x, sdlEvent.motion.y } -mouseXY;
-				mouseDXY = XYi{ sdlEvent.motion.xrel,sdlEvent.motion.yrel };
-				mouseXY = XYi{ sdlEvent.motion.x, sdlEvent.motion.y };
+				mouseDXY = XY{ sdlEvent.motion.xrel,sdlEvent.motion.yrel };
+				mouseXY = XY{ sdlEvent.motion.x, sdlEvent.motion.y };
 				break;
 			case SDL_MOUSEBUTTONDOWN:
 				mouseDown[sdlEvent.button.button] = true;
 				break;
 			case SDL_MOUSEWHEEL:
-				MouseScroll = MouseScroll + XYi{ sdlEvent.wheel.x ,sdlEvent.wheel.y };
+				MouseScroll = MouseScroll + XY{ sdlEvent.wheel.x ,sdlEvent.wheel.y };
 				break;
 			case SDL_WINDOWEVENT:
 				switch (sdlEvent.window.event) {
@@ -245,7 +249,7 @@ bool Window::MouseDoubleClicked(int button) {
 void Window::SetShowCursor(bool b) {
 	SDL_ShowCursor(SDL_DISABLE);
 }*/
-void Window::SetSize(XYi size) {
+void Window::SetSize(XY size) {
 	SDL_SetWindowSize(gWindow, size.x, size.y);
 }
 int Window::MouseX()
@@ -268,21 +272,21 @@ int Window::MouseDY()
 	mouseDXY.y = 0;
 	return ret;
 }
-XYi Window::MouseXY()
+XY Window::MouseXY()
 {
 	return mouseXY;
 }
-XYi Window::MouseDXY()
+XY Window::MouseDXY()
 {
-	XYi ret = mouseDXY;
-	mouseDXY = XYi{ 0,0 };
+	XY ret = mouseDXY;
+	mouseDXY = XY{ 0,0 };
 	return ret;
 }
-XYi Window::getMouseWheelDelta() {
-	XYi ret = MouseScroll;
-	MouseScroll = XYi{ 0,0 };
+XY Window::getMouseWheelDelta() {
+	XY ret = MouseScroll;
+	MouseScroll = XY{ 0,0 };
 	return ret;
 }
-XYi  Window::getSize() {
+XY  Window::getSize() {
 	return  size;
 }

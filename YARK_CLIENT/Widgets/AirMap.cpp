@@ -9,7 +9,6 @@ AirMap::AirMap(WidgetStuff ws) :Widget(ws) {
 	longLatFixed = true;
 	zoom = 50;
 
-	kerbinMap = loadTexture("Tex/map/kerbin.png", false);
 	Target tar;
 	tar.start = wayPoint{ glm::vec2{ -74.726413 ,-0.0485981},67.f };
 	tar.stop = wayPoint{ glm::vec2{ -74.490867 ,-0.050185}, 67 };
@@ -73,6 +72,10 @@ void AirMap::Tick(Draw* draw) {
 	WindowUpdate(draw);
 
 	VesselPacket VP = (*client) ? (*client)->vesselPacket : VesselPacket();
+
+	if (lastSOI != VP.SOINumber) {
+		mapTexture = TL->getPlanetTexture(lastSOI = VP.SOINumber);
+	}
 
 	if (mouseInWindow) {
 		if (win->MouseDoubleClicked(SDL_BUTTON_MIDDLE)) {
@@ -144,13 +147,13 @@ void AirMap::Tick(Draw* draw) {
 	draw->BindDraw2DShader();
 	draw->SetDrawColor2D(0, 0, 0);
 	draw->DrawRect2D(pos.x, pos.y, pos.x + size.x, pos.y + size.y);
-	draw->BindTex2D(kerbinMap);
+	draw->BindTex2D(mapTexture);
 	draw->SetDrawColor2D(1, 1, 1);
 	draw->DrawRectUV2D(p1 + cntr, p2 + cntr, p3 + cntr, p4 + cntr, uv1, uv2, uv3, uv4);
 	draw->BindTex2D(0);
 
 
-	draw->SetDrawColor2D(0, 0, 1, 0.5);
+	draw->SetDrawColor2D(0, 0, 1, 0.5); //DRAW CROSSHAIRS
 	draw->DrawRect2D(pos.x, pos.y + size.y / 2 - CROSS_WIDTH, pos.x + size.x, pos.y + size.y / 2 + CROSS_WIDTH);
 	draw->SetDrawColor2D(1, 0, 0, 0.5);
 	draw->DrawRect2D(pos.x + size.x / 2 - CROSS_WIDTH, pos.y, pos.x + size.x / 2 + CROSS_WIDTH, pos.y + size.y);

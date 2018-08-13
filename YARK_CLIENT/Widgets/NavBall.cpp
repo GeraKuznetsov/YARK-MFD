@@ -1,10 +1,10 @@
 #include "NavBall.h"
 #include <iostream>
 
-#define BORDER_SCALE 1.05f
+SphereDraw *NavBall::SD;
 
-NavBall::NavBall(WidgetStuff ws) : Widget(ws) {
-		shader = LoadRawShader("Shaders/sphere.vert", "Shaders/sphere.frag");
+SphereDraw::SphereDraw() {
+	shader = LoadRawShader("Shaders/sphere.vert", "Shaders/sphere.frag");
 	glUseProgram(shader);
 	proj = glGetUniformLocation(shader, "proj");
 	modelUnif = glGetUniformLocation(shader, "model");
@@ -30,7 +30,9 @@ NavBall::NavBall(WidgetStuff ws) : Widget(ws) {
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(0);
 	glBindVertexArray(0);
+}
 
+void NavBall::LoadNavBallTextures() {
 	navballTex = loadTexture("Tex/navball/navball.png");
 	chevron = loadTexture("Tex/navball/chevron.png");
 	PGTex = loadTexture("Tex/navball/PG.png");
@@ -44,11 +46,34 @@ NavBall::NavBall(WidgetStuff ws) : Widget(ws) {
 	MTex = loadTexture("Tex/navball/M.png");
 }
 
+NavBall::NavBall(WidgetStuff ws) : Widget(ws) {
+	if (!NavBall::SD) {
+		NavBall::SD = new SphereDraw();
+	}
+	LoadNavBallTextures();
+}
+
 #define GLM_ENABLE_EXPERIMENTAL
 #include "gtc\matrix_transform.hpp"
 #include "gtx/rotate_vector.hpp"
 
+void SphereDraw::DrawSphere(Draw *draw, GLuint texture, glm::mat4 modelMat, glm::mat4 rotMat) {
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glUseProgram(shader);
+	SetShaderMat4(proj, draw->GetOrthroMat());
+
+	SetShaderMat4(modelUnif, modelMat);
+
+	SetShaderMat4(rotUnif, rotMat);
+
+	glBindVertexArray(vao); //DRAW NAVBALL
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glBindVertexArray(0);
+}
+
 void renderNavHeading(NavHeading NH, VesselPacket *DI, Draw* draw, glm::mat4 *modelMat, GLuint Tex);
+
 void NavBall::Tick(Draw* draw) {
 	WindowUpdate(draw);
 
@@ -69,18 +94,7 @@ void NavBall::Tick(Draw* draw) {
 	rotMat = glm::rotate(rotMat, glm::radians(VP.Pitch - 90), glm::vec3(1, 0, 0));
 	rotMat = rotMat * glm::rotate(glm::mat4(1), glm::radians(-VP.Roll), glm::vec3(0, 0, 1));
 
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, navballTex);
-	glUseProgram(shader);
-	SetShaderMat4(proj, draw->GetOrthroMat());
-
-	SetShaderMat4(modelUnif, modelMat);
-
-	SetShaderMat4(rotUnif, rotMat);
-
-	glBindVertexArray(vao); //DRAW NAVBALL
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-	glBindVertexArray(0);
+	NavBall::SD->DrawSphere(draw, navballTex, modelMat, rotMat);
 
 	draw->BindDraw2DShader();
 	draw->SetDrawColor2D(1, 1, 1);

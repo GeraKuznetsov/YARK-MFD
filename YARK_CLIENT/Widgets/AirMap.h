@@ -20,18 +20,20 @@ struct Target {
 
 class AirMap : public Widget {
 	Target* target;
-	GLuint kerbinMap;
+	GLuint mapTexture;
 	bool longLatFixed;
 	glm::vec2 longLat;
 
 	bool drag; //dragging
-	XYi dragStart;
+	XY dragStart;
 	glm::vec2 longLatDragStart;
 	float head;
 
 	float zoom;
 	std::vector<Target> targets;
 	void drawTarget(Target* t, Draw* draw, VesselPacket* VP, float zoom);
+
+	int lastSOI = -1;
 public:
 	AirMap(WidgetStuff ws);
 	void Tick(Draw* draw);

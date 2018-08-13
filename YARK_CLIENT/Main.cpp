@@ -1,16 +1,16 @@
 //dont show le console
-#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
+//#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
 
 #include <iostream>
-#include "Client\Client.h"
 #include <iostream>
 #include <string>
 #include <vector>
 
+#include "Client\Client.h"
 #include "Engine\Window.h"
 #include "Widgets\Console.h"
-#include "Widgets\NavBall.h"
 #include "Engine\Cam.h"
+#include "Engine\Sound.h"
 
 #include <sstream>
 #include <algorithm>
@@ -31,9 +31,11 @@ std::vector<Widget*> widgets;
 
 Console* console;
 
-#include "Command.h"
+#include "AltiMeter.h"
 
 void Tick(float delta, Draw* draw) {
+	VesselPacket VP = (client) ? (client)->vesselPacket : VesselPacket();
+
 	cam->SetViewPort(0, 0, win->size.x, win->size.y);
 	if (client) {
 		if (client->state == TCPCLIENT_FAILED) {
@@ -46,6 +48,8 @@ void Tick(float delta, Draw* draw) {
 			client->SendControls();
 		}
 	}
+
+	RadioAltimeterTick(VP);
 
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
@@ -61,7 +65,7 @@ void Tick(float delta, Draw* draw) {
 void main() {
 	int error = 0;
 	std::string IP = "localhost", port = "9998";
-	XYi size = XYi{ DEFUALT_WIDTH,DEFUALT_HEIGHT };
+	XY size = XY{ DEFUALT_WIDTH,DEFUALT_HEIGHT };
 
 	std::ifstream in("config.txt");
 	if (!in) {
@@ -92,11 +96,15 @@ void main() {
 	cam->fov = glm::radians(45.f);
 	cam->orthro = true;
 
-	console = new Console(WidgetStuff{ XY{ 0,0 }, XY{ size.x,size.y }, "Console", f, win, &client }, &widgets);
+	console = new Console(WidgetStuff{ XY{ 0,0 }, XY{ size.x,size.y }, "Console", f, win, &client, new TextureLoader(),"console" });
 	widgets.push_back(console);
-	console->command("config start.txt");
-
 	client = new Client(IP, port);
+	console->command("config start.txt");
+	OpenPlayer();
+	for (int i = 0; i < WARNING_ALTADTUDES; i++) {
+		warn_altitudes_sounds[i] = new Sound("Sound/" + std::to_string(warn_altitudes[i]) + ".wav");
+	}
+	SDL_Delay(1000);
 	win->Run(&Tick);
 
 }

@@ -16,7 +16,7 @@
 #define STOP_RESIZE 4
 #define FULL_SCREEN (2 | FORCE_RES)
 
-typedef glm::ivec2 XYi;
+typedef glm::ivec2 XY;
 
 class Window {
 	bool keyRepeating[NUMBER_KEYS];
@@ -26,9 +26,9 @@ class Window {
 	bool mouseClicked[NUMER_MOUSE_BUTTONS];
 	bool mouseDoubleClicked[NUMER_MOUSE_BUTTONS];
 
-	XYi mouseXY, mouseDXY;
+	XY mouseXY, mouseDXY;
 
-	XYi MouseScroll;
+	XY MouseScroll;
 
 	bool running = false;
 	SDL_GLContext gGlContext;
@@ -36,14 +36,14 @@ class Window {
 	Draw *draw;
 public:
 
-	XYi size;
+	XY size;
 	SDL_Window* gWindow = NULL; //move back
 
 	bool MouseInWindow = true;
 	bool HasFocus = false;
 	int FPS = 0; //theoFPS only works when vsync is on, otherwise it should be around real FPS
 	void SetTargetFPS(int fps);
-	Window(XYi s, int flags, int *error);
+	Window(XY s, int flags, int *error);
 	void Run(void(*tick)(float delta, Draw* draw));
 	bool KeyDown(int key);
 	bool KeyRepeating(int key);
@@ -52,9 +52,9 @@ public:
 	bool MouseClicked(int button);
 	bool MouseDoubleClicked(int button);
 	//void SetShowCursor(bool b);
-	void SetSize(XYi size);
+	void SetSize(XY size);
 	int MouseX(), MouseY(), MouseDX(), MouseDY();
-	XYi MouseXY(), MouseDXY();
-	XYi getMouseWheelDelta();
-	XYi getSize();
+	XY MouseXY(), MouseDXY();
+	XY getMouseWheelDelta();
+	XY getSize();
 };
