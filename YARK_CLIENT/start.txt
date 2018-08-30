@@ -1,4 +1,3 @@
-open navball 0 0 400 400
-open soyuznavball 400 0 400 400
-open airmap 400 400 400 400
-resize console 0 400 400 400
+open navball 153 24 600 600
+resize console 0 0 600 600
+reg ENABLE_FLYBYWIRE 1

@@ -17,6 +17,28 @@ Window::Window(XY s, int flags, int* error) {
 		*error = 1;
 		return;
 	}
+	if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) < 0)
+	{
+		printf("SDL could not initialize joystick! SDL Error: %s\n", SDL_GetError());
+		//*error = 1;
+		//return;
+	}
+
+	//Check for joysticks
+	if (SDL_NumJoysticks() < 1)
+	{
+		printf("Warning: No joysticks connected!\n");
+	}
+	else
+	{
+		//Load joystick
+		gGameController = SDL_JoystickOpen(0);
+		printf("joystick connected\n");
+		if (gGameController == NULL)
+		{
+			printf("Warning: Unable to open game controller! SDL Error: %s\n", SDL_GetError());
+		}
+	}
 
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
@@ -154,6 +176,13 @@ void Window::Run(void(*tick)(float delta, Draw* draw)) {
 			case SDL_MOUSEWHEEL:
 				MouseScroll = MouseScroll + XY{ sdlEvent.wheel.x ,sdlEvent.wheel.y };
 				break;
+			case SDL_JOYAXISMOTION:
+				//std::cout << "axis: " << std::to_string(sdlEvent.jaxis.axis) << " value: " << std::to_string(sdlEvent.jaxis.value) << "\n";
+				for (int i = 0; i < 4; i++) {
+					if (sdlEvent.jaxis.axis == i) {
+						joystickDir[i] = sdlEvent.jaxis.value;
+					}
+				}
 			case SDL_WINDOWEVENT:
 				switch (sdlEvent.window.event) {
 				case SDL_WINDOWEVENT_SHOWN:
@@ -191,9 +220,7 @@ void Window::Run(void(*tick)(float delta, Draw* draw)) {
 				case SDL_WINDOWEVENT_HIT_TEST:
 					SDL_Log("Window %d has a special hit test", sdlEvent.window.windowID);
 					break;
-
 				}
-
 			}
 		}
 		SDL_GetWindowSize(gWindow, &size.x, &size.y);
@@ -205,6 +232,7 @@ void Window::Run(void(*tick)(float delta, Draw* draw)) {
 		SDL_GL_SwapWindow(gWindow);
 	}
 	SDL_DestroyWindow(gWindow);
+	SDL_JoystickClose(gGameController);
 	gWindow = NULL;
 
 	SDL_Quit();

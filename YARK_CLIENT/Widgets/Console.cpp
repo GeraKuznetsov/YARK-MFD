@@ -30,9 +30,10 @@ Widget* getWidget(std::string s) {
 	return 0;
 }
 
+#include "../Reg.h"
+
 void Console::command(std::string com) {
-	DispLine(">" + com);
-	colorCur = 0;
+	DispLine(">" + com, 0);
 	std::vector<std::string> elems = split(com, ' ');
 	if (!elems[0].compare("config")) {
 		std::ifstream in(elems[1]);
@@ -56,7 +57,20 @@ void Console::command(std::string com) {
 			}
 			output.write(out.c_str(), out.size());
 		}
+		for (std::map<std::string, std::string>::value_type& x : Registry)
+		{
+			std::string out = "reg " + x.first + " " + x.second + "\n";
+			output.write(out.c_str(), out.size());
+		}
 		output.close();
+	}
+	else if (!elems[0].compare("reg")) {
+		if (elems.size() == 3) {
+			Registry[elems[1]] = elems[2];
+		}
+		else {
+			DispLine(Registry[elems[1]], 2);
+		}
 	}
 	else if (!elems[0].compare("open")) {
 		XY pos;
@@ -70,16 +84,22 @@ void Console::command(std::string com) {
 			widgets.push_back(navball);
 		}
 		else if (!elems[1].compare("airmap")) {
-			AirMap* ag = new AirMap(WidgetStuff{ pos, size, "Air Map", f, win, client, TL,"airmap" });
+			AirMap* ag = new AirMap(WidgetStuff{ pos, size, "AirMap", f, win, client, TL,"airmap" });
 			widgets.push_back(ag);
 		}
 		else if (!elems[1].compare("ati-in")) {
-			AtitudeIndicator* navball = new AtitudeIndicator(WidgetStuff{ pos, size, "Atitude Indicator", f, win, client, TL,"ati-in" });
+			AtitudeIndicator* navball = new AtitudeIndicator(WidgetStuff{ pos, size, "AtitudeIndicator", f, win, client, TL,"ati-in" });
 			widgets.push_back(navball);
 		}
 		else if (!elems[1].compare("soyuznavball")) {
-			SoyuzNavBall* navball = new SoyuzNavBall(WidgetStuff{ pos, size, "Soyuz NavBall", f, win, client, TL,"soyuznavball" });
+			SoyuzNavBall* navball = new SoyuzNavBall(WidgetStuff{ pos, size, "SoyuzNavBall", f, win, client, TL,"soyuznavball" });
 			widgets.push_back(navball);
+		}
+	}
+	else if (!elems[0].compare("close")) {
+		Widget* w = getWidget(elems[1]);
+		if (w) {
+			w->close = true;
 		}
 	}
 	else if (!elems[0].compare("resize")) {
@@ -112,7 +132,6 @@ Console::Console(WidgetStuff ws) :Widget(ws) {
 		}
 	}
 	memset(type, 0, CONSOLE_WIDTH);
-	colorCur = 0;
 	curPos = 0;
 }
 void Console::Tick(Draw* draw) {
@@ -131,7 +150,8 @@ void Console::Tick(Draw* draw) {
 		if (curPos < CONSOLE_WIDTH) {
 			for (int i = SDL_SCANCODE_A; i <= SDL_SCANCODE_Z; i++) {
 				if (win->KeyRepeating(i)) {
-					type[curPos] = (i - SDL_SCANCODE_A + 'a');
+					int add = win->KeyDown(SDL_SCANCODE_LSHIFT) ? 'A' : 'a';
+					type[curPos] = (i - SDL_SCANCODE_A + add);
 					curPos++;
 				}
 			}
@@ -145,8 +165,12 @@ void Console::Tick(Draw* draw) {
 				type[curPos] = '0';
 				curPos++;
 			}
-			if (win->KeyRepeating(SDL_SCANCODE_PERIOD) ){
+			if (win->KeyRepeating(SDL_SCANCODE_PERIOD)) {
 				type[curPos] = '.';
+				curPos++;
+			}
+			if (win->KeyRepeating(SDL_SCANCODE_MINUS)) {
+				type[curPos] = win->KeyDown(SDL_SCANCODE_LSHIFT) ? '_' : '-';
 				curPos++;
 			}
 			if (win->KeyRepeating(SDL_SCANCODE_SPACE)) {
@@ -190,11 +214,11 @@ void Console::Tick(Draw* draw) {
 		if (type[x] == 0) {
 			break;
 		}
-		draw->DrawChar(f, type[x], pos.x + x * CONSOLE_FONT_SIZE, pos.y + size.y);
+		draw->DrawChar(f, type[x], pos.x + x * CONSOLE_FONT_SIZE, pos.y + size.y - 2);
 	}
 	draw->DrawChar(f, '_', pos.x + x * CONSOLE_FONT_SIZE, pos.y + size.y);
 }
-void Console::DispLine(std::string text) {
+void Console::DispLine(std::string text, char col) {
 	if (text.length() > CONSOLE_WIDTH) {
 		text = text.substr(0, CONSOLE_WIDTH);
 	}
@@ -204,5 +228,5 @@ void Console::DispLine(std::string text) {
 
 	memcpy(color, color + CONSOLE_WIDTH, CONSOLE_HEIGHT*CONSOLE_WIDTH - CONSOLE_WIDTH);
 	memset(color + CONSOLE_HEIGHT * CONSOLE_WIDTH - CONSOLE_WIDTH, 0, CONSOLE_WIDTH);
-	memset(color + CONSOLE_HEIGHT * CONSOLE_WIDTH - CONSOLE_WIDTH, colorCur, text.length());
+	memset(color + CONSOLE_HEIGHT * CONSOLE_WIDTH - CONSOLE_WIDTH, col, text.length());
 }

@@ -9,9 +9,7 @@ struct WidgetStuff {
 
 class Widget {
 private:
-	bool drag;
-	XY windowDragStart;
-	XY windowPosDragStart;
+	bool drag, dragBottom, dragRight, dragLeft;
 protected:
 	XY pos;
 	XY size;
@@ -22,10 +20,12 @@ protected:
 	TextureLoader *TL;
 	std::string startUpName;
 public:
+	bool close = false;
 	std::string title;
 	Widget(WidgetStuff ws);
 	void Resize(XY pos, XY size);
 	virtual void Tick(Draw* draw);
 	void WindowUpdate(Draw* draw);
+	int Input();
 	std::string getSaveParams();
 };

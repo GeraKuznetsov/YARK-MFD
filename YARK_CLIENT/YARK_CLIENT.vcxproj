@@ -122,6 +122,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Arduino\Serial.cpp" />
+    <ClCompile Include="Arduino\Test.cpp" />
     <ClCompile Include="Client\ExcampleClient.cpp" />
     <ClCompile Include="Engine\Cam.cpp" />
     <ClCompile Include="Engine\Draw.cpp" />
@@ -141,10 +143,13 @@
     <ClCompile Include="Widgets\Console.cpp" />
     <ClCompile Include="Widgets\NavBall.cpp" />
     <ClCompile Include="Widgets\SoyuzNavBall.cpp" />
+    <ClCompile Include="Widgets\Util\Button.cpp" />
     <ClCompile Include="Widgets\Util\TextureLoader.cpp" />
     <ClCompile Include="Widgets\Widget.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Arduino\Serial.h" />
+    <ClInclude Include="Arduino\Structs.h" />
     <ClInclude Include="Client\Structs.h" />
     <ClInclude Include="Engine\Cam.h" />
     <ClInclude Include="Engine\Draw.h" />
@@ -156,14 +161,17 @@
     <ClInclude Include="Engine\TextShader.h" />
     <ClInclude Include="Engine\Texture.h" />
     <ClInclude Include="Engine\Window.h" />
+    <ClInclude Include="JoyStick.h" />
     <ClInclude Include="lodepng\lodepng.h" />
     <ClInclude Include="Client\Client.h" />
     <ClInclude Include="AltiMeter.h" />
+    <ClInclude Include="Reg.h" />
     <ClInclude Include="Widgets\AtitudeIndicator.h" />
     <ClInclude Include="Widgets\AirMap.h" />
     <ClInclude Include="Widgets\Console.h" />
     <ClInclude Include="Widgets\NavBall.h" />
     <ClInclude Include="Widgets\SoyuzNavball.h" />
+    <ClInclude Include="Widgets\Util\Button.h" />
     <ClInclude Include="Widgets\Util\TextureLoader.h" />
     <ClInclude Include="Widgets\Widget.h" />
   </ItemGroup>

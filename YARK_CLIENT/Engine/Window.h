@@ -19,6 +19,7 @@
 typedef glm::ivec2 XY;
 
 class Window {
+	SDL_Joystick* gGameController = NULL;
 	bool keyRepeating[NUMBER_KEYS];
 	bool keyDown[NUMBER_KEYS];
 	bool keyTyped[NUMBER_KEYS];
@@ -35,7 +36,7 @@ class Window {
 	int targetRate;
 	Draw *draw;
 public:
-
+	int16_t joystickDir[4];
 	XY size;
 	SDL_Window* gWindow = NULL; //move back
 

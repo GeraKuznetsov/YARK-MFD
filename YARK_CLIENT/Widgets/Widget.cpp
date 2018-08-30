@@ -1,11 +1,17 @@
 #include "Widget.h"
+#include "Util/Button.h"
 
 #define BAR_HEIGHT 15
 #define BORDER 4
 
 #include <iostream>
 
+GLuint window_x;
+
 Widget::Widget(WidgetStuff ws) {
+	if (!window_x) {
+		window_x = loadTexture("Tex/x.png", false);
+	}
 	Resize(ws.pos, ws.size);
 	this->f = ws.f;
 	this->title = ws.title;
@@ -33,49 +39,72 @@ std::string Widget::getSaveParams() {
 
 extern std::vector<Widget*> widgets;
 
+int Widget::Input() { //0-ignore //1-move to front //2-close
+	if (close) return 2;
+	mouseInWindow = (win->MouseX() > pos.x && win->MouseY() > pos.y && win->MouseX() < pos.x + size.x && win->MouseY() < pos.y + size.y);
+	if (win->MouseDown(SDL_BUTTON_LEFT)) {
+		if (drag || (win->MouseX() > pos.x - BORDER && win->MouseY() > pos.y - BAR_HEIGHT && win->MouseX() < pos.x + size.x + BORDER && win->MouseY() < pos.y)) {
+			if (!drag) {
+				win->MouseDXY();
+				drag = true;
+			}
+			XY d = win->MouseDXY();
+			pos += d;
+		}
+		else {
+			if (dragBottom || (win->MouseX() > pos.x - BORDER && win->MouseY() > pos.y + size.y && win->MouseX() < pos.x + size.x + BORDER && win->MouseY() < pos.y + size.y + BORDER)) {
+				if (!dragBottom) {
+					dragBottom = true;
+					win->MouseDY();
+				}
+				size.y += win->MouseDY();
+				if (size.y < 20) {
+					size.y = 20;
+				}
+			}
+			if (dragRight || (win->MouseX() > pos.x + size.x && win->MouseY() > pos.y && win->MouseX() < pos.x + size.x + BORDER && win->MouseY() < pos.y + size.y)) {
+				if (!dragRight) {
+					dragRight = true;
+					win->MouseDX();
+				}
+				size.x += win->MouseDX();
+				if (size.x < 20) {
+					size.x = 20;
+				}
+			}
+			else if (dragLeft || (win->MouseX() > pos.x - BORDER && win->MouseY() > pos.y && win->MouseX() < pos.x  && win->MouseY() < pos.y + size.y)) {
+				if (!dragLeft) {
+					dragLeft = true;
+					win->MouseDX();
+				}
+				int dx = win->MouseDX();
+				size.x -= dx;
+				pos.x += dx;
+				if (size.x < 20) {
+					size.x = 20;
+				}
+			}
+		}
+	}
+	else {
+		drag = dragBottom = dragRight = dragLeft = false;
+	}
+
+	if (((win->MouseDown(SDL_BUTTON_LEFT) || win->MouseDown(SDL_BUTTON_MIDDLE) || win->MouseDown(SDL_BUTTON_RIGHT)) && mouseInWindow || drag || dragBottom || dragRight || dragLeft)) {
+		return 1;
+	}
+	return 0;
+}
+
 void Widget::WindowUpdate(Draw* draw) {
 	draw->BindDraw2DShader();
 	draw->BindTex2D(0);
 	draw->SetDrawColor2D(0, 0, 1);
 
-	bool moveTofront = false;
-
-	mouseInWindow = (win->MouseX() > pos.x && win->MouseY() > pos.y && win->MouseX() < pos.x + size.x && win->MouseY() < pos.y + size.y);
-	if (drag || (win->MouseX() > pos.x - BORDER && win->MouseY() > pos.y - BAR_HEIGHT && win->MouseX() < pos.x + size.x + BORDER && win->MouseY() < pos.y)) {
-		draw->SetDrawColor2D(0.2, 0, 0.8);
-		if (win->MouseDown(SDL_BUTTON_LEFT)) {
-			if (!drag) {
-				windowPosDragStart = pos;
-				windowPosDragStart.y -= BAR_HEIGHT;
-				windowDragStart = win->MouseXY();
-				drag = true;
-			}
-			pos.x = ((windowPosDragStart.x - windowDragStart.x + win->MouseX()) / 10) * 10 + BORDER;
-			pos.y = ((windowPosDragStart.y - windowDragStart.y + win->MouseY()) / 10) * 10 + BAR_HEIGHT;
-			std::cout << win->MouseX() << " : " << windowDragStart.x << "\n";
-			//posDragStart.x - dragStart.x + win->MouseX() - BORDER, posDragStart.y - dragStart.y + win->MouseY() - BAR_HEIGHT
-			moveTofront = true;
-		}
-		else {
-			drag = false;
-		}
-	}
-
-	if (((win->MouseDown(SDL_BUTTON_LEFT) || win->MouseDown(SDL_BUTTON_MIDDLE) || win->MouseDown(SDL_BUTTON_RIGHT)) && mouseInWindow) || moveTofront) {
-		int index = 0;
-		for (int i = 0; i < widgets.size(); i++) {
-			if (widgets[i] == this) {
-				index = i;
-				break;
-			}
-		}
-		widgets.push_back(widgets[index]);
-		widgets.erase(widgets.begin() + index);
-	}
-
-
 	draw->DrawRect2D(pos.x - BORDER, pos.y - BAR_HEIGHT, pos.x + size.x + BORDER, pos.y + size.y + BORDER);
-
+	if (IM::Button(XY{ pos.x + size.x - 12,pos.y - BAR_HEIGHT + 2 }, XY{ 12, 12 }, win, draw, window_x)) {
+		close = true;
+	}
 
 	draw->BindTextShader();
 	draw->SetTextColor(1, 1, 1);

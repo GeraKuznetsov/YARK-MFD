@@ -33,7 +33,7 @@ SphereDraw::SphereDraw() {
 }
 
 void NavBall::LoadNavBallTextures() {
-	navballTex = loadTexture("Tex/navball/navball.png");
+	navballTex = loadTexture("Tex/navball/navball.png",false);
 	chevron = loadTexture("Tex/navball/chevron.png");
 	PGTex = loadTexture("Tex/navball/PG.png");
 	RGTex = loadTexture("Tex/navball/RG.png");
@@ -44,6 +44,7 @@ void NavBall::LoadNavBallTextures() {
 	TPGTex = loadTexture("Tex/navball/TPG.png");
 	TRGTex = loadTexture("Tex/navball/TRG.png");
 	MTex = loadTexture("Tex/navball/M.png");
+	SASSTex = loadTexture("Tex/navball/SASS.png");
 }
 
 NavBall::NavBall(WidgetStuff ws) : Widget(ws) {
@@ -102,17 +103,21 @@ void NavBall::Tick(Draw* draw) {
 	draw->BindTex2D(chevron);  //DRAW CHEVRON
 	draw->DrawRectUV2D(pos.x + size.x / 2 - 90, pos.y + size.y / 2 - 35, pos.x + size.x / 2 + 90, pos.y + size.y / 2 + 35, 0.f / 256.f, 0.f / 256.f, 180.f / 256.f, 70.f / 256.f);
 
-	NavHeading NH = VP.Prograde;
-
 	renderNavHeading(VP.Prograde, &VP, draw, &modelMat, PGTex);
 	renderNavHeading(NavHeading(-VP.Prograde.Pitch, VP.Prograde.Heading + 180), &VP, draw, &modelMat, RGTex);
 
 	if (VP.SpeedMode == 1) {
-		renderNavHeading(NavHeading(90.f, 0), &VP, draw, &modelMat, ROTex);
-		renderNavHeading(NavHeading(-90.f, 0), &VP, draw, &modelMat, RITex);
-
-		renderNavHeading(NavHeading(0.f, VP.NormalHeading), &VP, draw, &modelMat, NTex);
-		renderNavHeading(NavHeading(0.f, VP.NormalHeading + 180), &VP, draw, &modelMat, ANTex);
+		if (VP.Prograde.Pitch >= 0) {
+			renderNavHeading(NavHeading(90 - VP.Prograde.Pitch, VP.Prograde.Heading + 180), &VP, draw, &modelMat, ROTex);
+			renderNavHeading(NavHeading(VP.Prograde.Pitch - 90, VP.Prograde.Heading), &VP, draw, &modelMat, RITex);
+		}
+		else {
+			renderNavHeading(NavHeading(VP.Prograde.Pitch + 90, VP.Prograde.Heading), &VP, draw, &modelMat, ROTex);
+			renderNavHeading(NavHeading(90 - VP.Prograde.Pitch, VP.Prograde.Heading + 180), &VP, draw, &modelMat, RITex);
+		}
+		
+		renderNavHeading(NavHeading(0.f, VP.Prograde.Heading - 90), &VP, draw, &modelMat, NTex);
+		renderNavHeading(NavHeading(0.f, VP.Prograde.Heading + 90), &VP, draw, &modelMat, ANTex);
 	}
 
 	if (VP.MNDeltaV) {

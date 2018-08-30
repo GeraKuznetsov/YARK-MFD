@@ -18,10 +18,9 @@ class Console : public Widget{
 	char curPos;
 	bool focus;
 public:
-	char colorCur;
 	Console(WidgetStuff ws);
 	void command(std::string com);
 	void commandDetach(std::string com);
 	void Tick(Draw* draw);
-	void DispLine(std::string text);
+	void DispLine(std::string text, char col);
 };

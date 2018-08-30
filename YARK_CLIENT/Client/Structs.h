@@ -67,6 +67,7 @@ struct NavHeading {
 
 struct VesselPacket {
 	uint64_t ID;
+	float deltaTime;
 
 	//##### CRAFT ######
 	float Pitch; //pitch and heading close together so c++ can use this as a NavHeading ptr
@@ -77,7 +78,6 @@ struct VesselPacket {
 	NavHeading Prograde;
 	NavHeading Target;
 	NavHeading Maneuver;
-	float NormalHeading;
 
 	int16_t ActionGroups; //  status bit order:SAS, RCS, Light, Gear, Brakes, Abort, Custom01 - 10 
 	float VVI;
