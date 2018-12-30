@@ -318,3 +318,6 @@ XY Window::getMouseWheelDelta() {
 XY  Window::getSize() {
 	return  size;
 }
+bool Window::HasJoyStick() {
+	return !!gGameController;
+}

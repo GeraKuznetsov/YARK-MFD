@@ -12,6 +12,12 @@ Widget::Widget(WidgetStuff ws) {
 	if (!window_x) {
 		window_x = loadTexture("Tex/x.png", false);
 	}
+	if (!IM::rad0) {
+		IM::rad0 = loadTexture("Tex/radio-off.png", false);
+	}
+	if (!IM::rad1) {
+		IM::rad1 = loadTexture("Tex/radio-on.png", false);
+	}
 	Resize(ws.pos, ws.size);
 	this->f = ws.f;
 	this->title = ws.title;

@@ -3,6 +3,7 @@
 #include "AirMap.h"
 #include "AtitudeIndicator.h"
 #include "SoyuzNavball.h"
+#include "Settings.h"
 #include <sstream>
 #include <algorithm>
 #include <iterator>
@@ -57,19 +58,19 @@ void Console::command(std::string com) {
 			}
 			output.write(out.c_str(), out.size());
 		}
-		for (std::map<std::string, std::string>::value_type& x : Registry)
+		for (std::map<std::string, int>::value_type& x : Registry)
 		{
-			std::string out = "reg " + x.first + " " + x.second + "\n";
+			std::string out = "reg " + x.first + " " + std::to_string(x.second) + "\n";
 			output.write(out.c_str(), out.size());
 		}
 		output.close();
 	}
 	else if (!elems[0].compare("reg")) {
 		if (elems.size() == 3) {
-			Registry[elems[1]] = elems[2];
+			Registry[elems[1]] = std::stoi(elems[2]);
 		}
 		else {
-			DispLine(Registry[elems[1]], 2);
+			DispLine(std::to_string(Registry[elems[1]]), 2);
 		}
 	}
 	else if (!elems[0].compare("open")) {
@@ -93,6 +94,10 @@ void Console::command(std::string com) {
 		}
 		else if (!elems[1].compare("soyuznavball")) {
 			SoyuzNavBall* navball = new SoyuzNavBall(WidgetStuff{ pos, size, "SoyuzNavBall", f, win, client, TL,"soyuznavball" });
+			widgets.push_back(navball);
+		}
+		else if (!elems[1].compare("settings")) {
+			Settings* navball = new Settings(WidgetStuff{ pos, size, "Settings", f, win, client, TL,"settings" });
 			widgets.push_back(navball);
 		}
 	}
@@ -136,16 +141,6 @@ Console::Console(WidgetStuff ws) :Widget(ws) {
 }
 void Console::Tick(Draw* draw) {
 	WindowUpdate(draw);
-	if (mouseInWindow) {
-		if (win->MouseClicked(SDL_BUTTON_LEFT)) {
-			focus = true;
-		}
-	}
-	else {
-		if (win->MouseDown(SDL_BUTTON_LEFT)) {
-			focus = false;
-		}
-	}
 	if (focus) {
 		if (curPos < CONSOLE_WIDTH) {
 			for (int i = SDL_SCANCODE_A; i <= SDL_SCANCODE_Z; i++) {

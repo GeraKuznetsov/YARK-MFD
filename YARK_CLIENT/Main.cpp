@@ -28,23 +28,32 @@ std::vector<Widget*> widgets;
 Console* console;
 
 #include "Reg.h"
-std::map<std::string, std::string> Registry;
+std::map<std::string, int> Registry;
 int RegInt(std::string key, int defualt) {
-	std::string val = Registry[key];
+	if (Registry.find(key) == Registry.end()) {
+		Registry[key] = defualt;
+		return defualt;
+	}
+	else {
+		return Registry.at(key);
+	}
+	return Registry[key];
+	/*int val = Registry[key];
 	if (!val.compare("")) {
 		Registry[key] = std::to_string(defualt);
 		return defualt;
 	}
-	return std::stoi(val);
+	return std::stoi(val);*/
 }
 #include "AltiMeter.h"
+
+Draw* d;
 #include "JoyStick.h"
 
 void Tick(float delta, Draw* draw) {
 	VesselPacket VP = (client) ? (client)->vesselPacket : VesselPacket();
 
 	RadioAltimeterTick(VP);
-	JoyStickTick();
 
 	if (client) {
 		if (client->state == TCPCLIENT_FAILED) {
@@ -55,6 +64,7 @@ void Tick(float delta, Draw* draw) {
 		else if (client->state == TCPCLIENT_CONNECTED) {
 			client->SendControls();
 		}
+		//printf("pitch: %f heading: %f roll: %f", client->vesselPacket.Pitch, client->vesselPacket.Heading, client->vesselPacket.Roll);
 	}
 
 	glDisable(GL_DEPTH_TEST);
@@ -77,10 +87,16 @@ void Tick(float delta, Draw* draw) {
 
 	for (int i = 0; i < widgets.size(); i++) {
 		glScissor(0, 0, win->size.x, win->size.y);
+		widgets[i]->focus = (i == widgets.size() - 1) ? 1 : 0;
 		widgets[i]->Tick(draw);
 	}
 	glScissor(0, 0, win->size.x, win->size.y);
-	win->MouseClicked(SDL_BUTTON_LEFT);
+	d = draw;
+	JoyStickTick(client, delta);
+
+	if (win->MouseClicked(SDL_BUTTON_LEFT)) {
+		//printf("click\n");
+	}
 	SDL_SetWindowTitle(win->gWindow, std::to_string(win->FPS).c_str());
 }
 

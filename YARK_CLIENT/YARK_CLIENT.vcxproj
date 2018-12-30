@@ -125,7 +125,6 @@
     <ClCompile Include="Arduino\Serial.cpp" />
     <ClCompile Include="Arduino\Test.cpp" />
     <ClCompile Include="Client\ExcampleClient.cpp" />
-    <ClCompile Include="Engine\Cam.cpp" />
     <ClCompile Include="Engine\Draw.cpp" />
     <ClCompile Include="Engine\Draw2DShader.cpp" />
     <ClCompile Include="Engine\Draw3DShader.cpp" />
@@ -142,6 +141,7 @@
     <ClCompile Include="Widgets\AirMap.cpp" />
     <ClCompile Include="Widgets\Console.cpp" />
     <ClCompile Include="Widgets\NavBall.cpp" />
+    <ClCompile Include="Widgets\Settings.cpp" />
     <ClCompile Include="Widgets\SoyuzNavBall.cpp" />
     <ClCompile Include="Widgets\Util\Button.cpp" />
     <ClCompile Include="Widgets\Util\TextureLoader.cpp" />
@@ -151,7 +151,6 @@
     <ClInclude Include="Arduino\Serial.h" />
     <ClInclude Include="Arduino\Structs.h" />
     <ClInclude Include="Client\Structs.h" />
-    <ClInclude Include="Engine\Cam.h" />
     <ClInclude Include="Engine\Draw.h" />
     <ClInclude Include="Engine\Draw2DShader.h" />
     <ClInclude Include="Engine\Draw3DShader.h" />
@@ -170,6 +169,7 @@
     <ClInclude Include="Widgets\AirMap.h" />
     <ClInclude Include="Widgets\Console.h" />
     <ClInclude Include="Widgets\NavBall.h" />
+    <ClInclude Include="Widgets\Settings.h" />
     <ClInclude Include="Widgets\SoyuzNavball.h" />
     <ClInclude Include="Widgets\Util\Button.h" />
     <ClInclude Include="Widgets\Util\TextureLoader.h" />

@@ -1,2 +1,2 @@
 IP localhost 9999
-winsize 600 600
+winsize 900 900

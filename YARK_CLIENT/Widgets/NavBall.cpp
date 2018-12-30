@@ -75,6 +75,9 @@ void SphereDraw::DrawSphere(Draw *draw, GLuint texture, glm::mat4 modelMat, glm:
 
 void renderNavHeading(NavHeading NH, VesselPacket *DI, Draw* draw, glm::mat4 *modelMat, GLuint Tex);
 
+#include "../Reg.h"
+extern NavHeading SASS;
+
 void NavBall::Tick(Draw* draw) {
 	WindowUpdate(draw);
 
@@ -126,6 +129,9 @@ void NavBall::Tick(Draw* draw) {
 	if (VP.HasTarget) {
 		renderNavHeading(VP.Target, &VP, draw, &modelMat, TPGTex);
 		renderNavHeading(NavHeading(-VP.Target.Pitch, VP.Target.Heading + 180), &VP, draw, &modelMat, TRGTex);
+	}
+	if (RegInt("FLYBYWIRE_SMART", 0)) {
+		renderNavHeading(SASS, &VP, draw, &modelMat, SASSTex);
 	}
 }
 

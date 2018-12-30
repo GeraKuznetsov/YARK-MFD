@@ -52,6 +52,7 @@ public:
 	bool MouseDown(int button);
 	bool MouseClicked(int button);
 	bool MouseDoubleClicked(int button);
+	bool HasJoyStick();
 	//void SetShowCursor(bool b);
 	void SetSize(XY size);
 	int MouseX(), MouseY(), MouseDX(), MouseDY();

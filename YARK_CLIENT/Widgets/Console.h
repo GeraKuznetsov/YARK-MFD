@@ -16,7 +16,6 @@ class Console : public Widget{
 	char type[CONSOLE_WIDTH];
 	char color[CONSOLE_WIDTH * CONSOLE_HEIGHT];
 	char curPos;
-	bool focus;
 public:
 	Console(WidgetStuff ws);
 	void command(std::string com);

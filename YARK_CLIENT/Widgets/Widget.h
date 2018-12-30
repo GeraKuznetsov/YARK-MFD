@@ -20,6 +20,7 @@ protected:
 	TextureLoader *TL;
 	std::string startUpName;
 public:
+	bool focus;
 	bool close = false;
 	std::string title;
 	Widget(WidgetStuff ws);

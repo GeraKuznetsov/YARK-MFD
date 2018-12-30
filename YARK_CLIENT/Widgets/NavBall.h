@@ -17,7 +17,7 @@ class NavBall : public Widget {
 	GLuint navballTex;
 	GLuint chevron, PGTex, RGTex, RITex, ROTex, NTex, ANTex, TRGTex, TPGTex, MTex, SASSTex;
 public:
-    static SphereDraw *SD;
+	static SphereDraw *SD;
 	NavBall(WidgetStuff ws);
 	void LoadNavBallTextures();
 	void Tick(Draw* draw);
