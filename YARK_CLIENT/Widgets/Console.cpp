@@ -4,12 +4,14 @@
 #include "AtitudeIndicator.h"
 #include "SoyuzNavball.h"
 #include "Settings.h"
+#include "VInfo.h"
 #include <sstream>
 #include <algorithm>
 #include <iterator>
 #include <fstream>
 #include <thread>
 #include <iostream>
+#include <string>
 
 extern std::vector<Widget*> widgets;
 
@@ -33,93 +35,164 @@ Widget* getWidget(std::string s) {
 
 #include "../Reg.h"
 
+std::string IP, PORT;
+
 void Console::command(std::string com) {
 	DispLine(">" + com, 0);
-	std::vector<std::string> elems = split(com, ' ');
-	if (!elems[0].compare("config")) {
-		std::ifstream in(elems[1]);
-		if (!in) {
-			std::cout << "Cannot open input file.\n";
-		}
-		std::string str;
-		while (std::getline(in, str)) {
-			command(str);
-		}
-	}
-	else if (!elems[0].compare("savestate")) {
-		std::ofstream output("start.txt");
-		for (int i = 0; i < widgets.size(); i++) {
-			std::string out;
-			if ((void*)(widgets[i]) == (void*)this) {
-				out = "resize " + getSaveParams();
+	if (com[0] != '#') {
+		std::vector<std::string> elems = split(com, ' ');
+		if (!elems[0].compare("config")) {
+			if (elems.size() == 2) {
+				std::ifstream in(elems[1]);
+				if (!in) {
+					std::cout << "Cannot open input file.\n";
+				}
+				std::string str;
+				while (std::getline(in, str)) {
+					command(str);
+				}
 			}
 			else {
-				out = "open " + widgets[i]->getSaveParams();
+				DispLine("Invalid Syntex, use: \"config <config file>\"", 1);
 			}
-			output.write(out.c_str(), out.size());
 		}
-		for (std::map<std::string, int>::value_type& x : Registry)
-		{
-			std::string out = "reg " + x.first + " " + std::to_string(x.second) + "\n";
-			output.write(out.c_str(), out.size());
+		else if (!elems[0].compare("savestate")) {
+			std::string path = "config.txt";
+			if (elems.size() == 2) {
+				path = elems[1];
+			}
+			if (elems.size() == 1 || elems.size() == 2) {
+				std::ofstream output(path);
+				std::string out;
+				out = "connect " + (IP)+" " + (PORT)+"\n";
+				output.write(out.c_str(), out.size());
+				XY size = win->getSize();
+				out = "winsize " + std::to_string(size.x) + " " + std::to_string(size.y) + "\n";
+				output.write(out.c_str(), out.size());
+				for (std::map<std::string, int>::value_type& x : Registry)
+				{
+					out = "reg " + x.first + " " + std::to_string(x.second) + "\n";
+					output.write(out.c_str(), out.size());
+				}
+				for (int i = 0; i < widgets.size(); i++) {
+					if ((void*)(widgets[i]) == (void*)this) {
+						out = "resize " + getSaveParams();
+					}
+					else {
+						out = "open " + widgets[i]->getSaveParams();
+					}
+					output.write(out.c_str(), out.size());
+				}
+				output.close();
+				DispLine("Done", 2);
+			}
+			else {
+				DispLine("Invalid Syntex, use: \"savestate [output file]\"", 1);
+			}
 		}
-		output.close();
-	}
-	else if (!elems[0].compare("reg")) {
-		if (elems.size() == 3) {
-			Registry[elems[1]] = std::stoi(elems[2]);
+		else if (!elems[0].compare("connect")) {
+			if (elems.size() == 3) {
+				if (!(*client)) {
+					(*client) = new Client(IP = elems[1], PORT = elems[2]);
+				}
+			}
+			else {
+				DispLine("Invalid Syntex, use: \"connect <ip> <port>\"", 1);
+			}
 		}
-		else {
-			DispLine(std::to_string(Registry[elems[1]]), 2);
+		else if (!elems[0].compare("winsize")) {
+			if (elems.size() == 3) {
+				win->SetSize(XY{ std::stoi(elems[1]), std::stoi(elems[2]) });
+			}
+			else {
+				DispLine("Invalid Syntex, use: \"winsize <width> <height>\"", 1);
+			}
 		}
-	}
-	else if (!elems[0].compare("open")) {
-		XY pos;
-		pos.x = std::stoi(elems[2]);
-		pos.y = std::stoi(elems[3]);
-		XY size;
-		size.x = std::stoi(elems[4]);
-		size.y = std::stoi(elems[5]);
-		if (!elems[1].compare("navball")) {
-			NavBall* navball = new NavBall(WidgetStuff{ pos, size, "NavBall", f, win , client, TL,"navball" });
-			widgets.push_back(navball);
+		else if (!elems[0].compare("reg")) {
+			if (elems.size() == 3) {
+				Registry[elems[1]] = std::stoi(elems[2]);
+			}
+			else if (elems.size() == 2) {
+				DispLine(std::to_string(Registry[elems[1]]), 2);
+			}
+			else {
+				DispLine("Invalid Syntex, use: \"reg <key> [new val]\"", 1);
+			}
 		}
-		else if (!elems[1].compare("airmap")) {
-			AirMap* ag = new AirMap(WidgetStuff{ pos, size, "AirMap", f, win, client, TL,"airmap" });
-			widgets.push_back(ag);
+		else if (!elems[0].compare("open")) {
+			XY pos = XY{ win->getSize().x / 4, win->getSize().y / 4 };
+			XY size = XY{ win->getSize().x / 2,win->getSize().y / 2 };
+			if (elems.size() == 6) {
+				pos.x = std::stoi(elems[2]);
+				pos.y = std::stoi(elems[3]);
+
+				size.x = std::stoi(elems[4]);
+				size.y = std::stoi(elems[5]);
+			}
+			else if (elems.size() == 4) {
+				size.x = std::stoi(elems[2]);
+				size.y = std::stoi(elems[3]);
+			}
+			if (elems.size() == 6 || elems.size() == 4 || elems.size() == 2) {
+				if (!elems[1].compare("navball")) {
+					NavBall* navball = new NavBall(WidgetStuff{ pos, size, "NavBall", f, win , client, TL,"navball" });
+					widgets.push_back(navball);
+				}
+				else if (!elems[1].compare("airmap")) {
+					AirMap* ag = new AirMap(WidgetStuff{ pos, size, "AirMap", f, win, client, TL,"airmap" });
+					widgets.push_back(ag);
+				}
+				else if (!elems[1].compare("ati-in")) {
+					AtitudeIndicator* navball = new AtitudeIndicator(WidgetStuff{ pos, size, "AtitudeIndicator", f, win, client, TL,"ati-in" });
+					widgets.push_back(navball);
+				}
+				else if (!elems[1].compare("soyuznavball")) {
+					SoyuzNavBall* navball = new SoyuzNavBall(WidgetStuff{ pos, size, "SoyuzNavBall", f, win, client, TL,"soyuznavball" });
+					widgets.push_back(navball);
+				}
+				else if (!elems[1].compare("settings")) {
+					Settings* navball = new Settings(WidgetStuff{ pos, size, "Settings", f, win, client, TL,"settings" });
+					widgets.push_back(navball);
+				}
+				else if (!elems[1].compare("vinfo")) {
+					VInfo* vi = new VInfo(WidgetStuff{ pos, size, "Vessel Info", f, win, client, TL,"vinfo" });
+					widgets.push_back(vi);
+				}
+			}
+			else {
+				DispLine("Invalid Syntex, use: \"open <name> [<width> <height> / <pos x> <pos y> <width> <height>]\"", 1);
+			}
 		}
-		else if (!elems[1].compare("ati-in")) {
-			AtitudeIndicator* navball = new AtitudeIndicator(WidgetStuff{ pos, size, "AtitudeIndicator", f, win, client, TL,"ati-in" });
-			widgets.push_back(navball);
+		else if (!elems[0].compare("close")) {
+			if (elems.size() == 2) {
+				Widget* w = getWidget(elems[1]);
+				if (w) {
+					w->close = true;
+				}
+			}
+			else {
+				DispLine("Invalid Syntex, use: \"close <name>\"", 1);
+			}
 		}
-		else if (!elems[1].compare("soyuznavball")) {
-			SoyuzNavBall* navball = new SoyuzNavBall(WidgetStuff{ pos, size, "SoyuzNavBall", f, win, client, TL,"soyuznavball" });
-			widgets.push_back(navball);
-		}
-		else if (!elems[1].compare("settings")) {
-			Settings* navball = new Settings(WidgetStuff{ pos, size, "Settings", f, win, client, TL,"settings" });
-			widgets.push_back(navball);
-		}
-	}
-	else if (!elems[0].compare("close")) {
-		Widget* w = getWidget(elems[1]);
-		if (w) {
-			w->close = true;
-		}
-	}
-	else if (!elems[0].compare("resize")) {
-		XY pos;
-		pos.x = std::stoi(elems[2]);
-		pos.y = std::stoi(elems[3]);
-		XY size;
-		size.x = std::stoi(elems[4]);
-		size.y = std::stoi(elems[5]);
-		Widget* w = getWidget(elems[1]);
-		if (w) {
-			w->Resize(pos, size);
-		}
-		else {
-			std::cout << "null\n";
+		else if (!elems[0].compare("resize")) {
+			if (elems.size() == 6) {
+				XY pos;
+				pos.x = std::stoi(elems[2]);
+				pos.y = std::stoi(elems[3]);
+				XY size;
+				size.x = std::stoi(elems[4]);
+				size.y = std::stoi(elems[5]);
+				Widget* w = getWidget(elems[1]);
+				if (w) {
+					w->Resize(pos, size);
+				}
+				else {
+					std::cout << "null\n";
+				}
+			}
+			else {
+				DispLine("Invalid Syntex, use: \"resize <name> <pos x> <pos y> <width> <height>\"", 1);
+			}
 		}
 	}
 

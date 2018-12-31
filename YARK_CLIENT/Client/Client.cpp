@@ -99,33 +99,52 @@ void Client::TCPClientRun(std::string IP, std::string PORT) {
 
 #pragma endregion
 	Running = true;
+	bool error = false;
+	char state = 0;
+	char buffer[1000];
+	int bp = 0;
+	StatusPacket sP;
+	VesselPacket vP;
 	do {
-		iResult = recv(ConnectSocket, (char*)&hed, sizeof(Header), 0);
+		iResult = recv(ConnectSocket, (char*)&buffer, sizeof(buffer) - bp, 0);
+		
 		if (iResult > 0) {
-			if (hed.HEADER_0 == (char)0xC4) {
-				if (hed.packetType == (char)1) {
-					recv(ConnectSocket, (char*)&statusPacket, sizeof(StatusPacket), 0);
-				}
-				else if (hed.packetType == (char)2) {
-					recv(ConnectSocket, (char*)&vesselPacket, sizeof(VesselPacket), 0);
-				}
-			}
-			else {
-				std::cout << "malformed packet\n:";
-				std::cout << (int)hed.HEADER_0  << "\n";
-			}
-		}
-		else if (iResult == 0) {
+			bp += iResult;
+
+		}else	if (iResult == 0) {
 			error = "recv failed";
 			state = TCPCLIENT_FAILED;
 			printf("Connection closed\n");
+			error = true;
 		}
 		else {
 			error = "con closed";
 			state = TCPCLIENT_FAILED;
 			printf("recv failed with error: %d\n", WSAGetLastError());
+			error = true;
 		}
-	} while (iResult > 0 && Running);
+		while (bp > 1) {
+			int bytesRead = 2;
+			if (buffer[0] == (char)0xC4) {
+				if (buffer[1] == (char)1) {
+					bytesRead += sizeof(StatusPacket);
+					memcpy((char*)&sP, buffer + 2, sizeof(StatusPacket));
+					if (sP.ID > statusPacket.ID) {
+						memcpy(&statusPacket, &sP, sizeof(StatusPacket));
+					}
+				}
+				else if (buffer[1] == (char)2) {
+					bytesRead += sizeof(VesselPacket);
+					memcpy((char*)&vP, buffer + 2, sizeof(VesselPacket));
+					if (vP.ID > vesselPacket.ID) {
+						memcpy(&vesselPacket, &vP, sizeof(VesselPacket));
+					}
+				}
+			}
+			memcpy(buffer, buffer + bytesRead, 1000 - bytesRead);
+			bp -= bytesRead;
+		}
+	} while (!error && Running);
 	if (Running) {
 		Shutdown();
 	}

@@ -4,7 +4,7 @@
 #include "Widget.h"
 #include "../Client/Client.h"
 
-#define CONSOLE_WIDTH 40
+#define CONSOLE_WIDTH 80
 #define CONSOLE_HEIGHT 20
 #define CONSOLE_FONT_SIZE 14
 

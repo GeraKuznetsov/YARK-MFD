@@ -29,4 +29,6 @@ public:
 	void WindowUpdate(Draw* draw);
 	int Input();
 	std::string getSaveParams();
+	bool hadFrame;
+	int barHeight, border;
 };

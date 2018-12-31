@@ -145,7 +145,12 @@ void Window::Run(void(*tick)(float delta, Draw* draw)) {
 		while (SDL_PollEvent(&sdlEvent)) {
 			switch (sdlEvent.type) {
 			case  SDL_QUIT:
-				running = false;
+				if (onExit) {
+					running = onExit();
+				}
+				else {
+					running = false;
+				}
 				break;
 			case SDL_KEYUP:
 				//	keys[sdlEvent.key.] = true;

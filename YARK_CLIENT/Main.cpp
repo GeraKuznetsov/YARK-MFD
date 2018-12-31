@@ -50,6 +50,13 @@ int RegInt(std::string key, int defualt) {
 Draw* d;
 #include "JoyStick.h"
 
+bool OnExit() {
+	if (RegInt("ENABLE_SAVE_ON_EXIT", 1)) {
+		console->command("savestate");
+	}
+	return false;
+}
+
 void Tick(float delta, Draw* draw) {
 	VesselPacket VP = (client) ? (client)->vesselPacket : VesselPacket();
 
@@ -102,53 +109,25 @@ void Tick(float delta, Draw* draw) {
 
 void main() {
 	int error = 0;
-	std::string IP = "localhost", port = "9998";
 	XY size = XY{ DEFUALT_WIDTH,DEFUALT_HEIGHT };
-
-	std::ifstream in("config.txt");
-	if (!in) {
-		std::cout << "Cannot open input file.\n";
-	}
-	std::string str;
-	while (std::getline(in, str)) {
-		std::vector<std::string> elems = split(str, ' ');
-		if (!elems[0].compare("IP")) {
-			IP = elems[1];
-			port = elems[2];
-		}
-		else if (!elems[0].compare("winsize")) {
-			size.x = std::stoi(elems[1]);
-			size.y = std::stoi(elems[2]);
-		}
-	}
-
+	
 	win = new Window(size, 0, &error);
 	if (error) {
 		std::cout << "error opening SDL window\n";
 		return;
 	}
-
-	//win->SetTargetFPS(600);
+	win->onExit = &OnExit;
+	win->SetTargetFPS(600);
 	f = new Font(16, 16, "C:\\Windows\\Fonts\\arial.ttf");
-
-	//cam = new Cam(0, 0, glm::vec3{ 0,0,0 });
-	//cam->fov = glm::radians(45.f);
-	//cam->orthro = true;
 
 	console = new Console(WidgetStuff{ XY{ 0,0 }, XY{ size.x,size.y }, "Console", f, win, &client, new TextureLoader(),"console" });
 	widgets.push_back(console);
-	client = new Client(IP, port);
 
-
-
-	//console->DispLine("test ", 2);
-	console->command("config start.txt");
+	console->command("config config.txt");
 	OpenPlayer();
 	for (int i = 0; i < WARNING_ALTADTUDES; i++) {
 		warn_altitudes_sounds[i] = new Sound("Sound/" + std::to_string(warn_altitudes[i]) + ".wav");
 	}
 	win->Run(&Tick);
-
-
 }
 

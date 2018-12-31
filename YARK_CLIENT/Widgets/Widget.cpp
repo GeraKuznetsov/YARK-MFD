@@ -26,13 +26,23 @@ Widget::Widget(WidgetStuff ws) {
 	this->TL = ws.TL;
 	this->startUpName = ws.startUpName;
 }
+#include "../Reg.h"
+
 void Widget::Resize(XY pos, XY size) {
+	if (Registry["ENABLE_WINDOW_FRAMES"]) {
+		border = BORDER;
+		barHeight = BAR_HEIGHT;
+	}
+	else {
+		border = 0;
+		barHeight = 0;
+	}
 	this->pos = pos;
 	this->size = size;
-	this->pos.y += BAR_HEIGHT;
-	this->size.y -= BAR_HEIGHT + BORDER;
-	this->pos.x += BORDER;
-	this->size.x -= BORDER * 2;
+	this->pos.y += barHeight;
+	this->size.y -= barHeight + border;
+	this->pos.x += border;
+	this->size.x -= border * 2;
 }
 
 void Widget::Tick(Draw* draw) {
@@ -40,7 +50,7 @@ void Widget::Tick(Draw* draw) {
 }
 
 std::string Widget::getSaveParams() {
-	return startUpName + " " + std::to_string(pos.x - BORDER) + " " + std::to_string(pos.y - BAR_HEIGHT) + " " + std::to_string(size.x + BORDER * 2) + " " + std::to_string(size.y + BAR_HEIGHT + BORDER) + "\n";
+	return startUpName + " " + std::to_string(pos.x - border) + " " + std::to_string(pos.y - barHeight) + " " + std::to_string(size.x + border * 2) + " " + std::to_string(size.y + barHeight + border) + "\n";
 }
 
 extern std::vector<Widget*> widgets;
@@ -49,7 +59,7 @@ int Widget::Input() { //0-ignore //1-move to front //2-close
 	if (close) return 2;
 	mouseInWindow = (win->MouseX() > pos.x && win->MouseY() > pos.y && win->MouseX() < pos.x + size.x && win->MouseY() < pos.y + size.y);
 	if (win->MouseDown(SDL_BUTTON_LEFT)) {
-		if (drag || (win->MouseX() > pos.x - BORDER && win->MouseY() > pos.y - BAR_HEIGHT && win->MouseX() < pos.x + size.x + BORDER && win->MouseY() < pos.y)) {
+		if (drag || (win->MouseX() > pos.x - border && win->MouseY() > pos.y - barHeight && win->MouseX() < pos.x + size.x + border && win->MouseY() < pos.y)) {
 			if (!drag) {
 				win->MouseDXY();
 				drag = true;
@@ -58,7 +68,7 @@ int Widget::Input() { //0-ignore //1-move to front //2-close
 			pos += d;
 		}
 		else {
-			if (dragBottom || (win->MouseX() > pos.x - BORDER && win->MouseY() > pos.y + size.y && win->MouseX() < pos.x + size.x + BORDER && win->MouseY() < pos.y + size.y + BORDER)) {
+			if (dragBottom || (win->MouseX() > pos.x - border && win->MouseY() > pos.y + size.y && win->MouseX() < pos.x + size.x + border && win->MouseY() < pos.y + size.y + border)) {
 				if (!dragBottom) {
 					dragBottom = true;
 					win->MouseDY();
@@ -68,7 +78,7 @@ int Widget::Input() { //0-ignore //1-move to front //2-close
 					size.y = 20;
 				}
 			}
-			if (dragRight || (win->MouseX() > pos.x + size.x && win->MouseY() > pos.y && win->MouseX() < pos.x + size.x + BORDER && win->MouseY() < pos.y + size.y)) {
+			if (dragRight || (win->MouseX() > pos.x + size.x && win->MouseY() > pos.y && win->MouseX() < pos.x + size.x + border && win->MouseY() < pos.y + size.y)) {
 				if (!dragRight) {
 					dragRight = true;
 					win->MouseDX();
@@ -78,7 +88,7 @@ int Widget::Input() { //0-ignore //1-move to front //2-close
 					size.x = 20;
 				}
 			}
-			else if (dragLeft || (win->MouseX() > pos.x - BORDER && win->MouseY() > pos.y && win->MouseX() < pos.x  && win->MouseY() < pos.y + size.y)) {
+			else if (dragLeft || (win->MouseX() > pos.x - border && win->MouseY() > pos.y && win->MouseX() < pos.x  && win->MouseY() < pos.y + size.y)) {
 				if (!dragLeft) {
 					dragLeft = true;
 					win->MouseDX();
@@ -107,8 +117,8 @@ void Widget::WindowUpdate(Draw* draw) {
 	draw->BindTex2D(0);
 	draw->SetDrawColor2D(0, 0, 1);
 
-	draw->DrawRect2D(pos.x - BORDER, pos.y - BAR_HEIGHT, pos.x + size.x + BORDER, pos.y + size.y + BORDER);
-	if (IM::Button(XY{ pos.x + size.x - 12,pos.y - BAR_HEIGHT + 2 }, XY{ 12, 12 }, win, draw, window_x)) {
+	draw->DrawRect2D(pos.x - border, pos.y - barHeight, pos.x + size.x + border, pos.y + size.y + border);
+	if (IM::Button(XY{ pos.x + size.x - 12,pos.y - barHeight + 2 }, XY{ 12, 12 }, win, draw, window_x)) {
 		close = true;
 	}
 

@@ -46,6 +46,7 @@ public:
 	void SetTargetFPS(int fps);
 	Window(XY s, int flags, int *error);
 	void Run(void(*tick)(float delta, Draw* draw));
+	bool(*onExit)();
 	bool KeyDown(int key);
 	bool KeyRepeating(int key);
 	bool KeyTyped(int key);

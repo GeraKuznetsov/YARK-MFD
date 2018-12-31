@@ -1,4 +1,0 @@
-open settings 0 0 200 100
-open navball 0 100 500 500
-resize console 0 0 600 600
-reg ENABLE_FLYBYWIRE 1
