@@ -33,7 +33,7 @@ SphereDraw::SphereDraw() {
 }
 
 void NavBall::LoadNavBallTextures() {
-	navballTex = loadTexture("Tex/navball/navball.png",false);
+	navballTex = loadTexture("Tex/navball/navball.png", false);
 	chevron = loadTexture("Tex/navball/chevron.png");
 	PGTex = loadTexture("Tex/navball/PG.png");
 	RGTex = loadTexture("Tex/navball/RG.png");
@@ -73,10 +73,39 @@ void SphereDraw::DrawSphere(Draw *draw, GLuint texture, glm::mat4 modelMat, glm:
 	glBindVertexArray(0);
 }
 
-void renderNavHeading(NavHeading NH, VesselPacket *DI, Draw* draw, glm::mat4 *modelMat, GLuint Tex);
+struct renderCoords {
+	float x, y, alpha;
+};
+renderCoords calcRenderCoords(NavHeading NH, VesselPacket *VP, glm::mat4 *modelMat) {
+	renderCoords rc;
+	float tempHeading = glm::radians(NH.Heading);
+	float tempPitch = glm::radians(NH.Pitch);
+	glm::vec4 NavVector = glm::vec4(glm::cos(tempPitch) * glm::sin(tempHeading), -glm::sin(tempPitch), -glm::cos(tempPitch) * glm::cos(tempHeading), 1);
+	NavVector = glm::rotateY(NavVector, glm::radians(VP->Heading));
+	NavVector = glm::rotateX(NavVector, glm::radians(VP->Pitch));
+	NavVector = glm::rotateZ(NavVector, glm::radians(VP->Roll));
+
+	NavVector = (*modelMat)*  NavVector;
+
+	rc.x = NavVector.x;
+	rc.y = NavVector.y;
+	rc.alpha = NavVector.z > 0 ? 0.3f : 1.f;
+	if (NavVector.z > 0.3) {
+		rc.alpha = 0;
+	}
+	return rc;
+}
+
+void renderNavHeading(NavHeading NH, VesselPacket *VP, Draw* draw, glm::mat4 *modelMat, GLuint Tex) {
+	renderCoords rc = calcRenderCoords(NH, VP, modelMat);
+	draw->BindTex2D(Tex);
+	draw->SetDrawColor2D(1, 1, 1, rc.alpha);
+	draw->DrawRect2D(rc.x - 30, rc.y - 30, rc.x + 30, rc.y + 30);
+}
 
 #include "../Reg.h"
 extern NavHeading SASS;
+extern float SASS_roll;
 
 void NavBall::Tick(Draw* draw) {
 	WindowUpdate(draw);
@@ -118,7 +147,7 @@ void NavBall::Tick(Draw* draw) {
 			renderNavHeading(NavHeading(VP.Prograde.Pitch + 90, VP.Prograde.Heading), &VP, draw, &modelMat, ROTex);
 			renderNavHeading(NavHeading(90 - VP.Prograde.Pitch, VP.Prograde.Heading + 180), &VP, draw, &modelMat, RITex);
 		}
-		
+
 		renderNavHeading(NavHeading(0.f, VP.Prograde.Heading - 90), &VP, draw, &modelMat, NTex);
 		renderNavHeading(NavHeading(0.f, VP.Prograde.Heading + 90), &VP, draw, &modelMat, ANTex);
 	}
@@ -131,26 +160,14 @@ void NavBall::Tick(Draw* draw) {
 		renderNavHeading(NavHeading(-VP.Target.Pitch, VP.Target.Heading + 180), &VP, draw, &modelMat, TRGTex);
 	}
 	if (RegInt("FLYBYWIRE_SMART", 0)) {
-		renderNavHeading(SASS, &VP, draw, &modelMat, SASSTex);
+		renderCoords rc = calcRenderCoords(SASS, &VP, &modelMat);
+		if (rc.alpha < 0.1)rc.alpha = 0.1;
+		draw->SetDrawColor2D(1, 1, 1, rc.alpha);
+		draw->BindTex2D(SASSTex);
+		draw->DrawRect2D(rc.x - 30, rc.y - 30, rc.x + 30, rc.y + 30);
+		draw->BindTex2D();
+		glLineWidth(3);
+		draw->SetDrawColor2D(215.f / 256.f, 254 / 256.f, 0, rc.alpha);
+		draw->DrawLine2D(rc.x, rc.y, rc.x + glm::sin(glm::radians(SASS_roll + 180 - VP.Roll)) * 20, rc.y + glm::cos(glm::radians(SASS_roll + 180 - VP.Roll)) * 20);
 	}
-}
-
-void renderNavHeading(NavHeading NH, VesselPacket *VP, Draw* draw, glm::mat4 *modelMat, GLuint Tex) {
-	float tempHeading = glm::radians(NH.Heading);
-	float tempPitch = glm::radians(NH.Pitch);
-	glm::vec4 NavVector = glm::vec4(glm::cos(tempPitch) * glm::sin(tempHeading), -glm::sin(tempPitch), -glm::cos(tempPitch) * glm::cos(tempHeading), 1);
-	NavVector = glm::rotateY(NavVector, glm::radians(VP->Heading));
-	NavVector = glm::rotateX(NavVector, glm::radians(VP->Pitch));
-	NavVector = glm::rotateZ(NavVector, glm::radians(VP->Roll));
-
-	if (NavVector.z > 0.3) return;
-
-	NavVector = (*modelMat)*  NavVector;
-
-	draw->BindTex2D(Tex);
-	float alpha = NavVector.z > 0 ? 0.3f : 1.f;
-
-	draw->SetDrawColor2D(1, 1, 1, alpha);
-	draw->DrawRect2D(NavVector.x - 30, NavVector.y - 30, NavVector.x + 30, NavVector.y + 30);
-
 }

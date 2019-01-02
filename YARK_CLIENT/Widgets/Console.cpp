@@ -5,6 +5,7 @@
 #include "SoyuzNavball.h"
 #include "Settings.h"
 #include "VInfo.h"
+#include "LaunchAss.h"
 #include <sstream>
 #include <algorithm>
 #include <iterator>
@@ -135,28 +136,28 @@ void Console::command(std::string com) {
 			}
 			if (elems.size() == 6 || elems.size() == 4 || elems.size() == 2) {
 				if (!elems[1].compare("navball")) {
-					NavBall* navball = new NavBall(WidgetStuff{ pos, size, "NavBall", f, win , client, TL,"navball" });
-					widgets.push_back(navball);
+					widgets.push_back(new NavBall(WidgetStuff{ pos, size, "NavBall", f, win , client, TL,"navball" }));
 				}
 				else if (!elems[1].compare("airmap")) {
-					AirMap* ag = new AirMap(WidgetStuff{ pos, size, "AirMap", f, win, client, TL,"airmap" });
-					widgets.push_back(ag);
+					widgets.push_back(new AirMap(WidgetStuff{ pos, size, "AirMap", f, win, client, TL,"airmap" }));
 				}
 				else if (!elems[1].compare("ati-in")) {
-					AtitudeIndicator* navball = new AtitudeIndicator(WidgetStuff{ pos, size, "AtitudeIndicator", f, win, client, TL,"ati-in" });
-					widgets.push_back(navball);
+					widgets.push_back(new AtitudeIndicator(WidgetStuff{ pos, size, "AtitudeIndicator", f, win, client, TL,"ati-in" }));
 				}
 				else if (!elems[1].compare("soyuznavball")) {
-					SoyuzNavBall* navball = new SoyuzNavBall(WidgetStuff{ pos, size, "SoyuzNavBall", f, win, client, TL,"soyuznavball" });
-					widgets.push_back(navball);
+					widgets.push_back(new SoyuzNavBall(WidgetStuff{ pos, size, "SoyuzNavBall", f, win, client, TL,"soyuznavball" }));
 				}
 				else if (!elems[1].compare("settings")) {
-					Settings* navball = new Settings(WidgetStuff{ pos, size, "Settings", f, win, client, TL,"settings" });
-					widgets.push_back(navball);
+					widgets.push_back(new Settings(WidgetStuff{ pos, size, "Settings", f, win, client, TL,"settings" }));
 				}
 				else if (!elems[1].compare("vinfo")) {
-					VInfo* vi = new VInfo(WidgetStuff{ pos, size, "Vessel Info", f, win, client, TL,"vinfo" });
-					widgets.push_back(vi);
+					widgets.push_back(new VInfo(WidgetStuff{ pos, size, "Vessel Info", f, win, client, TL,"vinfo" }));
+				}
+				else if (!elems[1].compare("launchass")) {
+					widgets.push_back(new VInfo(WidgetStuff{ pos, size, "Launch Assistent", f, win, client, TL,"launchass" }));
+				}
+				else {
+					DispLine("Unkown widget, type \"widgetlist\" for a list of widgets", 1);
 				}
 			}
 			else {
@@ -194,6 +195,34 @@ void Console::command(std::string com) {
 				DispLine("Invalid Syntex, use: \"resize <name> <pos x> <pos y> <width> <height>\"", 1);
 			}
 		}
+		else if (!elems[0].compare("widgetlist")) {
+			DispLine("Widget List:", 2);
+			DispLine("\"navball\" - NavBall", 0);
+			DispLine("\"launchass\" - Launch Assistent", 0);
+			DispLine("\"airmap\" - Airmap of current planet", 0);
+			DispLine("\"ati-in\" - Attitude Indicator for planes", 0);
+			DispLine("\"soyuznavball\" - Globe of current planet", 0);
+			DispLine("\"settings\" - Settings", 0);
+			DispLine("\"vinfo\" - Basic vessel info", 0);
+			DispLine("Done", 2);
+		}
+		else if (!elems[0].compare("help")) {
+			DispLine("Command List:", 2);
+			DispLine("\"open <widget name> [<width> <height> / <pos x> <pos y> <width> <height>]\" - Opens new wiget window", 0);
+			DispLine("\"widgetlist\" - Displays a list of widgets", 0);
+			DispLine("\"close <name>\" - Closes Widget Window", 0);
+			DispLine("\"resize <name> <pos x> <pos y> <width> <height>\" - Resizes Window", 0);
+			DispLine("\"reg <key> [new val]\" - Access registry value", 0);
+			DispLine("\"connect <ip> <port>\" - Connects to a YARK plugin instance", 0);
+			DispLine("\"savestate [output file]\" - Saves current state as a command list", 0);
+			DispLine("\"config <config file>\" - Excecutes commands in file", 0);
+			DispLine("\"winsize <width> <height>\" - Resizes main window", 0);
+			DispLine("\"help\" - Displays this list", 0);
+			DispLine("Done", 2);
+		}
+		else {
+			DispLine("Invalid Command, type \"help\" for help", 1);
+		}
 	}
 
 }
@@ -203,12 +232,6 @@ void Console::commandDetach(std::string com) {
 }
 Console::Console(WidgetStuff ws) :Widget(ws) {
 	f = new Font(16, 16, "C:\\Windows\\Fonts\\lucon.ttf");
-	for (int y = 0; y < CONSOLE_HEIGHT; y++) {
-		for (int x = 0; x < CONSOLE_WIDTH; x++) {
-			data[y*CONSOLE_WIDTH + x] = ' ';
-			color[y*CONSOLE_WIDTH + x] = 0;
-		}
-	}
 	memset(type, 0, CONSOLE_WIDTH);
 	curPos = 0;
 }
@@ -260,41 +283,30 @@ void Console::Tick(Draw* draw) {
 	}
 
 	draw->BindTextShader();
-	for (int y = 0; y < CONSOLE_HEIGHT; y++) {
-		for (int x = 0; x < CONSOLE_WIDTH; x++) {
-			char col = color[(CONSOLE_HEIGHT - 1 - y)*CONSOLE_WIDTH + x];
-			if (col == 0) {
-				draw->SetTextColor(1, 1, 1);
-			}
-			else if (col == 1) {
-				draw->SetTextColor(1, 0, 0);
-			}
-			else if (col == 2) {
-				draw->SetTextColor(0, 1, 0);
-			}
-			draw->DrawChar(f, data[(CONSOLE_HEIGHT - 1 - y)*CONSOLE_WIDTH + x], pos.x + x * CONSOLE_FONT_SIZE, pos.y + size.y - y * CONSOLE_FONT_SIZE - CONSOLE_FONT_SIZE);
+	int heighOfLine = 14;
+	int y = pos.y + size.y - heighOfLine - 2;
+	for (int i = lines.size() - 1; i >= 0; i--) {
+		conLine line = lines[i];
+		int col = line.color;
+		if (col == 0) {
+			draw->SetTextColor(1, 1, 1);
 		}
+		else if (col == 1) {
+			draw->SetTextColor(1, 0, 0);
+		}
+		else if (col == 2) {
+			draw->SetTextColor(0, 1, 0);
+		}
+		draw->DrawString(f, line.text, pos.x + 2, y);
+		y -= heighOfLine;
+		if (y < pos.y)break;
 	}
 
 	draw->SetTextColor(1, 1, 1);
-	int x;
-	for (x = 0; x < CONSOLE_WIDTH; x++) {
-		if (type[x] == 0) {
-			break;
-		}
-		draw->DrawChar(f, type[x], pos.x + x * CONSOLE_FONT_SIZE, pos.y + size.y - 2);
-	}
-	draw->DrawChar(f, '_', pos.x + x * CONSOLE_FONT_SIZE, pos.y + size.y);
+	std::string input = std::string(type);
+	draw->DrawString(f, input, pos.x + 2, pos.y + size.y - 3);
+	draw->DrawChar(f, '_', pos.x + f->GetTextWidth(input) + 2, pos.y + size.y - 3);
 }
 void Console::DispLine(std::string text, char col) {
-	if (text.length() > CONSOLE_WIDTH) {
-		text = text.substr(0, CONSOLE_WIDTH);
-	}
-	memcpy(data, data + CONSOLE_WIDTH, CONSOLE_HEIGHT*CONSOLE_WIDTH - CONSOLE_WIDTH);
-	memset(data + CONSOLE_HEIGHT * CONSOLE_WIDTH - CONSOLE_WIDTH, ' ', CONSOLE_WIDTH);
-	memcpy(data + CONSOLE_HEIGHT * CONSOLE_WIDTH - CONSOLE_WIDTH, text.data(), text.length());
-
-	memcpy(color, color + CONSOLE_WIDTH, CONSOLE_HEIGHT*CONSOLE_WIDTH - CONSOLE_WIDTH);
-	memset(color + CONSOLE_HEIGHT * CONSOLE_WIDTH - CONSOLE_WIDTH, 0, CONSOLE_WIDTH);
-	memset(color + CONSOLE_HEIGHT * CONSOLE_WIDTH - CONSOLE_WIDTH, col, text.length());
+	lines.push_back(conLine{ text,col });
 }

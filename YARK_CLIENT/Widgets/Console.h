@@ -5,16 +5,18 @@
 #include "../Client/Client.h"
 
 #define CONSOLE_WIDTH 80
-#define CONSOLE_HEIGHT 20
-#define CONSOLE_FONT_SIZE 14
 
 std::vector<std::string> split(const std::string s, char delim);
 
+struct conLine {
+	std::string text;
+	int color;
+};
+
 class Console : public Widget{
 	Font* f;
-	char data[CONSOLE_WIDTH * CONSOLE_HEIGHT];
+	std::vector<conLine> lines;
 	char type[CONSOLE_WIDTH];
-	char color[CONSOLE_WIDTH * CONSOLE_HEIGHT];
 	char curPos;
 public:
 	Console(WidgetStuff ws);

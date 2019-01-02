@@ -57,12 +57,22 @@ bool OnExit() {
 	return false;
 }
 
+int8_t test = 0;
+
 void Tick(float delta, Draw* draw) {
 	VesselPacket VP = (client) ? (client)->vesselPacket : VesselPacket();
 
 	RadioAltimeterTick(VP);
 
 	if (client) {
+		printf("%d, %d\n", test, client->vesselPacket.timeWarpRateIndex);
+		client->ControlPacket.timeWarpRateIndex = test;
+		if (win->KeyRepeating(SDL_SCANCODE_E)) {
+			test++;
+		}
+		else if (win->KeyRepeating(SDL_SCANCODE_W)) {
+			test--;
+		}
 		if (client->state == TCPCLIENT_FAILED) {
 			console->DispLine("client disconnected: " + client->error, 1);
 			delete client;
@@ -107,10 +117,14 @@ void Tick(float delta, Draw* draw) {
 	SDL_SetWindowTitle(win->gWindow, std::to_string(win->FPS).c_str());
 }
 
+//void runExe();
+
 void main() {
+	//runExe();
+	//return;
 	int error = 0;
 	XY size = XY{ DEFUALT_WIDTH,DEFUALT_HEIGHT };
-	
+
 	win = new Window(size, 0, &error);
 	if (error) {
 		std::cout << "error opening SDL window\n";

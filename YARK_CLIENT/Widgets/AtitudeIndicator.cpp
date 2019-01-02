@@ -143,12 +143,12 @@ void AtitudeIndicator::Tick(Draw* draw) {
 	int VELO_YSPACE = RegInt("ATI-IN_VELO_YSPACE", 35);
 	int VELO_DELTA = RegInt("ATI-IN_VELO_DELTA", 10);
 
-	float height = (pos.x + size.y - 10) - (pos.y + 10);
+	float height = (pos.y + size.y - 10) - (pos.y + 10);
 
 	//DRAW VELOCITY BAR
 	int y_mod = int(VP.Vsurf / VELO_DELTA * VELO_YSPACE) % VELO_YSPACE;
 	int y_down = int(VP.Vsurf) / VELO_DELTA * VELO_DELTA;
-	draw->DrawLine2D(pos.x + BAR_INSET, pos.y + 10, pos.x + BAR_INSET, pos.x + size.y - 10);
+	draw->DrawLine2D(pos.x + BAR_INSET, pos.y + 10, pos.x + BAR_INSET, pos.y + size.y - 10);
 	for (int i = -height / 2 / VELO_YSPACE; i <= height / 2 / VELO_YSPACE; i++) {
 		draw->DrawLine2D(pos.x + BAR_INSET, pos.y + size.y / 2 - i * VELO_YSPACE + y_mod, pos.x + BAR_INSET - 10, pos.y + size.y / 2 - i * VELO_YSPACE + y_mod);
 		//draw > DrawString();
@@ -163,9 +163,6 @@ void AtitudeIndicator::Tick(Draw* draw) {
 		draw->DrawString(f, s, pos.x + BAR_INSET - 10 - f->GetTextWidth(s), pos.y + size.y / 2 - i * VELO_YSPACE + TEX_Y_OFFSET + y_mod);
 	}
 
-
-
-
 	draw->BindDraw2DShader(); //DRAW ALTITUDE BAR
 
 	int ALT_YSPACE = RegInt("ATI-IN_ALT_YSPACE", 35);
@@ -173,7 +170,7 @@ void AtitudeIndicator::Tick(Draw* draw) {
 
 	y_mod = int(VP.RAlt / ALT_DELTA * ALT_YSPACE) % ALT_YSPACE;
 	y_down = int(VP.RAlt) / ALT_DELTA * ALT_DELTA;
-	draw->DrawLine2D(pos.x + size.x - BAR_INSET, pos.y + 10, pos.x + size.x - BAR_INSET, pos.x + size.y + 10);
+	draw->DrawLine2D(pos.x + size.x - BAR_INSET, pos.y + 10, pos.x + size.x - BAR_INSET, pos.y + size.y + 10);
 	for (int i = -height / 2 / ALT_YSPACE; i <= height / 2 / ALT_YSPACE; i++) {
 		draw->DrawLine2D(pos.x + size.x - BAR_INSET, pos.y + size.y / 2 - i * ALT_YSPACE + y_mod, pos.x + size.x - BAR_INSET + 10, pos.y + size.y / 2 - i * ALT_YSPACE + y_mod);
 	}

@@ -21,6 +21,29 @@
 #define AG_9 1 << 9
 #define AG_10 1 << 10
 
+#define SAS_HOLD 1
+#define SAS_PROGRADE 2
+#define SAS_RETROGRADE 3
+#define SAS_NORMAL 4
+#define SAS_ANTINORMAL 5
+#define SAS_RADIN 6
+#define SAS_RADOUT 7
+#define SAS_TARGET 8
+#define SAS_ANTITARGET 9
+#define SAS_MAN 10
+#define SAS_HOLD_VECTOR 11
+
+#define TIMEWARP_x1 0
+#define TIMEWARP_x2f 1
+#define TIMEWARP_x3f 2
+#define TIMEWARP_x4f 3
+#define TIMEWARP_x5 4
+#define TIMEWARP_x10 5
+#define TIMEWARP_x50 6
+#define TIMEWARP_x100 7
+#define TIMEWARP_x1000 8
+#define TIMEWARP_x10000 9
+#define TIMEWARP_x100000 10
 
 struct ControlPacket
 {
@@ -41,6 +64,8 @@ struct ControlPacket
 	int16_t WheelThrottle;                // 0 -> 1000
 	int8_t SASMode; //hold, prograde, retro, etc...
 	int8_t SpeedMode; //Surface, orbit target
+    float targetHeading, targetPitch, targetRoll;
+	int8_t timeWarpRateIndex;
 };
 
 struct Header {
@@ -137,5 +162,6 @@ struct VesselPacket {
 
 	int8_t SASMode; //hold, prograde, retro, etc...
 	int8_t SpeedMode; //Surface, orbit target
+	int8_t timeWarpRateIndex;
 };
 #pragma pack(pop)

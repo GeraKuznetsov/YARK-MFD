@@ -6,5 +6,4 @@ class Settings: public Widget {
 public:
 	Settings(WidgetStuff ws);
 	void Tick(Draw* draw);
-	int Input();
 };
