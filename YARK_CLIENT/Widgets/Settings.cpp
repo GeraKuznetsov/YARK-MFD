@@ -1,19 +1,20 @@
 #include "Settings.h"
-#include "Util\Button.h"
+#include "Util\IM.h"
 #include "../Reg.h"
 Settings::Settings(WidgetStuff ws) : Widget(ws) {
 
 }
 
-void Settings::RadioOpt(std::string option, std::string key, XY pos, Draw* draw) {
+void Settings::RadioOpt(std::string option, std::string key, Draw* draw) {
 	bool val = RegInt(key, 0);
-	pos += this->pos;
-	if (IM::Radio(pos, win, draw, &val)) {
+	XY renderAt = lastPos + this->pos;
+	if (IM::Radio(renderAt, win, draw, &val)) {
 		Registry[key] = val ? 1 : 0;
 	}
 	draw->BindTextShader();
 	draw->SetTextColor(1, 1, 1);
-	draw->DrawString(f, option, pos.x + 20, pos.y + 14);
+	draw->DrawString(f, option, renderAt.x + 20, renderAt.y + 14);
+	lastPos.y += 20;
 }
 
 #include "Console.h"
@@ -21,15 +22,17 @@ extern Console* console;
 
 void Settings::Tick(Draw* draw) {
 	WindowUpdate(draw);
-	RadioOpt("Save State On Exit", "ENABLE_SAVE_ON_EXIT", XY{ 0,0 }, draw);
+	lastPos = XY{ 0,0 };
+	RadioOpt("Save State On Exit", "ENABLE_SAVE_ON_EXIT", draw);
 	if (IM::Button(XY{ pos.x + 2,pos.y + 20 }, win, draw, f, "Save State")) {
 		console->command("savestate");
 	}
-	RadioOpt("Radio Altimeter", "ENABLE_RADIO-ALT", XY{ 0,40 }, draw);
-	RadioOpt("Window Frames", "ENABLE_WINDOW_FRAMES", XY{ 0,60 }, draw);
+	lastPos.y += 20;
+	RadioOpt("Radio Altimeter", "ENABLE_RADIO-ALT", draw);
+	RadioOpt("Window Frames", "ENABLE_WINDOW_FRAMES", draw);
 	if (win->HasJoyStick()) {
-		RadioOpt("Fly-By-Wire", "ENABLE_FLYBYWIRE", XY{ 0,80 }, draw);
-		RadioOpt("Rocket Mode", "FLYBYWIRE_ROCKETMODE", XY{ 0,100 }, draw);
-		RadioOpt("Smart Attitude control", "FLYBYWIRE_SMART", XY{ 0,120 }, draw);
+		RadioOpt("Fly-By-Wire", "ENABLE_FLYBYWIRE", draw);
+		RadioOpt("Rocket Mode", "FLYBYWIRE_ROCKETMODE", draw);
+		RadioOpt("Smart Attitude control", "FLYBYWIRE_SMART", draw);
 	}
 }

@@ -15,7 +15,7 @@ struct SphereDraw {
 
 class NavBall : public Widget {
 	GLuint navballTex;
-	GLuint chevron, PGTex, RGTex, RITex, ROTex, NTex, ANTex, TRGTex, TPGTex, MTex, SASSTex;
+	GLuint chevron;
 public:
 	static SphereDraw *SD;
 	NavBall(WidgetStuff ws);

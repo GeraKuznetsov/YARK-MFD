@@ -4,7 +4,7 @@
 #include "Util\TextureLoader.h"
 
 struct WidgetStuff {
-	XY pos; XY size; std::string title; Font* f; Window* win; Client** client; TextureLoader *TL;  std::string startUpName;
+	XY pos; XY size; std::string title; Font* f; Window* win; Client* client; TextureLoader *TL;  std::string startUpName;
 };
 
 class Widget {
@@ -15,7 +15,7 @@ protected:
 	XY size;
 	Font* f;
 	Window* win;
-	Client** client;
+	Client* client;
 	bool mouseInWindow;
 	TextureLoader *TL;
 	std::string startUpName;

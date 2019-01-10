@@ -22,7 +22,13 @@ public:
 	bool Running;
 	int state = TCPCLIENT_CONNECTING;
 	std::string error;
-	Client(std::string IP, std::string PORT);
+	//connection Methods
+	Client();
+	void Connect(std::string IP, std::string PORT);
+	bool Connected();
 	void SendControls();
 	void Shutdown();
+	//Helper Methods
+	bool GetMainControls(int control);
+	void SetMainControls(int control, bool s);
 };

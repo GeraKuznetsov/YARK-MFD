@@ -16,7 +16,7 @@
 #include "Widgets\Console.h"
 #include "Engine\Sound.h"
 
-Client* client;
+Client client;
 Window* win;
 Font* f;
 
@@ -57,32 +57,10 @@ bool OnExit() {
 	return false;
 }
 
-int8_t test = 0;
-
 void Tick(float delta, Draw* draw) {
-	VesselPacket VP = (client) ? (client)->vesselPacket : VesselPacket();
+	VesselPacket VP = client.vesselPacket;
 
-	RadioAltimeterTick(VP);
-
-	if (client) {
-		printf("%d, %d\n", test, client->vesselPacket.timeWarpRateIndex);
-		client->ControlPacket.timeWarpRateIndex = test;
-		if (win->KeyRepeating(SDL_SCANCODE_E)) {
-			test++;
-		}
-		else if (win->KeyRepeating(SDL_SCANCODE_W)) {
-			test--;
-		}
-		if (client->state == TCPCLIENT_FAILED) {
-			console->DispLine("client disconnected: " + client->error, 1);
-			delete client;
-			client = NULL;
-		}
-		else if (client->state == TCPCLIENT_CONNECTED) {
-			client->SendControls();
-		}
-		//printf("pitch: %f heading: %f roll: %f", client->vesselPacket.Pitch, client->vesselPacket.Heading, client->vesselPacket.Roll);
-	}
+	RadioAltimeterTick();
 
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
@@ -109,8 +87,15 @@ void Tick(float delta, Draw* draw) {
 	}
 	glScissor(0, 0, win->size.x, win->size.y);
 	d = draw;
-	JoyStickTick(client, delta);
+	JoyStickTick(delta);
 
+
+	if (client.state == TCPCLIENT_FAILED) {
+		console->DispLine("client disconnected: " + client.error, 1);
+	}
+	else if (client.state == TCPCLIENT_CONNECTED) {
+		client.SendControls();
+	}
 	if (win->MouseClicked(SDL_BUTTON_LEFT)) {
 		//printf("click\n");
 	}
@@ -118,6 +103,8 @@ void Tick(float delta, Draw* draw) {
 }
 
 //void runExe();
+
+#include "Widgets/NavBall.h"
 
 void main() {
 	//runExe();
@@ -133,9 +120,14 @@ void main() {
 	win->onExit = &OnExit;
 	win->SetTargetFPS(600);
 	f = new Font(16, 16, "C:\\Windows\\Fonts\\arial.ttf");
+	client = Client();
 
 	console = new Console(WidgetStuff{ XY{ 0,0 }, XY{ size.x,size.y }, "Console", f, win, &client, new TextureLoader(),"console" });
 	widgets.push_back(console);
+
+	if (!win->HasJoyStick()) {
+		Registry["ENABLE_FLYBYWIRE"] = 0;
+	}
 
 	console->command("config config.txt");
 	OpenPlayer();

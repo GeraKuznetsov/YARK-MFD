@@ -32,7 +32,7 @@ void runExe() {
 				}
 				if (hadAbort & (c->vesselPacket.MissionTime - abortTime) > 2 & c->vesselPacket.Alt < 10000 & c->vesselPacket.Prograde.Pitch < 70) { //step two of the abort sequence,
 					std::cout << "step 2 of abort sequence\n";																	// , 2 seconds after step one,
-					c->ControlPacket.ControlGroup = AG_1;	//action group 1																//stage the parachutes by activating action group 1
+					c->ControlPacket.ActionGroups = AG_1;	//action group 1																//stage the parachutes by activating action group 1
 					c->SendControls(); //send control packet
 					goto exit;
 				}

@@ -107,11 +107,12 @@ void Client::TCPClientRun(std::string IP, std::string PORT) {
 	VesselPacket vP;
 	do {
 		iResult = recv(ConnectSocket, (char*)&buffer, sizeof(buffer) - bp, 0);
-		
+
 		if (iResult > 0) {
 			bp += iResult;
 
-		}else	if (iResult == 0) {
+		}
+		else	if (iResult == 0) {
 			error = "recv failed";
 			state = TCPCLIENT_FAILED;
 			printf("Connection closed\n");
@@ -132,6 +133,7 @@ void Client::TCPClientRun(std::string IP, std::string PORT) {
 					if (sP.ID > statusPacket.ID) {
 						memcpy(&statusPacket, &sP, sizeof(StatusPacket));
 					}
+					printf("status packet");
 				}
 				else if (buffer[1] == (char)2) {
 					bytesRead += sizeof(VesselPacket);
@@ -150,15 +152,22 @@ void Client::TCPClientRun(std::string IP, std::string PORT) {
 	}
 }
 
-Client::Client(std::string IP, std::string PORT)
+Client::Client()
 {
 	memset((char*)&ControlPacket, 0, sizeof(ControlPacket));
 	memset((char*)&vesselPacket, 0, sizeof(vesselPacket));
 	memset((char*)&statusPacket, 0, sizeof(statusPacket));
 	ControlPacket.HEADER_0 = 0xC4;
 	ControlPacket.ID = 0;
+}
+
+void Client::Connect(std::string IP, std::string PORT) {
 	recLoop = std::thread(&Client::TCPClientRun, this, IP, PORT);
 	recLoop.detach();
+}
+
+bool Client::Connected() {
+	return state == TCPCLIENT_CONNECTED;
 }
 
 void Client::Shutdown() {
@@ -169,5 +178,17 @@ void Client::Shutdown() {
 		printf("shutdown failed with error: %d\n", WSAGetLastError());
 		closesocket(ConnectSocket);
 		WSACleanup();
+	}
+}
+bool Client::GetMainControls(int control) {
+	return (vesselPacket.MainControls & control) != 0;
+}
+
+void Client::SetMainControls(int control, bool s) {
+	if (s) {
+		ControlPacket.MainControls |= control;
+	}
+	else {
+		ControlPacket.MainControls &= ~((uint8_t)control);
 	}
 }

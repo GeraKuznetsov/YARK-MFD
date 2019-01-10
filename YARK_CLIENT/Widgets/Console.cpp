@@ -6,6 +6,7 @@
 #include "Settings.h"
 #include "VInfo.h"
 #include "LaunchAss.h"
+#include "Control.h"
 #include <sstream>
 #include <algorithm>
 #include <iterator>
@@ -93,9 +94,10 @@ void Console::command(std::string com) {
 		}
 		else if (!elems[0].compare("connect")) {
 			if (elems.size() == 3) {
-				if (!(*client)) {
-					(*client) = new Client(IP = elems[1], PORT = elems[2]);
+				if (!client->Connected()) {
+					client->Connect(IP = elems[1], PORT = elems[2]);
 				}
+				//					(*client) = new Client(IP = elems[1], PORT = elems[2]);
 			}
 			else {
 				DispLine("Invalid Syntex, use: \"connect <ip> <port>\"", 1);
@@ -154,7 +156,10 @@ void Console::command(std::string com) {
 					widgets.push_back(new VInfo(WidgetStuff{ pos, size, "Vessel Info", f, win, client, TL,"vinfo" }));
 				}
 				else if (!elems[1].compare("launchass")) {
-					widgets.push_back(new VInfo(WidgetStuff{ pos, size, "Launch Assistent", f, win, client, TL,"launchass" }));
+					widgets.push_back(new LaunchAss(WidgetStuff{ pos, size, "Launch Assistent", f, win, client, TL,"launchass" }));
+				}
+				else if (!elems[1].compare("controller")) {
+					widgets.push_back(new Control(WidgetStuff{ pos, size, "controller", f, win, client, TL,"controller" }));
 				}
 				else {
 					DispLine("Unkown widget, type \"widgetlist\" for a list of widgets", 1);
@@ -204,6 +209,7 @@ void Console::command(std::string com) {
 			DispLine("\"soyuznavball\" - Globe of current planet", 0);
 			DispLine("\"settings\" - Settings", 0);
 			DispLine("\"vinfo\" - Basic vessel info", 0);
+			DispLine("\"controller\" - Vessel controller", 0);
 			DispLine("Done", 2);
 		}
 		else if (!elems[0].compare("help")) {

@@ -35,16 +35,6 @@ SphereDraw::SphereDraw() {
 void NavBall::LoadNavBallTextures() {
 	navballTex = loadTexture("Tex/navball/navball.png", false);
 	chevron = loadTexture("Tex/navball/chevron.png");
-	PGTex = loadTexture("Tex/navball/PG.png");
-	RGTex = loadTexture("Tex/navball/RG.png");
-	RITex = loadTexture("Tex/navball/RI.png");
-	ROTex = loadTexture("Tex/navball/RO.png");
-	NTex = loadTexture("Tex/navball/N.png");
-	ANTex = loadTexture("Tex/navball/AN.png");
-	TPGTex = loadTexture("Tex/navball/TPG.png");
-	TRGTex = loadTexture("Tex/navball/TRG.png");
-	MTex = loadTexture("Tex/navball/M.png");
-	SASSTex = loadTexture("Tex/navball/SASS.png");
 }
 
 NavBall::NavBall(WidgetStuff ws) : Widget(ws) {
@@ -114,7 +104,7 @@ void NavBall::Tick(Draw* draw) {
 	draw->SetDrawColor2D(0, 0, 0);
 	draw->DrawRect2D(pos.x, pos.y, pos.x + size.x, pos.y + size.y);
 
-	VesselPacket VP = (*client) ? (*client)->vesselPacket : VesselPacket();
+	VesselPacket VP = client->vesselPacket;
 
 	float rad = (size.x - 50) / 2;
 
@@ -135,35 +125,35 @@ void NavBall::Tick(Draw* draw) {
 	draw->BindTex2D(chevron);  //DRAW CHEVRON
 	draw->DrawRectUV2D(pos.x + size.x / 2 - 90, pos.y + size.y / 2 - 35, pos.x + size.x / 2 + 90, pos.y + size.y / 2 + 35, 0.f / 256.f, 0.f / 256.f, 180.f / 256.f, 70.f / 256.f);
 
-	renderNavHeading(VP.Prograde, &VP, draw, &modelMat, PGTex);
-	renderNavHeading(NavHeading(-VP.Prograde.Pitch, VP.Prograde.Heading + 180), &VP, draw, &modelMat, RGTex);
+	renderNavHeading(VP.Prograde, &VP, draw, &modelMat, TL->SASModeTex(SAS_PROGRADE));
+	renderNavHeading(NavHeading(-VP.Prograde.Pitch, VP.Prograde.Heading + 180), &VP, draw, &modelMat, TL->SASModeTex(SAS_RETROGRADE));
 
 	if (VP.SpeedMode == 1) {
 		if (VP.Prograde.Pitch >= 0) {
-			renderNavHeading(NavHeading(90 - VP.Prograde.Pitch, VP.Prograde.Heading + 180), &VP, draw, &modelMat, ROTex);
-			renderNavHeading(NavHeading(VP.Prograde.Pitch - 90, VP.Prograde.Heading), &VP, draw, &modelMat, RITex);
+			renderNavHeading(NavHeading(90 - VP.Prograde.Pitch, VP.Prograde.Heading + 180), &VP, draw, &modelMat, TL->SASModeTex(SAS_RADOUT));
+			renderNavHeading(NavHeading(VP.Prograde.Pitch - 90, VP.Prograde.Heading), &VP, draw, &modelMat, TL->SASModeTex(SAS_RADIN));
 		}
 		else {
-			renderNavHeading(NavHeading(VP.Prograde.Pitch + 90, VP.Prograde.Heading), &VP, draw, &modelMat, ROTex);
-			renderNavHeading(NavHeading(90 - VP.Prograde.Pitch, VP.Prograde.Heading + 180), &VP, draw, &modelMat, RITex);
+			renderNavHeading(NavHeading(VP.Prograde.Pitch + 90, VP.Prograde.Heading), &VP, draw, &modelMat, TL->SASModeTex(SAS_RADOUT));
+			renderNavHeading(NavHeading(-VP.Prograde.Pitch-90, VP.Prograde.Heading + 180), &VP, draw, &modelMat, TL->SASModeTex(SAS_RADIN));
 		}
 
-		renderNavHeading(NavHeading(0.f, VP.Prograde.Heading - 90), &VP, draw, &modelMat, NTex);
-		renderNavHeading(NavHeading(0.f, VP.Prograde.Heading + 90), &VP, draw, &modelMat, ANTex);
+		renderNavHeading(NavHeading(0.f, VP.Prograde.Heading - 90), &VP, draw, &modelMat, TL->SASModeTex(SAS_NORMAL));
+		renderNavHeading(NavHeading(0.f, VP.Prograde.Heading + 90), &VP, draw, &modelMat, TL->SASModeTex(SAS_ANTINORMAL));
 	}
 
 	if (VP.MNDeltaV) {
-		renderNavHeading(VP.Maneuver, &VP, draw, &modelMat, MTex);
+		renderNavHeading(VP.Maneuver, &VP, draw, &modelMat, TL->SASModeTex(SAS_MAN));
 	}
 	if (VP.HasTarget) {
-		renderNavHeading(VP.Target, &VP, draw, &modelMat, TPGTex);
-		renderNavHeading(NavHeading(-VP.Target.Pitch, VP.Target.Heading + 180), &VP, draw, &modelMat, TRGTex);
+		renderNavHeading(VP.Target, &VP, draw, &modelMat, TL->SASModeTex(SAS_TARGET));
+		renderNavHeading(NavHeading(-VP.Target.Pitch, VP.Target.Heading + 180), &VP, draw, &modelMat, TL->SASModeTex(SAS_ANTITARGET));
 	}
-	if (RegInt("FLYBYWIRE_SMART", 0)) {
+	if (RegInt("FLYBYWIRE_SMART", 0) && Registry["ENABLE_FLYBYWIRE"]) {
 		renderCoords rc = calcRenderCoords(SASS, &VP, &modelMat);
 		if (rc.alpha < 0.1)rc.alpha = 0.1;
 		draw->SetDrawColor2D(1, 1, 1, rc.alpha);
-		draw->BindTex2D(SASSTex);
+		draw->BindTex2D(TL->SASModeTex(SAS_HOLD_VECTOR));
 		draw->DrawRect2D(rc.x - 30, rc.y - 30, rc.x + 30, rc.y + 30);
 		draw->BindTex2D();
 		glLineWidth(3);

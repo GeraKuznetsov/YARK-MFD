@@ -6,15 +6,15 @@ Sound* warn_altitudes_sounds[WARNING_ALTADTUDES];
 
 float RALT_LastAlt = 0;
 
-void RadioAltimeterTick(VesselPacket VP) {
+void RadioAltimeterTick() {
 	if (RegInt("ENABLE_RADIO-ALT", 0)) {
 		for (int i = 0; i < WARNING_ALTADTUDES; i++) {
-			if (RALT_LastAlt > warn_altitudes[i] && VP.RAlt < warn_altitudes[i]) {
+			if (RALT_LastAlt > warn_altitudes[i] && client.vesselPacket.RAlt < warn_altitudes[i]) {
 				PlaySound(warn_altitudes_sounds[i]);
-				RALT_LastAlt = VP.RAlt;
+				RALT_LastAlt = client.vesselPacket.RAlt;
 				return;
 			}
 		}
 	}
-	RALT_LastAlt = VP.RAlt;
+	RALT_LastAlt = client.vesselPacket.RAlt;
 }

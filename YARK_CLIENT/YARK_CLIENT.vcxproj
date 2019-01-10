@@ -140,10 +140,12 @@
     <ClCompile Include="Widgets\AtitudeIndicator.cpp" />
     <ClCompile Include="Widgets\AirMap.cpp" />
     <ClCompile Include="Widgets\Console.cpp" />
+    <ClCompile Include="Widgets\Control.cpp" />
+    <ClCompile Include="Widgets\LaunchAss.cpp" />
     <ClCompile Include="Widgets\NavBall.cpp" />
     <ClCompile Include="Widgets\Settings.cpp" />
     <ClCompile Include="Widgets\SoyuzNavBall.cpp" />
-    <ClCompile Include="Widgets\Util\Button.cpp" />
+    <ClCompile Include="Widgets\Util\IM.cpp" />
     <ClCompile Include="Widgets\Util\TextureLoader.cpp" />
     <ClCompile Include="Widgets\VInfo.cpp" />
     <ClCompile Include="Widgets\Widget.cpp" />
@@ -170,11 +172,13 @@
     <ClInclude Include="Widgets\AtitudeIndicator.h" />
     <ClInclude Include="Widgets\AirMap.h" />
     <ClInclude Include="Widgets\Console.h" />
+    <ClInclude Include="Widgets\Control.h" />
+    <ClInclude Include="Widgets\LaunchAss.h" />
     <ClInclude Include="Widgets\VInfo.h" />
     <ClInclude Include="Widgets\NavBall.h" />
     <ClInclude Include="Widgets\Settings.h" />
     <ClInclude Include="Widgets\SoyuzNavball.h" />
-    <ClInclude Include="Widgets\Util\Button.h" />
+    <ClInclude Include="Widgets\Util\IM.h" />
     <ClInclude Include="Widgets\Util\TextureLoader.h" />
     <ClInclude Include="Widgets\Widget.h" />
   </ItemGroup>

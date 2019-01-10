@@ -71,7 +71,7 @@ void AirMap::drawTarget(Target* t, Draw* draw, VesselPacket* VP, float zoom) {
 void AirMap::Tick(Draw* draw) {
 	WindowUpdate(draw);
 
-	VesselPacket VP = (*client) ? (*client)->vesselPacket : VesselPacket();
+	VesselPacket VP = client->vesselPacket;
 
 	if (lastSOI != VP.SOINumber) {
 		mapTexture = TL->getPlanetTexture(lastSOI = VP.SOINumber);

@@ -77,7 +77,7 @@ float NAngle(VesselPacket VP) {
 	return angle;
 }*/
 
-void JoyStickTick(Client* c, float delta) {
+void JoyStickTick( float delta) {
 	int deadZone = RegInt("FLYBYWIRE_DEADZONE", 300);
 	float roll, pitch, yaw;
 	if (RegInt("FLYBYWIRE_ROCKETMODE", 0)) {
@@ -91,17 +91,17 @@ void JoyStickTick(Client* c, float delta) {
 		yaw = JoyStickCurve(win->joystickDir[2], deadZone);
 	}
 
-	if (client) {
-		VesselPacket VP = c->vesselPacket;
+	if (client.Connected()) {
+		VesselPacket VP = client.vesselPacket;
 		if (RegInt("ENABLE_FLYBYWIRE", 0)) {
-			client->ControlPacket.Throttle = 1000 - CLAMP(JOY_RANGE_THROTTLE(win->joystickDir[3]), -1000, 1000);
+			client.ControlPacket.Throttle = 1000 - CLAMP(JOY_RANGE_THROTTLE(win->joystickDir[3]), -1000, 1000);
 			if (RegInt("FLYBYWIRE_SMART", 0)) {
-				client->ControlPacket.SASMode = SAS_HOLD_VECTOR;
+				client.ControlPacket.SASMode = SAS_HOLD_VECTOR;
 				if (!smart_ass_was_on) {
 					smart_ass_was_on = true;
-					SASS.Pitch = c->vesselPacket.Pitch;
-					SASS.Heading = c->vesselPacket.Heading;
-					SASS_roll = c->vesselPacket.Roll;
+					SASS.Pitch = VP.Pitch;
+					SASS.Heading = VP.Heading;
+					SASS_roll = VP.Roll;
 					printf("SASS START");
 				}
 				float sensitivity = delta * 0.05;
@@ -136,20 +136,20 @@ void JoyStickTick(Client* c, float delta) {
 					SASS.Heading -= 360;
 				}
 
-				client->ControlPacket.targetHeading = SASS.Heading;
-				client->ControlPacket.targetPitch = SASS.Pitch;
-				client->ControlPacket.targetRoll = SASS_roll;
+				client.ControlPacket.targetHeading = SASS.Heading;
+				client.ControlPacket.targetPitch = SASS.Pitch;
+				client.ControlPacket.targetRoll = SASS_roll;
 			//	client->ControlPacket.targetRoll = VP.Roll;
 			}
 			else
 			{
 				if (smart_ass_was_on) {
-					client->ControlPacket.SASMode = 1;
+					client.ControlPacket.SASMode = 1;
 					smart_ass_was_on = false;
 				}
-				client->ControlPacket.Yaw = yaw;
-				client->ControlPacket.Roll = roll;
-				client->ControlPacket.Pitch = pitch;
+				client.ControlPacket.Yaw = yaw;
+				client.ControlPacket.Roll = roll;
+				client.ControlPacket.Pitch = pitch;
 			}
 		}
 	}
