@@ -46,6 +46,8 @@
 #define TIMEWARP_x10000 9
 #define TIMEWARP_x100000 10
 
+const uint8_t Header_Array[8] = { (uint8_t)0xFF, (uint8_t)0xC4, (uint8_t)'Y', (uint8_t)'A', (uint8_t)'R', (uint8_t)'K', (uint8_t)0x00, (uint8_t)0xFF };
+
 struct ControlPacket
 {
 	uint8_t HEADER_0;
@@ -65,11 +67,6 @@ struct ControlPacket
 	uint8_t SpeedMode; //Surface, orbit target
 	float targetHeading, targetPitch, targetRoll;
 	uint8_t timeWarpRateIndex;
-};
-
-struct Header {
-	int8_t HEADER_0;
-	int8_t packetType;
 };
 
 struct StatusPacket {
