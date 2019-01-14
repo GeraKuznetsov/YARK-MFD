@@ -50,7 +50,7 @@ const uint8_t Header_Array[8] = { (uint8_t)0xFF, (uint8_t)0xC4, (uint8_t)'Y', (u
 
 struct ControlPacket
 {
-	uint8_t HEADER_0;
+	uint8_t header[8];
 	uint64_t ID;
 	uint8_t MainControls;                   //SAS RCS Lights Gear Brakes Abort Stage
 	uint16_t ActionGroups;                //action groups 1-10 in 2 bytes

@@ -85,6 +85,17 @@ void Client::TCPClientRun(std::string IP, std::string PORT) {
 		break;
 	}
 
+	u_long mode = 1;
+	iResult = ioctlsocket(ConnectSocket, FIONBIO, &mode);
+	if (iResult != NO_ERROR) {
+		error = "oof";
+		state = TCPCLIENT_FAILED;
+		printf("ioctlsocket failed with error: %ld\n", iResult);
+		WSACleanup();
+		return;
+
+	}
+
 	freeaddrinfo(result);
 
 	if (ConnectSocket == INVALID_SOCKET) {
@@ -109,8 +120,8 @@ void Client::TCPClientRun(std::string IP, std::string PORT) {
 	VesselPacket vP;
 
 	do {
+#if true
 		if ((iResult = recv(ConnectSocket, buffer + bp, RECV_BUFF_SIZE - bp, 0)) > 0) {
-			//dprintf("iresult: %d", iResult);
 			bp += iResult;
 			int p = 0;
 			while (p + sizeof(VesselPacket) <= bp) {
@@ -119,12 +130,11 @@ void Client::TCPClientRun(std::string IP, std::string PORT) {
 					uint8_t packetType = *(buffer + p);
 					p++;
 					if (packetType == (char)1) {
-						memcpy((char*)&sP, buffer + p , sizeof(StatusPacket));
+						memcpy((char*)&sP, buffer + p, sizeof(StatusPacket));
 						if (sP.ID > statusPacket.ID) {
 							memcpy(&statusPacket, &sP, sizeof(StatusPacket));
 						}
 						p += sizeof(StatusPacket);
-						//printf("status packet\n");
 					}
 					else if (packetType == (char)2) {
 						memcpy((char*)&vP, buffer + p, sizeof(VesselPacket));
@@ -132,7 +142,6 @@ void Client::TCPClientRun(std::string IP, std::string PORT) {
 							memcpy(&vesselPacket, &vP, sizeof(VesselPacket));
 						}
 						p += sizeof(VesselPacket);
-						//printf("vessel packet\n");
 					}
 					else {
 						printf("bad packettype\n");
@@ -151,57 +160,18 @@ void Client::TCPClientRun(std::string IP, std::string PORT) {
 			printf("Connection closed\n");
 			error = true;
 		}
-		else {
-			error = "con closed";
-			state = TCPCLIENT_FAILED;
-			printf("recv failed with error: %d\n", WSAGetLastError());
-			error = true;
+		else{
+			int errorN = WSAGetLastError();
+			if (errorN != WSAEWOULDBLOCK) {
+				error = "con closed";
+				state = TCPCLIENT_FAILED;
+				printf("recv failed with error: %d\n", errorN);
+				error = true;
+			}
 		}
+#endif
 	} while (!error && Running);
 
-	/*do {
-		iResult = recv(ConnectSocket, (char*)&buffer + bp, sizeof(buffer) - bp, 0);
-
-		if (iResult > 0) {
-			bp += iResult;
-
-		}
-		else if (iResult == 0) {
-			error = "recv failed";
-			state = TCPCLIENT_FAILED;
-			printf("Connection closed\n");
-			error = true;
-		}
-		else {
-			error = "con closed";
-			state = TCPCLIENT_FAILED;
-			printf("recv failed with error: %d\n", WSAGetLastError());
-			error = true;
-		}
-		while (bp > 1) {
-			int bytesRead = 2;
-			if (buffer[0] == (char)0xC4) {
-				if (buffer[1] == (char)1) {
-					bytesRead += sizeof(StatusPacket);
-					memcpy((char*)&sP, buffer + 2, sizeof(StatusPacket));
-					if (sP.ID > statusPacket.ID) {
-						memcpy(&statusPacket, &sP, sizeof(StatusPacket));
-					}
-					printf("status packet");
-				}
-				else if (buffer[1] == (char)2) {
-					bytesRead += sizeof(VesselPacket);
-					memcpy((char*)&vP, buffer + 2, sizeof(VesselPacket));
-					if (vP.ID > vesselPacket.ID) {
-						memcpy(&vesselPacket, &vP, sizeof(VesselPacket));
-					}
-				}
-			}
-			memcpy(buffer, buffer + bytesRead, 1000 - bytesRead);
-			bp -= bytesRead;
-			printf("%d, %d\n", iResult, bp);
-		}
-	} while (!error && Running);*/
 	if (Running) {
 		Shutdown();
 	}
@@ -212,7 +182,7 @@ Client::Client()
 	memset((char*)&ControlPacket, 0, sizeof(ControlPacket));
 	memset((char*)&vesselPacket, 0, sizeof(vesselPacket));
 	memset((char*)&statusPacket, 0, sizeof(statusPacket));
-	ControlPacket.HEADER_0 = 0xC4;
+	memcpy(ControlPacket.header, Header_Array, 8);
 	ControlPacket.ID = 0;
 }
 
