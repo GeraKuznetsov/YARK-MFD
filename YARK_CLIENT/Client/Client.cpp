@@ -1,3 +1,4 @@
+#include <assert.h> 
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -14,14 +15,56 @@
 
 #define RECV_BUFF_SIZE (1024*16)
 
-void Client::SendControls() {
+uint16_t checksum(uint8_t *buffer, int length) {
+	uint16_t acc = 0;
+	for (int i = 0; i < length; i++) {
+		acc += buffer[i];
+	}
+	return (uint16_t)acc;
+}
+
+void Client::SendControls() { //use async
+	//return;
+	ControlPacket.header.checksum = checksum((uint8_t*)&ControlPacket.ID, sizeof(ControlPacket) - sizeof(Header));
 	int	iResult = send(ConnectSocket, (char*)&ControlPacket, sizeof(ControlPacket), 0);
 	if (iResult == SOCKET_ERROR) {
-		printf("send failed with error: %d\n", WSAGetLastError());
-		closesocket(ConnectSocket);
-		WSACleanup();
+		int errorN = WSAGetLastError();
+		if (errorN != WSAEWOULDBLOCK) {
+			printf("send failed with error: %d\n", errorN);
+			closesocket(ConnectSocket);
+			WSACleanup();
+		}
 	}
 	ControlPacket.ID++;
+}
+
+bool Client::ReadBytes(char *buffer, uint16_t *checkSum, int bytesToRead) {
+	int bytesRead = 0;
+	while (bytesRead < bytesToRead) {
+		int result = recv(ConnectSocket, buffer + bytesRead, bytesToRead - bytesRead, 0);
+		if (result > 0) {
+			bytesRead += result;
+		}
+		else if (result == 0) {
+			error = "recv failed";
+			state = TCPCLIENT_FAILED;
+			printf("Connection closed\n");
+			return false;
+		}
+		else {
+			int errorN = WSAGetLastError();
+			if (errorN != WSAEWOULDBLOCK) {
+				error = "con closed";
+				state = TCPCLIENT_FAILED;
+				printf("recv failed with error: %d\n", errorN);
+				return false;
+			}
+		}
+	}
+	if (checkSum) {
+		*checkSum = checksum((uint8_t*)buffer, bytesToRead);
+	}
+	return true;
 }
 
 void Client::TCPClientRun(std::string IP, std::string PORT) {
@@ -77,23 +120,11 @@ void Client::TCPClientRun(std::string IP, std::string PORT) {
 		iResult = connect(ConnectSocket, ptr->ai_addr, (int)ptr->ai_addrlen);
 		if (iResult == SOCKET_ERROR) {
 			error = "SOCKET_ERROR";
-			//SERVER_LIST_PROMPT = SERVER_LIST_PROMPT_ERROR;
 			closesocket(ConnectSocket);
 			ConnectSocket = INVALID_SOCKET;
 			continue;
 		}
 		break;
-	}
-
-	u_long mode = 1;
-	iResult = ioctlsocket(ConnectSocket, FIONBIO, &mode);
-	if (iResult != NO_ERROR) {
-		error = "oof";
-		state = TCPCLIENT_FAILED;
-		printf("ioctlsocket failed with error: %ld\n", iResult);
-		WSACleanup();
-		return;
-
 	}
 
 	freeaddrinfo(result);
@@ -106,25 +137,65 @@ void Client::TCPClientRun(std::string IP, std::string PORT) {
 		return;
 	}
 
+	/*
+	u_long mode = 1;
+	iResult = ioctlsocket(ConnectSocket, FIONBIO, &mode);
+	if (iResult != NO_ERROR) {
+		error = "oof";
+		state = TCPCLIENT_FAILED;
+		printf("ioctlsocket failed with error: %ld\n", iResult);
+		WSACleanup();
+		return;
+	}*/
+
 	std::cout << "cleint in revieve loop\n";
 
 	state = TCPCLIENT_CONNECTED;
 
 #pragma endregion
 	Running = true;
-	bool error = false;
-	char state = 0;
-	char buffer[RECV_BUFF_SIZE + sizeof(VesselPacket)];
-	int bp = 0;
 	StatusPacket sP;
 	VesselPacket vP;
 
+	Header header;
+
+	uint16_t checkSumHeader;
+	uint16_t checksumCalced;
+
+	while (Running && state == TCPCLIENT_CONNECTED) {
+		if (ReadBytes((char*)&header, 0, sizeof(header))) {
+			checkSumHeader = header.checksum;
+			if (header.type == (char)1) {
+				if (ReadBytes((char*)&sP, &checksumCalced, sizeof(StatusPacket))) {
+					if (checkSumHeader == checksumCalced) {
+						if (sP.ID > statusPacket.ID) {
+							memcpy(&statusPacket, &sP, sizeof(StatusPacket));
+						}
+					}
+				}
+			}
+			else if (header.type == (char)2) {
+				if (ReadBytes((char*)&vP, &checksumCalced, sizeof(VesselPacket))) {
+					if (checkSumHeader == checksumCalced) {
+						if (vP.ID > vesselPacket.ID) {
+							memcpy(&vesselPacket, &vP, sizeof(VesselPacket));
+						}
+					}
+				}
+			}
+		}
+	}
+
+
+#if false
 	do {
-#if true
 		if ((iResult = recv(ConnectSocket, buffer + bp, RECV_BUFF_SIZE - bp, 0)) > 0) {
 			bp += iResult;
 			int p = 0;
-			while (p + sizeof(VesselPacket) <= bp) {
+
+			//int needBytes = lookingForHeader? (8+1):
+
+			while (p + FIXED_PACKETSIZE <= bp) {
 				if (!memcmp(buffer + p, Header_Array, sizeof(Header_Array))) {
 					p += sizeof(Header_Array);
 					uint8_t packetType = *(buffer + p);
@@ -134,6 +205,7 @@ void Client::TCPClientRun(std::string IP, std::string PORT) {
 						if (sP.ID > statusPacket.ID) {
 							memcpy(&statusPacket, &sP, sizeof(StatusPacket));
 						}
+						printf("SP\n");
 						p += sizeof(StatusPacket);
 					}
 					else if (packetType == (char)2) {
@@ -141,6 +213,7 @@ void Client::TCPClientRun(std::string IP, std::string PORT) {
 						if (vP.ID > vesselPacket.ID) {
 							memcpy(&vesselPacket, &vP, sizeof(VesselPacket));
 						}
+						printf("VP\n");
 						p += sizeof(VesselPacket);
 					}
 					else {
@@ -160,7 +233,7 @@ void Client::TCPClientRun(std::string IP, std::string PORT) {
 			printf("Connection closed\n");
 			error = true;
 		}
-		else{
+		else {
 			int errorN = WSAGetLastError();
 			if (errorN != WSAEWOULDBLOCK) {
 				error = "con closed";
@@ -168,9 +241,9 @@ void Client::TCPClientRun(std::string IP, std::string PORT) {
 				printf("recv failed with error: %d\n", errorN);
 				error = true;
 			}
-		}
-#endif
+}
 	} while (!error && Running);
+#endif
 
 	if (Running) {
 		Shutdown();
@@ -182,7 +255,8 @@ Client::Client()
 	memset((char*)&ControlPacket, 0, sizeof(ControlPacket));
 	memset((char*)&vesselPacket, 0, sizeof(vesselPacket));
 	memset((char*)&statusPacket, 0, sizeof(statusPacket));
-	memcpy(ControlPacket.header, Header_Array, 8);
+	memcpy(ControlPacket.header.header, Header_Array, 8);
+	ControlPacket.header.type = 1;
 	ControlPacket.ID = 0;
 }
 

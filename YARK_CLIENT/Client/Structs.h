@@ -1,3 +1,5 @@
+#define FIXED_PACKETSIZE 256
+
 #pragma once
 #pragma pack(push, 1)
 
@@ -48,10 +50,27 @@
 
 const uint8_t Header_Array[8] = { (uint8_t)0xFF, (uint8_t)0xC4, (uint8_t)'Y', (uint8_t)'A', (uint8_t)'R', (uint8_t)'K', (uint8_t)0x00, (uint8_t)0xFF };
 
+struct NavHeading {
+	float Pitch, Heading;
+	NavHeading() {
+		Pitch = Heading = 0;
+	}
+	NavHeading(float pitch, float heading) {
+		this->Pitch = pitch;
+		this->Heading = heading;
+	}
+};
+
+struct Header {
+	uint8_t header[8];
+	uint16_t checksum;
+	uint8_t type;
+};
+
 struct ControlPacket
 {
-	uint8_t header[8];
-	uint64_t ID;
+	Header header;
+	uint32_t ID;
 	uint8_t MainControls;                   //SAS RCS Lights Gear Brakes Abort Stage
 	uint16_t ActionGroups;                //action groups 1-10 in 2 bytes
 	int16_t Pitch;                        //-1000 -> 1000
@@ -70,24 +89,15 @@ struct ControlPacket
 };
 
 struct StatusPacket {
-	int64_t ID;
+	//Header h; //Implied 
+	int32_t ID;
 	int8_t inFlight;
 	char vessalName[16];
 };
 
-struct NavHeading {
-	float Pitch, Heading;
-	NavHeading() {
-		Pitch = Heading = 0;
-	}
-	NavHeading(float pitch, float heading) {
-		this->Pitch = pitch;
-		this->Heading = heading;
-	}
-};
-
 struct VesselPacket {
-	uint64_t ID;
+	//Header h; //Implied 
+	uint32_t ID;
 
 	float deltaTime;
 
@@ -163,4 +173,5 @@ struct VesselPacket {
 
 	uint8_t timeWarpRateIndex;
 };
+
 #pragma pack(pop)

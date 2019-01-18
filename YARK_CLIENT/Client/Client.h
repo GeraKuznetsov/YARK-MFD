@@ -13,6 +13,7 @@
 class Client {
 	SOCKET ConnectSocket;
 	void TCPClientRun(std::string IP, std::string PORT);
+	bool ReadBytes(char *buffer, uint16_t* checkSum, int bytesToRead);
 public:
 	StatusPacket statusPacket;
 	VesselPacket vesselPacket;
