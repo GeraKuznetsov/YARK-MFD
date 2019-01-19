@@ -25,7 +25,7 @@ void Control::SASOption(Draw* draw, uint8_t thisMode,Client* c) {
 	renderAt += XY{ 32,32 };
 	if ((win->MouseX() - renderAt.x)*(win->MouseX() - renderAt.x) + (win->MouseY() - renderAt.y)*(win->MouseY() - renderAt.y) < 32 * 32) {
 		if (win->MouseClicked(SDL_BUTTON_LEFT)) {
-			c->ControlPacket.SASMode = thisMode;
+			c->controlPacket.SASMode = thisMode;
 		}
 	}
 	lastPos.x += TOGGLE_SIZE + 20;
@@ -44,11 +44,11 @@ void Control::Tick(Draw* draw) {
 	Toggle("Gear", &gear, draw);
 	Toggle("SAS", &sas, draw);
 	Toggle("RCS", &rcs, draw);
-	client->SetMainControls(MC_SAS, sas);
-	client->SetMainControls(MC_RCS, rcs);
-	client->SetMainControls(MC_BRAKES, brakes);
-	client->SetMainControls(MC_LIGHTS, lights);
-	client->SetMainControls(MC_GEAR, gear);
+	client->SetMainControl(MC_SAS, sas);
+	client->SetMainControl(MC_RCS, rcs);
+	client->SetMainControl(MC_BRAKES, brakes);
+	client->SetMainControl(MC_LIGHTS, lights);
+	client->SetMainControl(MC_GEAR, gear);
 
 	lastPos = XY{ 16,130 };
 	Client* ptr = client;

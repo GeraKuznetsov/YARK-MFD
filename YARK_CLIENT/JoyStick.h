@@ -94,9 +94,11 @@ void JoyStickTick( float delta) {
 	if (client.Connected()) {
 		VesselPacket VP = client.vesselPacket;
 		if (RegInt("ENABLE_FLYBYWIRE", 0)) {
-			client.ControlPacket.Throttle = 1000 - CLAMP(JOY_RANGE_THROTTLE(win->joystickDir[3]), -1000, 1000);
+			client.SetControlerMode(CONTROLLER_ROT, AXIS_EXT_NZ);
+			client.SetControlerMode(CONTROLLER_THROTTLE, AXIS_EXT_NZ);
+			client.controlPacket.Throttle = 1000 - CLAMP(JOY_RANGE_THROTTLE(win->joystickDir[3]), -1000, 1000);
 			if (RegInt("FLYBYWIRE_SMART", 0)) {
-				client.ControlPacket.SASMode = SAS_HOLD_VECTOR;
+				client.controlPacket.SASMode = SAS_HOLD_VECTOR;
 				if (!smart_ass_was_on) {
 					smart_ass_was_on = true;
 					SASS.Pitch = VP.Pitch;
@@ -122,7 +124,7 @@ void JoyStickTick( float delta) {
 				//printf("%f, %f", NavVector.y, 0);*/
 
 				glm::vec2 mv = glm::rotate(glm::vec2(float(pitch) / 1000.f, float(yaw) / 1000.f), glm::radians(0.f));
-				printf("craft roll: %f target roll: %f\n", VP.Roll, SASS_roll);
+				//printf("craft roll: %f target roll: %f\n", VP.Roll, SASS_roll);
 				SASS.Pitch = SASS.Pitch + sensitivity * mv.x;
 				SASS.Heading = SASS.Heading + sensitivity * mv.y;
 
@@ -136,21 +138,26 @@ void JoyStickTick( float delta) {
 					SASS.Heading -= 360;
 				}
 
-				client.ControlPacket.targetHeading = SASS.Heading;
-				client.ControlPacket.targetPitch = SASS.Pitch;
-				client.ControlPacket.targetRoll = SASS_roll;
+				client.controlPacket.targetHeading = SASS.Heading;
+				client.controlPacket.targetPitch = SASS.Pitch;
+				client.controlPacket.targetRoll = SASS_roll;
 			//	client->ControlPacket.targetRoll = VP.Roll;
 			}
 			else
 			{
 				if (smart_ass_was_on) {
-					client.ControlPacket.SASMode = 1;
+					client.ReSetSASHoldVector();
+					client.controlPacket.SASMode = 1;
 					smart_ass_was_on = false;
 				}
-				client.ControlPacket.Yaw = yaw;
-				client.ControlPacket.Roll = roll;
-				client.ControlPacket.Pitch = pitch;
+				client.controlPacket.Yaw = yaw;
+				client.controlPacket.Roll = roll;
+				client.controlPacket.Pitch = pitch;
 			}
+		}
+		else {
+			client.SetControlerMode(CONTROLLER_ROT, AXIS_IGNORE);
+			client.SetControlerMode(CONTROLLER_THROTTLE, AXIS_IGNORE);
 		}
 	}
 }

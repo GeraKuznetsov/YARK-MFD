@@ -27,7 +27,7 @@ void LaunchAss::Tick(Draw* draw) {
 	draw->DrawRect2D(pos.x + 5, pos.y + 5, pos.x + size.x - 5, pos.y + size.y - 35);
 
 	VesselPacket VP = client->vesselPacket;
-	ControlPacket *CP = &(client->ControlPacket);
+	ControlPacket *CP = &(client->controlPacket);
 	//CP = (*client)->ControlPacket;
 
 	switch (state) {

@@ -14,12 +14,12 @@ class Client {
 	SOCKET ConnectSocket;
 	void TCPClientRun(std::string IP, std::string PORT);
 	bool ReadBytes(char *buffer, uint16_t* checkSum, int bytesToRead);
+	std::thread recLoop;
+	bool Running;
 public:
 	StatusPacket statusPacket;
 	VesselPacket vesselPacket;
-	ControlPacket ControlPacket;
-	std::thread recLoop;
-	bool Running;
+	ControlPacket controlPacket;
 	int state = TCPCLIENT_CONNECTING;
 	std::string error;
 	//connection Methods
@@ -28,7 +28,16 @@ public:
 	bool Connected();
 	void SendControls();
 	void Shutdown();
+
 	//Helper Methods
-	bool GetMainControls(int control);
-	void SetMainControls(int control, bool s);
+	void InputRot(float pitch, float yaw, float roll);
+	void InputTran(float tx, float ty, float tz);
+	void InputThrottle(float throttle);
+	void ReSetSASHoldVector();
+	void SetSASHoldVector(float pitch, float heading, float roll);
+	void SetControlerMode(int controler, int mode);
+	bool GetActionGroup(int group);
+	void SetActionGroup(int group, bool s);
+	bool GetMainControl(int control);
+	void SetMainControl(int control, bool s);
 };

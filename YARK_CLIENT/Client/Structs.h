@@ -1,5 +1,3 @@
-#define FIXED_PACKETSIZE 256
-
 #pragma once
 #pragma pack(push, 1)
 
@@ -12,6 +10,7 @@
 #define MC_ABORT (1 << 5)
 #define MC_STAGE (1 << 6)
 
+//Action group flags
 #define AG_1 (1 << 0)
 #define AG_2 (1 << 1)
 #define AG_3 (1 << 2)
@@ -23,7 +22,7 @@
 #define AG_9 (1 << 8)
 #define AG_10 (1 << 9)
 
-//These are SAS modes 
+//SAS mode definitions
 #define SAS_HOLD 1
 #define SAS_PROGRADE 2
 #define SAS_RETROGRADE 3
@@ -36,6 +35,7 @@
 #define SAS_MAN 10
 #define SAS_HOLD_VECTOR 11
 
+//Timewarp mode definitions
 #define TIMEWARP_x1 0
 #define TIMEWARP_x2p 1
 #define TIMEWARP_x3p 2
@@ -47,6 +47,17 @@
 #define TIMEWARP_x1000 8
 #define TIMEWARP_x10000 9
 #define TIMEWARP_x100000 10
+
+//For enableing / disableing axis input
+#define CONTROLLER_ROT 0
+#define CONTROLLER_TRANS 1
+#define CONTROLLER_THROTTLE 2
+#define CONTROLLER_WHEEL 3
+
+#define AXIS_IGNORE 0 //Always uses interal KSP value, ignoring client value
+#define AXIS_OVERIDE 1 //Client always used overrides KSP value 
+#define AXIS_INT_NZ 2 //Client value is used if the internal KSP value is zero, otherwise interal KSP value is used (KSP interal value overrides client value)
+#define AXIS_EXT_NZ 3 //Interal KSP value is used if the client value is zero, otherwise client value is sent (Client value overrides KSP internal value)
 
 const uint8_t Header_Array[8] = { (uint8_t)0xFF, (uint8_t)0xC4, (uint8_t)'Y', (uint8_t)'A', (uint8_t)'R', (uint8_t)'K', (uint8_t)0x00, (uint8_t)0xFF };
 
@@ -73,18 +84,25 @@ struct ControlPacket
 	uint32_t ID;
 	uint8_t MainControls;                   //SAS RCS Lights Gear Brakes Abort Stage
 	uint16_t ActionGroups;                //action groups 1-10 in 2 bytes
-	int16_t Pitch;                        //-1000 -> 1000
+	   // Throttle and axis controls have the following settings: 
+	   // 0: The internal value (supplied by KSP) is always used.
+	   // 1: The external value (read from serial packet) is always used.
+	   // 2: If the internal value is not zero use it, otherwise use the external value.
+	   // 3: If the external value is not zero use it, otherwise use the internal value.  
+	uint8_t ControlerMode;                //DDCCBBAA (2 bits each)
+	float SASTol;
+	int16_t Pitch;                        //-1000 -> 1000 //A
 	int16_t Roll;                         //-1000 -> 1000
 	int16_t Yaw;                          //-1000 -> 1000
-	int16_t TX;                           //-1000 -> 1000
+	int16_t TX;                           //-1000 -> 1000 //B
 	int16_t TY;                           //-1000 -> 1000
-	int16_t TZ;                           //-1000 -> 1000
-	int16_t WheelSteer;                   //-1000 -> 1000
-	int16_t Throttle;                     // 0 -> 1000
+	int16_t TZ;                           //-1000 -> 1000 
+	int16_t Throttle;                     // 0 -> 1000    //C
+	int16_t WheelSteer;                   //-1000 -> 1000 //D
 	int16_t WheelThrottle;                // 0 -> 1000
+	float targetHeading, targetPitch, targetRoll;        //E
 	uint8_t SASMode; //hold, prograde, retro, etc...
 	uint8_t SpeedMode; //Surface, orbit target
-	float targetHeading, targetPitch, targetRoll;
 	uint8_t timeWarpRateIndex;
 };
 
@@ -92,7 +110,7 @@ struct StatusPacket {
 	//Header h; //Implied 
 	int32_t ID;
 	int8_t inFlight;
-	char vessalName[16];
+	char vessalName[32];
 };
 
 struct VesselPacket {
