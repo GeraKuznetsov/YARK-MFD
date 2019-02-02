@@ -1,6 +1,6 @@
 #include "IM.h"
 
-GLuint IM::rad0, IM::rad1, IM::T_UP, IM::T_DOWN, IM::led0, IM::led1;// , IM::push;
+GLuint IM::rad0, IM::rad1, IM::T_UP, IM::T_DOWN, IM::led0, IM::led1, IM::seg_v, IM::seg_h;// , IM::push;
 //Font* IM::f;
 
 void IM::Load() {
@@ -22,10 +22,72 @@ void IM::Load() {
 	if (!led1) {
 		led1 = loadTexture("Tex/led1.png", false);
 	}
+	if (!seg_v) {
+		seg_v = loadTexture("Tex/7-seg-v.png", false);
+	}
+	if (!seg_h) {
+		seg_h = loadTexture("Tex/7-seg-h.png", false);
+	}
+
 	//if (!push) {
 	//	push = loadTexture("Tex/push.png", false);
 	//}
 }
+
+#define SEG_STATE(x) (x) ? draw->SetDrawColor2D(0.98f,0.f,0.f) : draw->SetDrawColor2D(0.25f, 0.16f,0.16f);
+
+#define v_space  14
+#define h_space  14
+
+#define h_move  2
+#define v_move  2
+
+#define width 20
+#define height 20
+
+void IM::SegDigit(XY pos, Window *win, Draw* draw, int dig) {
+	draw->BindDraw2DShader();
+
+	draw->BindTex2D(seg_h);
+	SEG_STATE(dig == 2 || dig == 3 || dig == 5 || dig == 6 || dig == 7 || dig == 8 || dig == 9 || dig == 0);
+	draw->DrawRect2D(pos.x + h_move, pos.y + v_space * 0, pos.x + width + h_move, pos.y + height + v_space * 0);
+	SEG_STATE(dig == 2 || dig == 3 || dig == 4 || dig == 5 || dig == 6 || dig == 8 || dig == 9);
+	draw->DrawRect2D(pos.x + h_move, pos.y + v_space * 1, pos.x + width + h_move, pos.y + height + v_space * 1);
+	SEG_STATE(dig == 2 || dig == 3 || dig == 5 || dig == 6 || dig == 8 || dig == 0);
+	draw->DrawRect2D(pos.x + h_move, pos.y + v_space * 2, pos.x + width + h_move, pos.y + height + v_space * 2);
+
+	draw->BindTex2D(seg_v);
+	SEG_STATE(dig == 4 || dig == 5 || dig == 6 || dig == 8 || dig == 9 || dig == 0);
+	draw->DrawRect2D(pos.x, pos.y + v_move, pos.x + width, pos.y + height + v_move);
+	SEG_STATE(dig == 2 || dig == 6 || dig == 8 || dig == 0);
+	draw->DrawRect2D(pos.x, pos.y + v_space + v_move, pos.x + width, pos.y + height + v_space + v_move);
+
+	SEG_STATE(dig == 1 || dig == 2 || dig == 3 || dig == 4 || dig == 7 || dig == 8 || dig == 9 || dig == 0);
+	draw->DrawRect2D(pos.x + h_space, pos.y + v_move, pos.x + width + h_space, pos.y + height + v_move);
+	SEG_STATE(dig == 1 || dig == 3 || dig == 4 || dig == 5 || dig == 6 || dig == 7 || dig == 8 || dig == 9 || dig == 0);
+	draw->DrawRect2D(pos.x + h_space, pos.y + v_space + v_move, pos.x + width + h_space, pos.y + height + v_space + v_move);
+}
+
+void IM::SegInt(XY pos, Window *win, Draw* draw, int dig, int fig) {
+	draw->BindDraw2DShader();
+	if (dig < 0) {
+		dig = -dig;
+		SEG_STATE(1);
+	}
+	else {
+		SEG_STATE(0);
+	}
+	draw->BindTex2D(seg_h);
+	draw->DrawRect2D(pos.x + h_move - 20, pos.y + v_space * 1, pos.x + width + h_move - 20, pos.y + height + v_space * 1);
+	int div = 10;
+	for (int i = 0; i < fig; i++) {
+		int mod = dig % div;
+		SegDigit(pos + XY{ 36 - i * 20,0 }, win, draw, dig % div * 10 / div);
+		div *= 10;
+		dig -= mod;
+	}
+}
+
 
 bool IM::Button(XY pos, Window *win, Draw* draw, Font *f, std::string text) {
 	draw->BindDraw2DShader();

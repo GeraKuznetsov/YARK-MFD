@@ -85,11 +85,11 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\foobar\Desktop\YARK\YARK_CLIENT\Lib\freetype\include;C:\Users\foobar\Desktop\YARK\YARK_CLIENT\Lib\glew\include\GL;C:\Users\foobar\Desktop\YARK\YARK_CLIENT\Lib\SDL2\include;C:\Users\foobar\Desktop\YARK\YARK_CLIENT\Lib\glm\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\foobar\Desktop\YARK-MFD\Lib\freetype\include;C:\Users\foobar\Desktop\YARK-MFD\Lib\glew\include\GL;C:\Users\foobar\Desktop\YARK-MFD\Lib\SDL2\include;C:\Users\foobar\Desktop\YARK-MFD\Lib\glm\</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>C:\Users\foobar\Desktop\YARK\YARK_CLIENT\Lib\freetype\win64;C:\Users\foobar\Desktop\YARK\YARK_CLIENT\Lib\glew\lib\Release\x64;C:\Users\foobar\Desktop\YARK\YARK_CLIENT\Lib\SDL2\lib\x64</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\foobar\Desktop\YARK-MFD\Lib\freetype\win64;C:\Users\foobar\Desktop\YARK-MFD\Lib\glew\lib\Release\x64;C:\Users\foobar\Desktop\YARK-MFD\Lib\SDL2\lib\x64</AdditionalLibraryDirectories>
       <AdditionalDependencies>glu32.lib;SDL2.lib;freetype.lib;opengl32.lib;glew32s.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -124,7 +124,6 @@
   <ItemGroup>
     <ClCompile Include="Arduino\Serial.cpp" />
     <ClCompile Include="Arduino\Test.cpp" />
-    <ClCompile Include="Client\ExcampleClient.cpp" />
     <ClCompile Include="Engine\Draw.cpp" />
     <ClCompile Include="Engine\Draw2DShader.cpp" />
     <ClCompile Include="Engine\Draw3DShader.cpp" />
@@ -141,6 +140,7 @@
     <ClCompile Include="Widgets\AirMap.cpp" />
     <ClCompile Include="Widgets\Console.cpp" />
     <ClCompile Include="Widgets\Control.cpp" />
+    <ClCompile Include="Widgets\JoyStickOptions.cpp" />
     <ClCompile Include="Widgets\LaunchAss.cpp" />
     <ClCompile Include="Widgets\NavBall.cpp" />
     <ClCompile Include="Widgets\Settings.cpp" />
@@ -173,6 +173,7 @@
     <ClInclude Include="Widgets\AirMap.h" />
     <ClInclude Include="Widgets\Console.h" />
     <ClInclude Include="Widgets\Control.h" />
+    <ClInclude Include="Widgets\JoyStickOptions.h" />
     <ClInclude Include="Widgets\LaunchAss.h" />
     <ClInclude Include="Widgets\VInfo.h" />
     <ClInclude Include="Widgets\NavBall.h" />

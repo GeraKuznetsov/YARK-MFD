@@ -1,5 +1,5 @@
 connect localhost 9999
-winsize 724 778
+winsize 622 526
 reg ATI-IN_ALT_DELTA 10
 reg ATI-IN_ALT_YSPACE 35
 reg ATI-IN_ARC_OFFSET 65
@@ -13,6 +13,5 @@ reg ENABLE_WINDOW_FRAMES 1
 reg FLYBYWIRE_DEADZONE 300
 reg FLYBYWIRE_ROCKETMODE 1
 reg FLYBYWIRE_SMART 1
-open controller 41 330 483 398
-open navball 16 13 413 305
-open settings 439 16 266 373
+open settings 306 262 311 263
+resize console 18 11 510 378

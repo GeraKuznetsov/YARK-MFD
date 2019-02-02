@@ -104,7 +104,7 @@ void NavBall::Tick(Draw* draw) {
 	draw->SetDrawColor2D(0, 0, 0);
 	draw->DrawRect2D(pos.x, pos.y, pos.x + size.x, pos.y + size.y);
 
-	VesselPacket VP = client->vesselPacket;
+	VesselPacket VP = client->Vessel;
 
 	float rad = (size.x - 50) / 2;
 
@@ -135,7 +135,7 @@ void NavBall::Tick(Draw* draw) {
 		}
 		else {
 			renderNavHeading(NavHeading(VP.Prograde.Pitch + 90, VP.Prograde.Heading), &VP, draw, &modelMat, TL->SASModeTex(SAS_RADOUT));
-			renderNavHeading(NavHeading(-VP.Prograde.Pitch-90, VP.Prograde.Heading + 180), &VP, draw, &modelMat, TL->SASModeTex(SAS_RADIN));
+			renderNavHeading(NavHeading(-VP.Prograde.Pitch - 90, VP.Prograde.Heading + 180), &VP, draw, &modelMat, TL->SASModeTex(SAS_RADIN));
 		}
 
 		renderNavHeading(NavHeading(0.f, VP.Prograde.Heading - 90), &VP, draw, &modelMat, TL->SASModeTex(SAS_NORMAL));
@@ -149,7 +149,7 @@ void NavBall::Tick(Draw* draw) {
 		renderNavHeading(VP.Target, &VP, draw, &modelMat, TL->SASModeTex(SAS_TARGET));
 		renderNavHeading(NavHeading(-VP.Target.Pitch, VP.Target.Heading + 180), &VP, draw, &modelMat, TL->SASModeTex(SAS_ANTITARGET));
 	}
-	if (RegInt("FLYBYWIRE_SMART", 0) && Registry["ENABLE_FLYBYWIRE"]) {
+	if ((Registry["FLYBYWIRE_SMART"] && Registry["ENABLE_FLYBYWIRE"] && win->HasJoyStick()) || (client->Control.SASMode == SAS_HOLD_VECTOR)) {
 		renderCoords rc = calcRenderCoords(SASS, &VP, &modelMat);
 		if (rc.alpha < 0.1)rc.alpha = 0.1;
 		draw->SetDrawColor2D(1, 1, 1, rc.alpha);

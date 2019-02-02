@@ -104,13 +104,71 @@ struct ControlPacket
 	uint8_t SASMode; //hold, prograde, retro, etc...
 	uint8_t SpeedMode; //Surface, orbit target
 	uint8_t timeWarpRateIndex;
+	
+//helper methods
+void SetControlerMode(int controler, int mode) {
+	switch (controler) {
+	case CONTROLLER_ROT:
+		 ControlerMode =  ControlerMode & 0b11111100 | mode << (2 * 0);
+		break;
+	case CONTROLLER_TRANS:
+		 ControlerMode =  ControlerMode & 0b11110011 | mode << (2 * 1);
+		break;
+	case CONTROLLER_THROTTLE:
+		 ControlerMode =  ControlerMode & 0b11001111 | mode << (2 * 2);
+		break;
+	case CONTROLLER_WHEEL:
+		 ControlerMode =  ControlerMode & 0b00111111 | mode << (2 * 3);
+		break;
+	}
+}
+void ReSetSASHoldVector() {
+	targetHeading = targetPitch = targetRoll = NAN;
+}
+void SetSASHoldVector(float pitch, float heading, float roll) {
+	 targetHeading = heading;
+	 targetPitch = pitch;
+	 targetRoll = roll;
+}
+
+void  InputRot(float pitch, float yaw, float roll) {
+	 Pitch = (int16_t)pitch;
+	 Roll = (int16_t)roll;
+	 Yaw = (int16_t)yaw;
+}
+
+void  InputTran(float tx, float ty, float tz) {
+	 TX = (int16_t)tx;
+	 TY = (int16_t)ty;
+	 TZ = (int16_t)tz;
+}
+
+void  InputThrottle(float throttle) {
+	 Throttle = (int16_t)throttle;
+}
+void	SetMainControl(int control, bool s) {
+	if (s) {
+		 MainControls |= control;
+	}
+	else {
+		 MainControls &= ~((uint8_t)control);
+	}
+}
+void  SetActionGroup(int group, bool s) {
+	if (s) {
+		 ActionGroups |= group;
+	}
+	else {
+		 ActionGroups &= ~((uint8_t)group);
+	}
+}
 };
 
 struct StatusPacket {
 	//Header h; //Implied 
 	int32_t ID;
 	int8_t inFlight;
-	char vessalName[32];
+	char vesselName[32];
 };
 
 struct VesselPacket {
@@ -190,6 +248,14 @@ struct VesselPacket {
 	uint8_t SpeedMode; //Surface, orbit target
 
 	uint8_t timeWarpRateIndex;
+
+	bool GetActionGroup(int group) {
+		return (ActionGroups & group) != 0;
+	}
+
+	bool GetMainControl(int control) {
+		return (MainControls & control) != 0;
+	}
 };
 
 #pragma pack(pop)

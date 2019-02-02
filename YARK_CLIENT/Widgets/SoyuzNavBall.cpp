@@ -12,7 +12,7 @@ void SoyuzNavBall::LoadNavBallTextures() {
 #include <iostream>
 
 void SoyuzNavBall::Tick(Draw* draw) {
-	VesselPacket VP = client->vesselPacket;
+	VesselPacket VP = client->Vessel;
 
 	if (lastSOI != VP.SOINumber) {
 		textureID = TL->getPlanetTexture(lastSOI = VP.SOINumber);

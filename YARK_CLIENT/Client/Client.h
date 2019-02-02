@@ -6,22 +6,30 @@
 #include <windows.h>
 #include <thread>
 #include "Structs.h"
-#define TCPCLIENT_CONNECTING 0
-#define TCPCLIENT_FAILED 1
-#define TCPCLIENT_CONNECTED 2
+#define TCP_CONNECTING 0
+#define TCP_FAILED 1
+#define TCP_CONNECTED 2
 
 class Client {
 	SOCKET ConnectSocket;
-	void TCPClientRun(std::string IP, std::string PORT);
+	void Run(std::string IP, std::string PORT);
 	bool ReadBytes(char *buffer, uint16_t* checkSum, int bytesToRead);
+	void errBadPacket();
 	std::thread recLoop;
 	bool Running;
+	volatile int state;
 public:
-	StatusPacket statusPacket;
-	VesselPacket vesselPacket;
-	ControlPacket controlPacket;
-	int state = TCPCLIENT_CONNECTING;
-	std::string error;
+
+	//IO packets
+	StatusPacket Status;
+	VesselPacket Vessel;
+	ControlPacket Control;
+	
+	//Event callbacks
+	void (*SPCallback)();
+	void (*VPCallback)();
+	
+	char error[128];
 	//connection Methods
 	Client();
 	void Connect(std::string IP, std::string PORT);
@@ -29,15 +37,6 @@ public:
 	void SendControls();
 	void Shutdown();
 
-	//Helper Methods
-	void InputRot(float pitch, float yaw, float roll);
-	void InputTran(float tx, float ty, float tz);
-	void InputThrottle(float throttle);
-	void ReSetSASHoldVector();
-	void SetSASHoldVector(float pitch, float heading, float roll);
-	void SetControlerMode(int controler, int mode);
-	bool GetActionGroup(int group);
-	void SetActionGroup(int group, bool s);
-	bool GetMainControl(int control);
-	void SetMainControl(int control, bool s);
+    int GetState();
+	void WaitForConnection();
 };

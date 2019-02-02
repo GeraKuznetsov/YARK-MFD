@@ -30,7 +30,7 @@ void AtitudeIndicator::Tick(Draw* draw) {
 	draw->SetDrawColor2D(0, 0, 0);
 	draw->DrawRect2D(pos.x, pos.y, pos.x + size.x, pos.y + size.y);
 
-	VesselPacket VP = client->vesselPacket;
+	VesselPacket VP = client->Vessel;
 	//VP.Heading = 0;
 	float rad = (size.x - 100) / 2;
 

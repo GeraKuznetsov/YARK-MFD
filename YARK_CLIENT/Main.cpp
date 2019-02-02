@@ -57,8 +57,10 @@ bool OnExit() {
 	return false;
 }
 
+bool clientDisc;
+
 void Tick(float delta, Draw* draw) {
-	VesselPacket VP = client.vesselPacket;
+	VesselPacket VP = client.Vessel;
 
 	RadioAltimeterTick();
 
@@ -90,11 +92,17 @@ void Tick(float delta, Draw* draw) {
 	JoyStickTick(delta);
 
 
-	if (client.state == TCPCLIENT_FAILED) {
-		console->DispLine("client disconnected: " + client.error, 1);
+	if (client.GetState() == TCP_FAILED) {
+		if (!clientDisc) {
+			console->DispLine("client disconnected: " + std::string(client.error), 1);
+			clientDisc = true;
+		}
 	}
-	else if (client.state == TCPCLIENT_CONNECTED) {
-		client.SendControls();
+	else {
+		clientDisc = false;
+		if (client.GetState() == TCP_CONNECTED) {
+			client.SendControls();
+		}
 	}
 	if (win->MouseClicked(SDL_BUTTON_LEFT)) {
 		//printf("click\n");
@@ -102,13 +110,7 @@ void Tick(float delta, Draw* draw) {
 	SDL_SetWindowTitle(win->gWindow, std::to_string(win->FPS).c_str());
 }
 
-//void runExe();
-
-#include "Widgets/NavBall.h"
-
 void main() {
-	//runExe();
-	//return;
 	int error = 0;
 	XY size = XY{ DEFUALT_WIDTH,DEFUALT_HEIGHT };
 

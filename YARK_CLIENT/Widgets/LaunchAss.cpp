@@ -26,8 +26,8 @@ void LaunchAss::Tick(Draw* draw) {
 	draw->SetDrawColor2D(0, 0, 0);
 	draw->DrawRect2D(pos.x + 5, pos.y + 5, pos.x + size.x - 5, pos.y + size.y - 35);
 
-	VesselPacket VP = client->vesselPacket;
-	ControlPacket *CP = &(client->controlPacket);
+	VesselPacket VP = client->Vessel;
+	ControlPacket *CP = &(client->Control);
 	//CP = (*client)->ControlPacket;
 
 	switch (state) {
@@ -40,7 +40,7 @@ void LaunchAss::Tick(Draw* draw) {
 	} break;
 	case LA_STRAIGHT:
 	{
-		CP->SASMode = SAS_HOLD_VECTOR;
+		//CP->SASMode = SAS_HOLD_VECTOR;
 		Registry["ENABLE_FLYBYWIRE"] = 0;
 		Registry["FLYBYWIRE_SMART"] = 1;
 		CP->MainControls = MC_SAS;

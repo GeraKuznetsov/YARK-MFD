@@ -9,12 +9,12 @@ float RALT_LastAlt = 0;
 void RadioAltimeterTick() {
 	if (RegInt("ENABLE_RADIO-ALT", 0)) {
 		for (int i = 0; i < WARNING_ALTADTUDES; i++) {
-			if (RALT_LastAlt > warn_altitudes[i] && client.vesselPacket.RAlt < warn_altitudes[i]) {
+			if (RALT_LastAlt > warn_altitudes[i] && client.Vessel.RAlt < warn_altitudes[i]) {
 				PlaySound(warn_altitudes_sounds[i]);
-				RALT_LastAlt = client.vesselPacket.RAlt;
+				RALT_LastAlt = client.Vessel.RAlt;
 				return;
 			}
 		}
 	}
-	RALT_LastAlt = client.vesselPacket.RAlt;
+	RALT_LastAlt = client.Vessel.RAlt;
 }

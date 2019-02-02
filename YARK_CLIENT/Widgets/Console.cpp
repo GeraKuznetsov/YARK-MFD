@@ -7,6 +7,7 @@
 #include "VInfo.h"
 #include "LaunchAss.h"
 #include "Control.h"
+//#include "JoyStickOptions.h"
 #include <sstream>
 #include <algorithm>
 #include <iterator>
@@ -161,6 +162,9 @@ void Console::command(std::string com) {
 				else if (!elems[1].compare("controller")) {
 					widgets.push_back(new Control(WidgetStuff{ pos, size, "controller", f, win, client, TL,"controller" }));
 				}
+				else if (!elems[1].compare("joystick")) {
+				//	widgets.push_back(new JoyStickOptions(WidgetStuff{ pos, size, "Joy Stick Options", f, win, client, TL,"joystick" }));
+				}
 				else {
 					DispLine("Unkown widget, type \"widgetlist\" for a list of widgets", 1);
 				}
@@ -210,6 +214,7 @@ void Console::command(std::string com) {
 			DispLine("\"settings\" - Settings", 0);
 			DispLine("\"vinfo\" - Basic vessel info", 0);
 			DispLine("\"controller\" - Vessel controller", 0);
+			//DispLine("\"joystick\" - Joy Stick Options", 0);
 			DispLine("Done", 2);
 		}
 		else if (!elems[0].compare("help")) {
