@@ -1,5 +1,5 @@
 //dont show le console
-//#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
+#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
 
 #include <iostream>
 #include <string>
@@ -59,6 +59,8 @@ bool OnExit() {
 
 bool clientDisc;
 
+bool smart_ass_was_on;
+
 void Tick(float delta, Draw* draw) {
 	VesselPacket VP = client.Vessel;
 
@@ -101,11 +103,22 @@ void Tick(float delta, Draw* draw) {
 	else {
 		clientDisc = false;
 		if (client.GetState() == TCP_CONNECTED) {
+			if (client.Vessel.SASMode == SAS_HOLD_VECTOR) {
+				if (!smart_ass_was_on) {
+					smart_ass_was_on = true;
+					Registry["SASS_PITCH"] = client.Vessel.Pitch;
+					Registry["SASS_HEADING"] = client.Vessel.Heading;
+					Registry["SASS_ROLL"] = client.Vessel.Roll;
+				}
+				client.Control.SetSASHoldVector(Registry["SASS_PITCH"], Registry["SASS_HEADING"], Registry["SASS_ROLL"]);
+			}
+			else {
+				smart_ass_was_on = false;
+				client.Control.ReSetSASHoldVector();
+			}
+			client.Control.InputThrottle(Registry["THROTTLE"]);
 			client.SendControls();
 		}
-	}
-	if (win->MouseClicked(SDL_BUTTON_LEFT)) {
-		//printf("click\n");
 	}
 	SDL_SetWindowTitle(win->gWindow, std::to_string(win->FPS).c_str());
 }

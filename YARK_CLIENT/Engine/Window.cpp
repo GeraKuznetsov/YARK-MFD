@@ -234,6 +234,11 @@ void Window::Run(void(*tick)(float delta, Draw* draw)) {
 
 		tick(float(delta), draw);
 
+		mouseDXY = XY{ 0,0 }; //reset delta events
+		for (int i = 0; i < NUMER_MOUSE_BUTTONS; i++) {
+			mouseClicked[i] = false;
+			mouseDoubleClicked[i] = false;
+		}
 		SDL_GL_SwapWindow(gWindow);
 	}
 	SDL_DestroyWindow(gWindow);
@@ -269,14 +274,10 @@ bool Window::MouseDown(int button) {
 	return mouseDown[button];
 }
 bool Window::MouseClicked(int button) {
-	bool b = mouseClicked[button];
-	mouseClicked[button] = false;
-	return b;
+	return mouseClicked[button];
 }
 bool Window::MouseDoubleClicked(int button) {
-	bool b = mouseDoubleClicked[button];
-	mouseDoubleClicked[button] = false;
-	return b;
+	return mouseDoubleClicked[button];
 }
 /*
 void Window::SetShowCursor(bool b) {
@@ -295,15 +296,11 @@ int Window::MouseY()
 }
 int Window::MouseDX()
 {
-	int ret = mouseDXY.x;
-	mouseDXY.x = 0;
-	return ret;
+	return mouseDXY.x;
 }
 int Window::MouseDY()
 {
-	int ret = mouseDXY.y;
-	mouseDXY.y = 0;
-	return ret;
+	return mouseDXY.y;
 }
 XY Window::MouseXY()
 {
@@ -311,9 +308,7 @@ XY Window::MouseXY()
 }
 XY Window::MouseDXY()
 {
-	XY ret = mouseDXY;
-	mouseDXY = XY{ 0,0 };
-	return ret;
+	return mouseDXY;
 }
 XY Window::getMouseWheelDelta() {
 	XY ret = MouseScroll;

@@ -1,6 +1,6 @@
 #include "IM.h"
 
-GLuint IM::rad0, IM::rad1, IM::T_UP, IM::T_DOWN, IM::led0, IM::led1, IM::seg_v, IM::seg_h;// , IM::push;
+GLuint IM::rad0, IM::rad1, IM::T_UP, IM::T_DOWN, IM::led0, IM::led1, IM::seg_v, IM::seg_h, IM::push;
 //Font* IM::f;
 
 void IM::Load() {
@@ -28,10 +28,9 @@ void IM::Load() {
 	if (!seg_h) {
 		seg_h = loadTexture("Tex/7-seg-h.png", false);
 	}
-
-	//if (!push) {
-	//	push = loadTexture("Tex/push.png", false);
-	//}
+	if (!push) {
+		push = loadTexture("Tex/push.png", false);
+	}
 }
 
 #define SEG_STATE(x) (x) ? draw->SetDrawColor2D(0.98f,0.f,0.f) : draw->SetDrawColor2D(0.25f, 0.16f,0.16f);
@@ -68,26 +67,39 @@ void IM::SegDigit(XY pos, Window *win, Draw* draw, int dig) {
 	draw->DrawRect2D(pos.x + h_space, pos.y + v_space + v_move, pos.x + width + h_space, pos.y + height + v_space + v_move);
 }
 
-void IM::SegInt(XY pos, Window *win, Draw* draw, int dig, int fig) {
+void IM::SegInt(XY pos, Window *win, Draw* draw, int dig, int fig, bool negS) {
 	draw->BindDraw2DShader();
-	if (dig < 0) {
-		dig = -dig;
-		SEG_STATE(1);
+	int xOffset = (fig - 1) * 20;
+	if (negS) {
+		if (dig < 0) {
+			dig = -dig;
+			SEG_STATE(1);
+		}
+		else {
+			SEG_STATE(0);
+		}
+		draw->BindTex2D(seg_h);
+		draw->DrawRect2D(pos.x + h_move, pos.y + v_space * 1, pos.x + width + h_move, pos.y + height + v_space * 1);
+		xOffset += 20;
 	}
-	else {
-		SEG_STATE(0);
-	}
-	draw->BindTex2D(seg_h);
-	draw->DrawRect2D(pos.x + h_move - 20, pos.y + v_space * 1, pos.x + width + h_move - 20, pos.y + height + v_space * 1);
 	int div = 10;
 	for (int i = 0; i < fig; i++) {
 		int mod = dig % div;
-		SegDigit(pos + XY{ 36 - i * 20,0 }, win, draw, dig % div * 10 / div);
+		SegDigit(pos + XY{ xOffset, 0 }, win, draw, dig % div * 10 / div);
+		xOffset -= 20;
 		div *= 10;
 		dig -= mod;
 	}
 }
 
+bool IM::PushButton(Draw* draw, Window *win, XY renderAt) {
+	draw->BindDraw2DShader();
+	draw->BindTex2D(push);
+	draw->DrawRect2D(renderAt.x, renderAt.y, renderAt.x + 64, renderAt.y + 64);
+
+	renderAt += XY{ 32,32 };
+	return ((win->MouseX() - renderAt.x)*(win->MouseX() - renderAt.x) + (win->MouseY() - renderAt.y)*(win->MouseY() - renderAt.y) < 32 * 32) && win->MouseClicked(SDL_BUTTON_LEFT);
+}
 
 bool IM::Button(XY pos, Window *win, Draw* draw, Font *f, std::string text) {
 	draw->BindDraw2DShader();

@@ -1,5 +1,6 @@
 #include "NavBall.h"
 #include <iostream>
+#include "../Reg.h"
 
 SphereDraw *NavBall::SD;
 
@@ -93,10 +94,6 @@ void renderNavHeading(NavHeading NH, VesselPacket *VP, Draw* draw, glm::mat4 *mo
 	draw->DrawRect2D(rc.x - 30, rc.y - 30, rc.x + 30, rc.y + 30);
 }
 
-#include "../Reg.h"
-extern NavHeading SASS;
-extern float SASS_roll;
-
 void NavBall::Tick(Draw* draw) {
 	WindowUpdate(draw);
 
@@ -149,8 +146,8 @@ void NavBall::Tick(Draw* draw) {
 		renderNavHeading(VP.Target, &VP, draw, &modelMat, TL->SASModeTex(SAS_TARGET));
 		renderNavHeading(NavHeading(-VP.Target.Pitch, VP.Target.Heading + 180), &VP, draw, &modelMat, TL->SASModeTex(SAS_ANTITARGET));
 	}
-	if ((Registry["FLYBYWIRE_SMART"] && Registry["ENABLE_FLYBYWIRE"] && win->HasJoyStick()) || (client->Control.SASMode == SAS_HOLD_VECTOR)) {
-		renderCoords rc = calcRenderCoords(SASS, &VP, &modelMat);
+	if (client->Control.SASMode == SAS_HOLD_VECTOR) {
+		renderCoords rc = calcRenderCoords(NavHeading(Registry["SASS_PITCH"], Registry["SASS_HEADING"]), &VP, &modelMat);
 		if (rc.alpha < 0.1)rc.alpha = 0.1;
 		draw->SetDrawColor2D(1, 1, 1, rc.alpha);
 		draw->BindTex2D(TL->SASModeTex(SAS_HOLD_VECTOR));
@@ -158,6 +155,6 @@ void NavBall::Tick(Draw* draw) {
 		draw->BindTex2D();
 		glLineWidth(3);
 		draw->SetDrawColor2D(215.f / 256.f, 254 / 256.f, 0, rc.alpha);
-		draw->DrawLine2D(rc.x, rc.y, rc.x + glm::sin(glm::radians(SASS_roll + 180 - VP.Roll)) * 20, rc.y + glm::cos(glm::radians(SASS_roll + 180 - VP.Roll)) * 20);
+		draw->DrawLine2D(rc.x, rc.y, rc.x + glm::sin(glm::radians(Registry["SASS_ROLL"] + 180 - VP.Roll)) * 20, rc.y + glm::cos(glm::radians(Registry["SASS_ROLL"] + 180 - VP.Roll)) * 20);
 	}
 }

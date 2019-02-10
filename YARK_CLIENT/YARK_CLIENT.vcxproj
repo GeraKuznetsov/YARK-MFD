@@ -140,7 +140,7 @@
     <ClCompile Include="Widgets\AirMap.cpp" />
     <ClCompile Include="Widgets\Console.cpp" />
     <ClCompile Include="Widgets\Control.cpp" />
-    <ClCompile Include="Widgets\JoyStickOptions.cpp" />
+    <ClCompile Include="Widgets\AirPlaneAutoPilot.cpp" />
     <ClCompile Include="Widgets\LaunchAss.cpp" />
     <ClCompile Include="Widgets\NavBall.cpp" />
     <ClCompile Include="Widgets\Settings.cpp" />
@@ -173,7 +173,7 @@
     <ClInclude Include="Widgets\AirMap.h" />
     <ClInclude Include="Widgets\Console.h" />
     <ClInclude Include="Widgets\Control.h" />
-    <ClInclude Include="Widgets\JoyStickOptions.h" />
+    <ClInclude Include="Widgets\AirPlaneAutoPilot.h" />
     <ClInclude Include="Widgets\LaunchAss.h" />
     <ClInclude Include="Widgets\VInfo.h" />
     <ClInclude Include="Widgets\NavBall.h" />

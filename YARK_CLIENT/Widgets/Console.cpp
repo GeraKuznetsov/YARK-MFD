@@ -7,7 +7,7 @@
 #include "VInfo.h"
 #include "LaunchAss.h"
 #include "Control.h"
-//#include "JoyStickOptions.h"
+#include "AirPlaneAutoPilot.h"
 #include <sstream>
 #include <algorithm>
 #include <iterator>
@@ -74,7 +74,7 @@ void Console::command(std::string com) {
 				output.write(out.c_str(), out.size());
 				for (std::map<std::string, int>::value_type& x : Registry)
 				{
-					out = "reg " + x.first + " " + std::to_string(x.second) + "\n";
+					out = "set " + x.first + " " + std::to_string(x.second) + "\n";
 					output.write(out.c_str(), out.size());
 				}
 				for (int i = 0; i < widgets.size(); i++) {
@@ -86,6 +86,8 @@ void Console::command(std::string com) {
 					}
 					output.write(out.c_str(), out.size());
 				}
+				out = "clr\n";
+				output.write(out.c_str(), out.size());
 				output.close();
 				DispLine("Done", 2);
 			}
@@ -112,15 +114,20 @@ void Console::command(std::string com) {
 				DispLine("Invalid Syntex, use: \"winsize <width> <height>\"", 1);
 			}
 		}
-		else if (!elems[0].compare("reg")) {
-			if (elems.size() == 3) {
-				Registry[elems[1]] = std::stoi(elems[2]);
-			}
-			else if (elems.size() == 2) {
+		else if (!elems[0].compare("get")) {
+			if (elems.size() == 2) {
 				DispLine(std::to_string(Registry[elems[1]]), 2);
 			}
 			else {
-				DispLine("Invalid Syntex, use: \"reg <key> [new val]\"", 1);
+				DispLine("Invalid Syntex, use: \"get <key>\"", 1);
+			}
+		}
+		else if (!elems[0].compare("set")) {
+			if (elems.size() == 3) {
+				Registry[elems[1]] = std::stoi(elems[2]);
+			}
+			else {
+				DispLine("Invalid Syntex, use: \"set <key> <val>\"", 1);
 			}
 		}
 		else if (!elems[0].compare("open")) {
@@ -162,8 +169,8 @@ void Console::command(std::string com) {
 				else if (!elems[1].compare("controller")) {
 					widgets.push_back(new Control(WidgetStuff{ pos, size, "controller", f, win, client, TL,"controller" }));
 				}
-				else if (!elems[1].compare("joystick")) {
-				//	widgets.push_back(new JoyStickOptions(WidgetStuff{ pos, size, "Joy Stick Options", f, win, client, TL,"joystick" }));
+				else if (!elems[1].compare("autopilot")) {
+					widgets.push_back(new AirPlaneAutoPilot(WidgetStuff{ pos, size, "Airplane AutoPilot", f, win, client, TL,"autopilot" }));
 				}
 				else {
 					DispLine("Unkown widget, type \"widgetlist\" for a list of widgets", 1);
@@ -214,8 +221,13 @@ void Console::command(std::string com) {
 			DispLine("\"settings\" - Settings", 0);
 			DispLine("\"vinfo\" - Basic vessel info", 0);
 			DispLine("\"controller\" - Vessel controller", 0);
-			//DispLine("\"joystick\" - Joy Stick Options", 0);
+			DispLine("\"autopilot\" - Airplane AutoPilot", 0);
 			DispLine("Done", 2);
+		}
+		else if (!elems[0].compare("clr")) {
+			lines.clear();
+			memset(type, 0, CONSOLE_WIDTH);
+			curPos = 0;
 		}
 		else if (!elems[0].compare("help")) {
 			DispLine("Command List:", 2);
@@ -223,11 +235,13 @@ void Console::command(std::string com) {
 			DispLine("\"widgetlist\" - Displays a list of widgets", 0);
 			DispLine("\"close <name>\" - Closes Widget Window", 0);
 			DispLine("\"resize <name> <pos x> <pos y> <width> <height>\" - Resizes Window", 0);
-			DispLine("\"reg <key> [new val]\" - Access registry value", 0);
+			DispLine("\"set <key> <val>\" - Sets registry key to value", 0);
+			DispLine("\"get <key>\" - Displays value of registry key", 0);
 			DispLine("\"connect <ip> <port>\" - Connects to a YARK plugin instance", 0);
 			DispLine("\"savestate [output file]\" - Saves current state as a command list", 0);
 			DispLine("\"config <config file>\" - Excecutes commands in file", 0);
 			DispLine("\"winsize <width> <height>\" - Resizes main window", 0);
+			DispLine("\"clr\" - Clear Console", 0);
 			DispLine("\"help\" - Displays this list", 0);
 			DispLine("Done", 2);
 		}

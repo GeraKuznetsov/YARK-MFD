@@ -236,7 +236,7 @@ struct VesselPacket {
 	float OxidizerS;
 
 	//### MISC ###
-	uint32_t MissionTime;
+	double MissionTime;
 	uint32_t MNTime;
 	float MNDeltaV;
 	uint8_t HasTarget;

@@ -41,8 +41,8 @@ void LaunchAss::Tick(Draw* draw) {
 	case LA_STRAIGHT:
 	{
 		//CP->SASMode = SAS_HOLD_VECTOR;
-		Registry["ENABLE_FLYBYWIRE"] = 0;
-		Registry["FLYBYWIRE_SMART"] = 1;
+		//Registry["ENABLE_FLYBYWIRE"] = 0;
+		//Registry["FLYBYWIRE_SMART"] = 1;
 		CP->MainControls = MC_SAS;
 		CP->targetHeading = target_heading;
 		CP->targetRoll = VP.Roll;

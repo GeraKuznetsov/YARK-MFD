@@ -187,9 +187,9 @@ Client::Client()
 {
 	memset(error, 0, sizeof(error));
 	sprintf(error, "none");
-	memset((char*)&Control, 0, sizeof(Control));
-	memset((char*)&Vessel, 0, sizeof(Vessel));
-	memset((char*)&Status, 0, sizeof(Status));
+	memset((char*)&Control, 0, sizeof(ControlPacket));
+	memset((char*)&Vessel, 0, sizeof(VesselPacket));
+	memset((char*)&Status, 0, sizeof(StatusPacket));
 	memcpy(Control.header.header, Header_Array, 8);
 	Control.SASTol = 0.05f;
 	Control.header.type = 1;
