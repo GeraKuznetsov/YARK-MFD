@@ -8,6 +8,8 @@
 #include "LaunchAss.h"
 #include "Control.h"
 #include "AirPlaneAutoPilot.h"
+#include "Orbit.h"
+#include "Dock.h"
 #include <sstream>
 #include <algorithm>
 #include <iterator>
@@ -171,6 +173,12 @@ void Console::command(std::string com) {
 				}
 				else if (!elems[1].compare("autopilot")) {
 					widgets.push_back(new AirPlaneAutoPilot(WidgetStuff{ pos, size, "Airplane AutoPilot", f, win, client, TL,"autopilot" }));
+				}
+				else if (!elems[1].compare("orbit")) {
+					widgets.push_back(new OrbitDisplay(WidgetStuff{ pos, size, "OrbitDisplay", f, win, client, TL,"orbit" }));
+				}
+				else if (!elems[1].compare("dock")) {
+					widgets.push_back(new Dock(WidgetStuff{ pos, size, "Docking", f, win, client, TL,"dock" }));
 				}
 				else {
 					DispLine("Unkown widget, type \"widgetlist\" for a list of widgets", 1);

@@ -14,14 +14,14 @@ void SoyuzNavBall::LoadNavBallTextures() {
 void SoyuzNavBall::Tick(Draw* draw) {
 	VesselPacket VP = client->Vessel;
 
-	if (lastSOI != VP.SOINumber) {
-		textureID = TL->getPlanetTexture(lastSOI = VP.SOINumber);
+	if (lastSOI != VP.CurrentOrbit.SOINumber) {
+		textureID = TL->getPlanetTexture(lastSOI = VP.CurrentOrbit.SOINumber);
 	}
 
 	WindowUpdate(draw);
 
 
-	float rad = (size.x - 50) / 2;
+	float rad = min(size.x, size.y) / 2;
 
 	glm::mat4 modelMat = glm::mat4(1);
 	modelMat = glm::translate(modelMat, glm::vec3(pos.x + size.x / 2, pos.y + size.y / 2, 1));

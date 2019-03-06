@@ -42,6 +42,7 @@ NavBall::NavBall(WidgetStuff ws) : Widget(ws) {
 	if (!NavBall::SD) {
 		NavBall::SD = new SphereDraw();
 	}
+	//font = new Font(14, 14, "C:\\Windows\\Fonts\\arial.ttf");
 	LoadNavBallTextures();
 }
 
@@ -64,10 +65,7 @@ void SphereDraw::DrawSphere(Draw *draw, GLuint texture, glm::mat4 modelMat, glm:
 	glBindVertexArray(0);
 }
 
-struct renderCoords {
-	float x, y, alpha;
-};
-renderCoords calcRenderCoords(NavHeading NH, VesselPacket *VP, glm::mat4 *modelMat) {
+renderCoords NavBall::calcRenderCoords(NavHeading NH, VesselPacket *VP, glm::mat4 *modelMat) {
 	renderCoords rc;
 	float tempHeading = glm::radians(NH.Heading);
 	float tempPitch = glm::radians(NH.Pitch);
@@ -87,11 +85,27 @@ renderCoords calcRenderCoords(NavHeading NH, VesselPacket *VP, glm::mat4 *modelM
 	return rc;
 }
 
-void renderNavHeading(NavHeading NH, VesselPacket *VP, Draw* draw, glm::mat4 *modelMat, GLuint Tex) {
+void NavBall::renderNavHeading(NavHeading NH, VesselPacket *VP, Draw* draw, glm::mat4 *modelMat, GLuint Tex) {
 	renderCoords rc = calcRenderCoords(NH, VP, modelMat);
 	draw->BindTex2D(Tex);
 	draw->SetDrawColor2D(1, 1, 1, rc.alpha);
 	draw->DrawRect2D(rc.x - 30, rc.y - 30, rc.x + 30, rc.y + 30);
+}
+
+void NavBall::DrawRect(int x, int y, int width, int height, Draw* draw) {
+	draw->DrawLine2D(pos.x + x - width, pos.y + y - height, pos.x + x + width, pos.y + y - height);
+	draw->DrawLine2D(pos.x + x + width, pos.y + y - height, pos.x + x + width, pos.y + y + height);
+	draw->DrawLine2D(pos.x + x - width, pos.y + y - height, pos.x + x - width, pos.y + y + height);
+	draw->DrawLine2D(pos.x + x - width, pos.y + y + height, pos.x + x + width, pos.y + y + height);
+}
+
+void SetTCol(Draw* draw, bool b) {
+	if (b) {
+		draw->SetTextColor(0, 1, 0);
+	}
+	else {
+		draw->SetTextColor(1, 0, 0);
+	}
 }
 
 void NavBall::Tick(Draw* draw) {
@@ -103,8 +117,9 @@ void NavBall::Tick(Draw* draw) {
 
 	VesselPacket VP = client->Vessel;
 
-	float rad = (size.x - 50) / 2;
+	float rad = (min(size.x, size.y) - 130) / 2;
 
+	//render the ball
 	glm::mat4 modelMat = glm::mat4(1);
 	modelMat = glm::translate(modelMat, glm::vec3(pos.x + size.x / 2, pos.y + size.y / 2, 1));
 	modelMat = glm::scale(modelMat, glm::vec3(rad / BORDER_SCALE, rad / BORDER_SCALE, rad / BORDER_SCALE));
@@ -127,8 +142,8 @@ void NavBall::Tick(Draw* draw) {
 
 	if (VP.SpeedMode == 1) {
 		if (VP.Prograde.Pitch >= 0) {
-			renderNavHeading(NavHeading(90 - VP.Prograde.Pitch, VP.Prograde.Heading + 180), &VP, draw, &modelMat, TL->SASModeTex(SAS_RADOUT));
-			renderNavHeading(NavHeading(VP.Prograde.Pitch - 90, VP.Prograde.Heading), &VP, draw, &modelMat, TL->SASModeTex(SAS_RADIN));
+			renderNavHeading(NavHeading(90 - VP.Prograde.Pitch, VP.Prograde.Heading + 180), &VP, draw, &modelMat, TL->SASModeTex(SAS_RADIN));
+			renderNavHeading(NavHeading(VP.Prograde.Pitch - 90, VP.Prograde.Heading), &VP, draw, &modelMat, TL->SASModeTex(SAS_RADOUT));
 		}
 		else {
 			renderNavHeading(NavHeading(VP.Prograde.Pitch + 90, VP.Prograde.Heading), &VP, draw, &modelMat, TL->SASModeTex(SAS_RADOUT));
@@ -157,4 +172,101 @@ void NavBall::Tick(Draw* draw) {
 		draw->SetDrawColor2D(215.f / 256.f, 254 / 256.f, 0, rc.alpha);
 		draw->DrawLine2D(rc.x, rc.y, rc.x + glm::sin(glm::radians(Registry["SASS_ROLL"] + 180 - VP.Roll)) * 20, rc.y + glm::cos(glm::radians(Registry["SASS_ROLL"] + 180 - VP.Roll)) * 20);
 	}
+
+	//render the flair
+	char buff[16];
+
+	Font *font = f;
+
+	draw->BindTextShader();
+	draw->SetTextColor(1, 1, 1);
+	draw->DrawString(font, "RADAR ALT", pos.x + (size.x - font->GetTextWidth("RADAR ALT")) / 2, pos.y + size.y - 30);
+	sprintf_s(buff, "%.2f m", client->Vessel.RAlt);
+	draw->DrawString(font, buff, pos.x + (size.x - font->GetTextWidth(buff)) / 2, pos.y + size.y - 10);
+
+	int inset = 75;
+	draw->DrawString(font, "HOR SPEED", pos.x + (inset - font->GetTextWidth("HOR SPEED") / 2), pos.y + size.y - 30);
+	sprintf_s(buff, "%.2f m/s", sqrt(pow(client->Vessel.Vsurf, 2) - pow(client->Vessel.VVI, 2)));
+	draw->DrawString(font, buff, pos.x + (inset - font->GetTextWidth(buff) / 2), pos.y + size.y - 10);
+
+	draw->DrawString(font, "VERT SPEED", pos.x + (size.x - inset - font->GetTextWidth("VERT SPEED") / 2), pos.y + size.y - 30);
+	sprintf_s(buff, "%.2f m/s", client->Vessel.VVI);
+	draw->DrawString(font, buff, pos.x + (size.x - inset - font->GetTextWidth(buff) / 2), pos.y + size.y - 10);
+
+	draw->DrawString(font, "HEADING", pos.x + (size.x - font->GetTextWidth("HEADING")) / 2, pos.y + 30);
+	sprintf_s(buff, "%.1f", client->Vessel.Heading);
+	draw->DrawString(font, buff, pos.x + (size.x - font->GetTextWidth(buff)) / 2, pos.y + 50);
+
+	std::string speedString = "SPEED (";
+	float speed = 0;
+	std::string mode;
+	switch (client->Vessel.SpeedMode) {
+	case 1:
+		speedString += "ORB)";
+		speed = client->Vessel.VOrbit;
+		break;
+	case 2:
+		speedString += "SRF)";
+		speed = client->Vessel.Vsurf;
+		break;
+	case 3:
+		speedString += "TRG)";
+		speed = client->Vessel.TargetV;
+		break;
+	default:
+		speedString += "ORB)";
+		speed = client->Vessel.VOrbit;
+	}
+
+
+	draw->DrawString(font, speedString, pos.x + (inset - font->GetTextWidth(speedString) / 2), pos.y + 30);
+	sprintf_s(buff, "%.1f m/s", speed);
+	draw->DrawString(font, buff, pos.x + (inset - font->GetTextWidth(buff) / 2), pos.y + 50);
+
+	draw->DrawString(font, "SAS MODE", pos.x + (size.x - inset - font->GetTextWidth("SAS MODE") / 2), pos.y + 30);
+	if (client->Vessel.GetMainControl(MC_SAS)) {
+		draw->BindDraw2DShader();
+		draw->BindTex2D(TL->SASModeTex(client->Vessel.SASMode));
+		int width = 20;
+		draw->SetDrawColor2D(1, 1, 1);
+		draw->DrawRect2D(pos.x + size.x - inset - width, pos.y + 55 - width, pos.x + size.x - inset + width, pos.y + 55 + width);
+		draw->BindTextShader();
+	}
+	else {
+		draw->DrawString(font, "OFF", pos.x + (size.x - inset - font->GetTextWidth("OFF") / 2), pos.y + 50);
+	}
+
+	inset = 50;
+	draw->DrawString(font, "ROLL", pos.x + (size.x - inset - font->GetTextWidth("ROLL") / 2), pos.y + size.y / 4 * 3 - 10);
+	sprintf_s(buff, "%.1f", client->Vessel.Roll);
+	draw->DrawString(font, buff, pos.x + (size.x - inset - font->GetTextWidth(buff) / 2), pos.y + size.y / 4 * 3 + 10);
+
+	draw->DrawString(font, "PITCH", pos.x + (size.x - inset - font->GetTextWidth("PITCH") / 2), pos.y + size.y / 4 - 10);
+	sprintf_s(buff, "%.1f", client->Vessel.Pitch);
+	draw->DrawString(font, buff, pos.x + (size.x - inset - font->GetTextWidth(buff) / 2), pos.y + size.y / 4 + 10);
+
+	inset = 35;
+
+	SetTCol(draw, client->Vessel.GetMainControl(MC_SAS));
+	draw->DrawString(font, "SAS", pos.x + inset - font->GetTextWidth("RCS", -1, 0.95f) / 2, pos.y + size.y / 2 - 60, 0.95f);
+	SetTCol(draw, client->Vessel.GetMainControl(MC_RCS));
+	draw->DrawString(font, "RCS", pos.x + inset - font->GetTextWidth("RCS", -1, 0.95f) / 2, pos.y + size.y / 2 - 30, 0.95f);
+	SetTCol(draw, client->Vessel.GetMainControl(MC_LIGHTS));
+	draw->DrawString(font, "LGT", pos.x + inset - font->GetTextWidth("LGT", -1, 0.95f) / 2, pos.y + size.y / 2, 0.95f);
+	SetTCol(draw, client->Vessel.GetMainControl(MC_GEAR));
+	draw->DrawString(font, "LDG", pos.x + inset - font->GetTextWidth("LDG", -1, 0.95f) / 2, pos.y + size.y / 2 + 30, 0.95f);
+	SetTCol(draw, client->Vessel.GetMainControl(MC_BRAKES));
+	draw->DrawString(font, "BRK", pos.x + inset - font->GetTextWidth("BRK", -1, 0.95f) / 2, pos.y + size.y / 2 + 60, 0.95f);
+
+	inset = 50;
+
+	glLineWidth(3);
+	int boxWidth = 40;
+	int boxHeight = 20;
+	draw->BindDraw2DShader();
+	draw->SetDrawColor2D(0.9, 0.9, 0.9);
+	draw->BindTex2D();
+	DrawRect(size.x / 2, 35, boxWidth, boxHeight, draw);
+	DrawRect(size.x - inset, size.y / 4 - 5, boxWidth, boxHeight, draw);
+	DrawRect(size.x - inset, size.y / 4 * 3 - 5, boxWidth, boxHeight, draw);
 }

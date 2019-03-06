@@ -166,6 +166,20 @@ void Draw::DrawTri3D(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3) {
 	glBindVertexArray(0);
 
 }
+void Draw::DrawPoint3D(glm::vec3 p1) {
+	GLfloat vertices[1][5] = {
+		{ p1.x,p1.y,p1.z,0,0}
+	};
+
+	glBindBuffer(GL_ARRAY_BUFFER, Dyn3DDrawVBOID);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glBindVertexArray(Dyn3DDrawVAOID);
+	glDrawArrays(GL_POINTS, 0, 1);
+	glBindVertexArray(0);
+
+}
 
 void Draw::DrawString(Font *f, std::string text, GLfloat x, GLfloat y, GLfloat scale) {
 

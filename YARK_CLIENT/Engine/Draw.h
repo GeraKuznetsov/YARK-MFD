@@ -37,6 +37,7 @@ public:
 	void SetProj3D(glm::mat4 proj);
 	void SetDrawColor3D(float r, float g, float b, float a = 1.f);
 	void DrawTri3DUV(glm::vec3 p1, glm::vec2 uv1, glm::vec3 p2, glm::vec2 uv2, glm::vec3 p3, glm::vec2 uv3);
+	void DrawPoint3D(glm::vec3 p1);
 	void DrawTri3D(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3);
 	void DrawTri3DLine(glm::vec3 p1, glm::vec3 p2);
 

@@ -73,8 +73,8 @@ void AirMap::Tick(Draw* draw) {
 
 	VesselPacket VP = client->Vessel;
 
-	if (lastSOI != VP.SOINumber) {
-		mapTexture = TL->getPlanetTexture(lastSOI = VP.SOINumber);
+	if (lastSOI != VP.CurrentOrbit.SOINumber) {
+		mapTexture = TL->getPlanetTexture(lastSOI = VP.CurrentOrbit.SOINumber);
 	}
 
 	if (mouseInWindow) {

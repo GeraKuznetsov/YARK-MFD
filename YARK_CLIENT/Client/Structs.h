@@ -28,8 +28,8 @@
 #define SAS_RETROGRADE 3
 #define SAS_NORMAL 4
 #define SAS_ANTINORMAL 5
-#define SAS_RADIN 6
-#define SAS_RADOUT 7
+#define SAS_RADOUT 6
+#define SAS_RADIN 7
 #define SAS_TARGET 8
 #define SAS_ANTITARGET 9
 #define SAS_MAN 10
@@ -59,6 +59,16 @@
 #define AXIS_INT_NZ 2 //Client value is used if the internal KSP value is zero, otherwise interal KSP value is used (KSP interal value overrides client value)
 #define AXIS_EXT_NZ 3 //Interal KSP value is used if the client value is zero, otherwise client value is sent (Client value overrides KSP internal value)
 
+//Situations
+#define LANDED 1
+#define SPLASHED 2
+#define PRELAUNCH 4
+#define FLYING 8
+#define SUB_ORBITAL 16
+#define ORBITING 32
+#define ESCAPING 64
+#define DOCKED 128
+
 const uint8_t Header_Array[8] = { (uint8_t)0xFF, (uint8_t)0xC4, (uint8_t)'Y', (uint8_t)'A', (uint8_t)'R', (uint8_t)'K', (uint8_t)0x00, (uint8_t)0xFF };
 
 struct NavHeading {
@@ -75,6 +85,7 @@ struct NavHeading {
 struct Header {
 	uint8_t header[8];
 	uint16_t checksum;
+	uint16_t length;
 	uint8_t type;
 };
 
@@ -104,80 +115,121 @@ struct ControlPacket
 	uint8_t SASMode; //hold, prograde, retro, etc...
 	uint8_t SpeedMode; //Surface, orbit target
 	uint8_t timeWarpRateIndex;
-	
-//helper methods
-void SetControlerMode(int controler, int mode) {
-	switch (controler) {
-	case CONTROLLER_ROT:
-		 ControlerMode =  ControlerMode & 0b11111100 | mode << (2 * 0);
-		break;
-	case CONTROLLER_TRANS:
-		 ControlerMode =  ControlerMode & 0b11110011 | mode << (2 * 1);
-		break;
-	case CONTROLLER_THROTTLE:
-		 ControlerMode =  ControlerMode & 0b11001111 | mode << (2 * 2);
-		break;
-	case CONTROLLER_WHEEL:
-		 ControlerMode =  ControlerMode & 0b00111111 | mode << (2 * 3);
-		break;
-	}
-}
-void ReSetSASHoldVector() {
-	targetHeading = targetPitch = targetRoll = NAN;
-}
-void SetSASHoldVector(float pitch, float heading, float roll) {
-	 targetHeading = heading;
-	 targetPitch = pitch;
-	 targetRoll = roll;
-}
 
-void  InputRot(float pitch, float yaw, float roll) {
-	 Pitch = (int16_t)pitch;
-	 Roll = (int16_t)roll;
-	 Yaw = (int16_t)yaw;
-}
+	//helper methods
+	void SetControlerMode(int controler, int mode) {
+		switch (controler) {
+		case CONTROLLER_ROT:
+			ControlerMode = ControlerMode & 0b11111100 | mode << (2 * 0);
+			break;
+		case CONTROLLER_TRANS:
+			ControlerMode = ControlerMode & 0b11110011 | mode << (2 * 1);
+			break;
+		case CONTROLLER_THROTTLE:
+			ControlerMode = ControlerMode & 0b11001111 | mode << (2 * 2);
+			break;
+		case CONTROLLER_WHEEL:
+			ControlerMode = ControlerMode & 0b00111111 | mode << (2 * 3);
+			break;
+		}
+	}
+	void ReSetSASHoldVector() {
+		targetHeading = targetPitch = targetRoll = NAN;
+	}
+	void SetSASHoldVector(float pitch, float heading, float roll) {
+		targetHeading = heading;
+		targetPitch = pitch;
+		targetRoll = roll;
+	}
 
-void  InputTran(float tx, float ty, float tz) {
-	 TX = (int16_t)tx;
-	 TY = (int16_t)ty;
-	 TZ = (int16_t)tz;
-}
+	void  InputRot(float pitch, float yaw, float roll) {
+		Pitch = (int16_t)pitch;
+		Roll = (int16_t)roll;
+		Yaw = (int16_t)yaw;
+	}
 
-void  InputThrottle(float throttle) {
-	 Throttle = (int16_t)throttle;
-}
-void	SetMainControl(int control, bool s) {
-	if (s) {
-		 MainControls |= control;
+	void  InputTran(float tx, float ty, float tz) {
+		TX = (int16_t)tx;
+		TY = (int16_t)ty;
+		TZ = (int16_t)tz;
 	}
-	else {
-		 MainControls &= ~((uint8_t)control);
+
+	void  InputThrottle(float throttle) {
+		Throttle = (int16_t)throttle;
 	}
-}
-void  SetActionGroup(int group, bool s) {
-	if (s) {
-		 ActionGroups |= group;
+	void	SetMainControl(int control, bool s) {
+		if (s) {
+			MainControls |= control;
+		}
+		else {
+			MainControls &= ~((uint8_t)control);
+		}
 	}
-	else {
-		 ActionGroups &= ~((uint8_t)group);
+	void  SetActionGroup(int group, bool s) {
+		if (s) {
+			ActionGroups |= group;
+		}
+		else {
+			ActionGroups &= ~((uint8_t)group);
+		}
 	}
-}
 };
 
 struct StatusPacket {
 	//Header h; //Implied 
 	int32_t ID;
 	int8_t inFlight;
+	int8_t YarkVersion;
 	char vesselName[32];
+};
+
+struct ClosestAprouchData {
+	float ANAnom; //anomoly of ascending node between orbits
+	float TargetANAnom;
+	int T2AN;
+	int T2DN;
+	float RelInc; //relative inclonation
+	float CAAnom; //anomoly of closest aprouch
+	float TargetCAAnom;
+	int T2CA; //closest aprouch
+	int SepAtCA;
+};
+
+struct OrbitData {
+	uint8_t SOINumber;
+	double longOfAscNode;
+	double argOfPE;
+	double SemiLatusRectum;
+	double e;
+	float inc;
+	double anomoly;
+	double anomolyEnd;
+	float AP;
+	float PE;
+	int T2Pe;
+	int T2AN;
+	int T2DN;
+	int period;
+	int T2PatchEnd;
+	uint8_t transStart;
+	uint8_t transEnd;
+};
+
+struct ManData {
+	float DV;
+	double UT;
+	float X, Y, Z;
 };
 
 struct VesselPacket {
 	//Header h; //Implied 
-	uint32_t ID;
+	int ID;
 
 	float deltaTime;
 
 	//##### CRAFT ######
+	uint8_t Situation;
+
 	float Pitch; //pitch and heading close together so c++ can use this as a NavHeading ptr
 	float Heading;
 	float Roll;
@@ -188,7 +240,7 @@ struct VesselPacket {
 	NavHeading Maneuver;
 
 	uint8_t MainControls;                   //SAS RCS Lights Gear Brakes Abort Stage
-	uint16_t ActionGroups;                   //action groups 1-10 in 2 bytes
+	uint16_t ActionGroups;                   //action groups 1-10 in 2 uint8_ts
 	float VVI;
 	float G;
 	float RAlt;
@@ -196,20 +248,10 @@ struct VesselPacket {
 	float Vsurf;
 	uint8_t MaxOverHeat;    //  Max part overheat (% percent)
 	float IAS;           //  Indicated Air Speed
-
-
-   //###### ORBITAL ######
 	float VOrbit;
-	float AP;
-	float PE;
-	int TAp;
-	int TPe;
-	float SemiMajorAxis;
-	float SemiMinorAxis;
-	float e;
-	float inc;
-	int period;
-	float TrueAnomaly;
+
+	//###### ORBITAL ######
+	OrbitData CurrentOrbit;
 	float Lat;
 	float Lon;
 
@@ -236,13 +278,14 @@ struct VesselPacket {
 	float OxidizerS;
 
 	//### MISC ###
-	double MissionTime;
+	float MissionTime;
+	float UT;
 	uint32_t MNTime;
 	float MNDeltaV;
 	uint8_t HasTarget;
 	float TargetDist;    //  Distance to targeted vessel (m)
 	float TargetV;       //  Target vessel relative velocity (m/s)
-	uint8_t SOINumber;      //  SOI Number (decimal format: sun-planet-moon e.g. 130 = kerbin, 131 = mun)
+	NavHeading TargetRotation;
 
 	uint8_t SASMode; //hold, prograde, retro, etc...
 	uint8_t SpeedMode; //Surface, orbit target

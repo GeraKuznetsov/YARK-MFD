@@ -1,5 +1,5 @@
 connect localhost 9999
-winsize 815 738
+winsize 1280 738
 set APALT 4000
 set AP_ALT 5360
 set AP_MAX_AOA 5
@@ -18,10 +18,9 @@ set FLYBYWIRE_DEADZONE 300
 set FLYBYWIRE_ROCKETMODE 0
 set FORCE_SASS 0
 set SASS_HEADING 90
-set SASS_PITCH 0
+set SASS_PITCH 80
 set SASS_ROLL 0
-set THROTTLE 0
-resize console 0 0 800 600
-open settings 930 74 235 369
-open controller 310 63 841 646
+set THROTTLE 697
+open navball 672 0 602 738
+open orbit 0 -2 671 742
 clr
