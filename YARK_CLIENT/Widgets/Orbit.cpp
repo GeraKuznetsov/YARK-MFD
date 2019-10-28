@@ -76,23 +76,23 @@ OrbitDisplay::OrbitDisplay(WidgetStuff ws) : Widget(ws) {
 
 	View v = View{ glm::vec2(0, 0), 1.f };
 
-	planets.push_back(Planet{ "Kerbol",261600000,115000000000.f, 1.757e28,v });
-	planets.push_back(Planet{ "Moho",250000  ,9646.66          ,2.526e21 ,v });
-	planets.push_back(Planet{ "Eve", 700000  , 85109.36        ,1.224e23 ,v });
-	planets.push_back(Planet{ "Gilly",13000  , 126.12          ,1.242e17 ,v });
-	planets.push_back(Planet{ "Kerbin",600000, 84159.29        , 5.292e22,v });
-	planets.push_back(Planet{ "Mun",200000  , 2429.56          , 9.760e20,v });
-	planets.push_back(Planet{ "Minmus",60000, 2247.43          , 2.646e19,v });
-	planets.push_back(Planet{ "Duna",320000 , 47921.95         ,4.515e21 ,v });
-	planets.push_back(Planet{ "Ike",130000  ,  1049.60         ,2.782e20 ,v });
-	planets.push_back(Planet{ "Dres",138000 , 32832.84         ,3.219e20 ,v });
-	planets.push_back(Planet{ "Jool",6000000,  2455985.19      ,4.233e24 ,v });
-	planets.push_back(Planet{ "Laythe",500000, 3723.65         ,2.940e22 ,v });
-	planets.push_back(Planet{ "Vall",300000 ,  2406.40         ,3.109e21 ,v });
-	planets.push_back(Planet{ "Tylo",600000 ,  10856.52        ,4.233e22 ,v });
-	planets.push_back(Planet{ "Bop",65000   ,  1221.06         ,3.726e19 ,v });
-	planets.push_back(Planet{ "Pol",44000   , 1042.14          , 1.081e19,v });
-	planets.push_back(Planet{ "Eeloo",210000,  119082.94       , 1.115e21,v });
+	planets.push_back(Planet{ "Kerbol",     261600000.f,     115000000000.f,(float) 1.757e28, v });
+	planets.push_back(Planet{ "Moho",       250000.f  ,      9646.66f ,    (float) 2.526e21, v });
+	planets.push_back(Planet{ "Eve",        700000.f  ,      85109.36f,    (float) 1.224e23, v });
+	planets.push_back(Planet{ "Gilly",      13000.f  ,       126.12f,      (float) 1.242e17, v });
+	planets.push_back(Planet{ "Kerbin",     600000.f,        84159.29f,    (float) 5.292e22, v });
+	planets.push_back(Planet{ "Mun",        200000.f  ,      2429.56f,     (float) 9.760e20, v });
+	planets.push_back(Planet{ "Minmus",     60000.f,         2247.43f,     (float) 2.646e19, v });
+	planets.push_back(Planet{ "Duna",       320000.f ,       47921.95f,    (float) 4.515e21, v });
+	planets.push_back(Planet{ "Ike",        130000.f  ,      1049.60f,     (float) 2.782e20, v });
+	planets.push_back(Planet{ "Dres",       138000.f ,       32832.84f,    (float) 3.219e20, v });
+	planets.push_back(Planet{ "Jool",       6000000.f,       2455985.19f,  (float) 4.233e24, v });
+	planets.push_back(Planet{ "Laythe",     500000.f,        3723.65f,     (float) 2.940e22, v });
+	planets.push_back(Planet{ "Vall",       300000.f ,       2406.40f,     (float) 3.109e21, v });
+	planets.push_back(Planet{ "Tylo",       600000.f ,       10856.52f,    (float) 4.233e22, v });
+	planets.push_back(Planet{ "Bop",        65000.f   ,      1221.06f,     (float) 3.726e19, v });
+	planets.push_back(Planet{ "Pol",        44000.f   ,      1042.14f ,    (float) 1.081e19, v });
+	planets.push_back(Planet{ "Eeloo",      210000.f,        119082.94f,   (float) 1.115e21, v });
 
 	//planetCircle = MakeCircle(0, 0, 1);
 	equator = new Orbit(360);

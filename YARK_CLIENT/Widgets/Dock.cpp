@@ -1,4 +1,5 @@
 #include "Dock.h"
+#include <gtc\matrix_transform.hpp>
 
 Dock::Dock(WidgetStuff ws) : NavBall(ws) {
 

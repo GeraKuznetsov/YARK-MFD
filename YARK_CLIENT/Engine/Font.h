@@ -2,6 +2,7 @@
 #define GLEW_STATIC
 #include <glew.h>
 #include <map>
+#include <string>
 
 struct Character {
 	GLuint TextureID;   // ID handle of the glyph texture

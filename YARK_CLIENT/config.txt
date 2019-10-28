@@ -1,5 +1,5 @@
 connect localhost 9999
-winsize 1280 738
+winsize 1455 877
 set APALT 4000
 set AP_ALT 5360
 set AP_MAX_AOA 5
@@ -21,6 +21,7 @@ set SASS_HEADING 90
 set SASS_PITCH 80
 set SASS_ROLL 0
 set THROTTLE 697
-open navball 672 0 602 738
-open orbit 0 -2 671 742
+open navball 2 1 650 722
+open orbit 657 3 794 720
+resize console 366 720 530 154
 clr
