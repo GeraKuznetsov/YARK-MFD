@@ -10,11 +10,11 @@
 #include <fstream>
 #include <thread>
 
-#include "Client\Client.h"
-#include "Engine\Window.h"
-#include "Widgets\Widget.h"
-#include "Widgets\Console.h"
-#include "Engine\Sound.h"
+#include "Client/Client.h"
+#include "Engine/Window.h"
+#include "Widgets/Widget.h"
+#include "Widgets/Console.h"
+#include "Engine/Sound.h"
 
 Client client;
 Window* win;
@@ -123,14 +123,14 @@ void Tick(float delta, Draw* draw) {
 	SDL_SetWindowTitle(win->gWindow, std::to_string(win->FPS).c_str());
 }
 
-void main() {
+int main() {
 	int error = 0;
 	XY size = XY{ DEFUALT_WIDTH,DEFUALT_HEIGHT };
 
 	win = new Window(size, 0, &error);
 	if (error) {
 		std::cout << "error opening SDL window\n";
-		return;
+		return 1;
 	}
 	win->onExit = &OnExit;
 	win->SetTargetFPS(600);
@@ -150,5 +150,5 @@ void main() {
 		warn_altitudes_sounds[i] = new Sound("Sound/" + std::to_string(warn_altitudes[i]) + ".wav");
 	}
 	win->Run(&Tick);
+	return 0;
 }
-

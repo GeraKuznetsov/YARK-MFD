@@ -18,8 +18,8 @@ int JoyStickCurve(int in, int deadZone) {
 }
 
 #define GLM_ENABLE_EXPERIMENTAL
-#include "gtc\matrix_transform.hpp"
-#include "gtx/rotate_vector.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtx/rotate_vector.hpp"
 
 glm::vec4 toVec(VesselPacket VP, float pitch, float heading) {
 	float tempHeading = glm::radians(heading);
@@ -53,7 +53,7 @@ void JoyStickTick(float delta) {
 		if (RegInt("ENABLE_FLYBYWIRE", 0)) {
 			client.Control.SetControlerMode(CONTROLLER_THROTTLE, AXIS_EXT_NZ);
 			client.Control.SetControlerMode(CONTROLLER_ROT, AXIS_EXT_NZ);
-			
+
 			Registry["THROTTLE"] = JOY_RANGE_THROTTLE(win->joystickDir[3]);
 			client.Control.Yaw = yaw;
 			client.Control.Roll = roll;

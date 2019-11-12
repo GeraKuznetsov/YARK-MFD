@@ -1,8 +1,8 @@
 #pragma once
 #define GLEW_STATIC
-#include <glew.h>
-#include <mat4x4.hpp>
-#include <gtc/type_ptr.hpp>
+#include <GL/glew.h>
+#include <glm/mat4x4.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include "Shader.h"
 #include "Texture.h"
 

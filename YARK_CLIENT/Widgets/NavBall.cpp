@@ -47,8 +47,8 @@ NavBall::NavBall(WidgetStuff ws) : Widget(ws) {
 }
 
 #define GLM_ENABLE_EXPERIMENTAL
-#include "gtc\matrix_transform.hpp"
-#include "gtx/rotate_vector.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtx/rotate_vector.hpp"
 
 void SphereDraw::DrawSphere(Draw *draw, GLuint texture, glm::mat4 modelMat, glm::mat4 rotMat) {
 	glActiveTexture(GL_TEXTURE0);
@@ -117,7 +117,7 @@ void NavBall::Tick(Draw* draw) {
 
 	VesselPacket VP = client->Vessel;
 
-	float rad = (min(size.x, size.y) - 130) / 2;
+	float rad = (std::min(size.x, size.y) - 130) / 2;
 
 	//render the ball
 	glm::mat4 modelMat = glm::mat4(1);
@@ -181,20 +181,20 @@ void NavBall::Tick(Draw* draw) {
 	draw->BindTextShader();
 	draw->SetTextColor(1, 1, 1);
 	draw->DrawString(font, "RADAR ALT", pos.x + (size.x - font->GetTextWidth("RADAR ALT")) / 2, pos.y + size.y - 30);
-	sprintf_s(buff, "%.2f m", client->Vessel.RAlt);
+	sprintf(buff, "%.2f m", client->Vessel.RAlt);
 	draw->DrawString(font, buff, pos.x + (size.x - font->GetTextWidth(buff)) / 2, pos.y + size.y - 10);
 
 	int inset = 75;
 	draw->DrawString(font, "HOR SPEED", pos.x + (inset - font->GetTextWidth("HOR SPEED") / 2), pos.y + size.y - 30);
-	sprintf_s(buff, "%.2f m/s", sqrt(pow(client->Vessel.Vsurf, 2) - pow(client->Vessel.VVI, 2)));
+	sprintf(buff, "%.2f m/s", sqrt(pow(client->Vessel.Vsurf, 2) - pow(client->Vessel.VVI, 2)));
 	draw->DrawString(font, buff, pos.x + (inset - font->GetTextWidth(buff) / 2), pos.y + size.y - 10);
 
 	draw->DrawString(font, "VERT SPEED", pos.x + (size.x - inset - font->GetTextWidth("VERT SPEED") / 2), pos.y + size.y - 30);
-	sprintf_s(buff, "%.2f m/s", client->Vessel.VVI);
+	sprintf(buff, "%.2f m/s", client->Vessel.VVI);
 	draw->DrawString(font, buff, pos.x + (size.x - inset - font->GetTextWidth(buff) / 2), pos.y + size.y - 10);
 
 	draw->DrawString(font, "HEADING", pos.x + (size.x - font->GetTextWidth("HEADING")) / 2, pos.y + 30);
-	sprintf_s(buff, "%.1f", client->Vessel.Heading);
+	sprintf(buff, "%.1f", client->Vessel.Heading);
 	draw->DrawString(font, buff, pos.x + (size.x - font->GetTextWidth(buff)) / 2, pos.y + 50);
 
 	std::string speedString = "SPEED (";
@@ -220,7 +220,7 @@ void NavBall::Tick(Draw* draw) {
 
 
 	draw->DrawString(font, speedString, pos.x + (inset - font->GetTextWidth(speedString) / 2), pos.y + 30);
-	sprintf_s(buff, "%.1f m/s", speed);
+	sprintf(buff, "%.1f m/s", speed);
 	draw->DrawString(font, buff, pos.x + (inset - font->GetTextWidth(buff) / 2), pos.y + 50);
 
 	draw->DrawString(font, "SAS MODE", pos.x + (size.x - inset - font->GetTextWidth("SAS MODE") / 2), pos.y + 30);
@@ -238,11 +238,11 @@ void NavBall::Tick(Draw* draw) {
 
 	inset = 50;
 	draw->DrawString(font, "ROLL", pos.x + (size.x - inset - font->GetTextWidth("ROLL") / 2), pos.y + size.y / 4 * 3 - 10);
-	sprintf_s(buff, "%.1f", client->Vessel.Roll);
+	sprintf(buff, "%.1f", client->Vessel.Roll);
 	draw->DrawString(font, buff, pos.x + (size.x - inset - font->GetTextWidth(buff) / 2), pos.y + size.y / 4 * 3 + 10);
 
 	draw->DrawString(font, "PITCH", pos.x + (size.x - inset - font->GetTextWidth("PITCH") / 2), pos.y + size.y / 4 - 10);
-	sprintf_s(buff, "%.1f", client->Vessel.Pitch);
+	sprintf(buff, "%.1f", client->Vessel.Pitch);
 	draw->DrawString(font, buff, pos.x + (size.x - inset - font->GetTextWidth(buff) / 2), pos.y + size.y / 4 + 10);
 
 	inset = 35;

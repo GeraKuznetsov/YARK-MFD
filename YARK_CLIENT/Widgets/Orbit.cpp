@@ -1,8 +1,8 @@
 ﻿#include "Orbit.h"
-#include <gtc/matrix_transform.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #define GLM_ENABLE_EXPERIMENTAL
-#include <gtx/string_cast.hpp>
+#include <glm/gtx/string_cast.hpp>
 #define PI ((double)(3.14159265358979323846264338327950288))
 
 OrbitDisplay::Orbit::Orbit(int vertCount) {
@@ -190,48 +190,48 @@ void OrbitDisplay::Tick(Draw* draw) {
 	draw->SetDrawColor2D(0, 0, 0);
 	draw->DrawRect2D(pos.x, pos.y, pos.x + size.x, pos.y + size.y);
 
-	float rad = (min(size.x, size.y) - 100) / 2;
+	float rad = (std::min(size.x, size.y) - 100) / 2;
 	Planet p = planets[SOI];
 
 	if (mouseInWindow && win->MouseDown(3)) {
-		planets[SOI].View.viewAngle += glm::vec2(win->MouseDXY()) * glm::vec2(0.5);
+		planets[SOI].view.viewAngle += glm::vec2(win->MouseDXY()) * glm::vec2(0.5);
 	}
 	if (win->KeyDown(SDL_SCANCODE_W)) {
-		planets[SOI].View.viewAngle.y++;
+		planets[SOI].view.viewAngle.y++;
 	}
 	if (win->KeyDown(SDL_SCANCODE_S)) {
-		planets[SOI].View.viewAngle.y--;
+		planets[SOI].view.viewAngle.y--;
 	}
 	if (win->KeyDown(SDL_SCANCODE_A)) {
-		planets[SOI].View.viewAngle.x++;
+		planets[SOI].view.viewAngle.x++;
 	}
 	if (win->KeyDown(SDL_SCANCODE_D)) {
-		planets[SOI].View.viewAngle.x--;
+		planets[SOI].view.viewAngle.x--;
 	}
 	if (win->KeyDown(SDL_SCANCODE_E)) {
-		planets[SOI].View.zoom += planets[SOI].View.zoom / 8;
+		planets[SOI].view.zoom += planets[SOI].view.zoom / 8;
 	}
 	if (win->KeyDown(SDL_SCANCODE_Q)) {
-		planets[SOI].View.zoom -= planets[SOI].View.zoom / 8;
+		planets[SOI].view.zoom -= planets[SOI].view.zoom / 8;
 	}
-	if (planets[SOI].View.viewAngle.y > 90) {
-		planets[SOI].View.viewAngle.y = 90;
+	if (planets[SOI].view.viewAngle.y > 90) {
+		planets[SOI].view.viewAngle.y = 90;
 	}
-	else if (planets[SOI].View.viewAngle.y < -90) {
-		planets[SOI].View.viewAngle.y = -90;
+	else if (planets[SOI].view.viewAngle.y < -90) {
+		planets[SOI].view.viewAngle.y = -90;
 	}
-	if (planets[SOI].View.viewAngle.x < 0) {
-		planets[SOI].View.viewAngle.x += 360;
+	if (planets[SOI].view.viewAngle.x < 0) {
+		planets[SOI].view.viewAngle.x += 360;
 	}
-	if (planets[SOI].View.viewAngle.x > 360) {
-		planets[SOI].View.viewAngle.x -= 360;
+	if (planets[SOI].view.viewAngle.x > 360) {
+		planets[SOI].view.viewAngle.x -= 360;
 	}
 
 	bool hasTarget = client->Vessel.HasTarget;
-	planets[SOI].View.zoom += win->getMouseWheelDelta().y * planets[SOI].View.zoom / 8;
-	float scale = 1.f / p.soiDist * planets[SOI].View.zoom;
+	planets[SOI].view.zoom += win->getMouseWheelDelta().y * planets[SOI].view.zoom / 8;
+	float scale = 1.f / p.soiDist * planets[SOI].view.zoom;
 	if (p.rad * scale > rad) {
-		scale = 1.f / p.soiDist * (planets[SOI].View.zoom = rad / p.rad * p.soiDist);
+		scale = 1.f / p.soiDist * (planets[SOI].view.zoom = rad / p.rad * p.soiDist);
 	}
 
 	OrbitData* lastPatch = 0;
@@ -298,8 +298,8 @@ void OrbitDisplay::Tick(Draw* draw) {
 	glm::mat4 orthroMat = glm::ortho(float(-centr.x), float(win->getSize().x - centr.x), float(win->getSize().y - centr.y), float(-centr.y), -1000000.f, 1000000.f);
 
 	//glm::mat4 view = glm::translate(glm::mat4(1), glm::vec3(-0, 0, -002));
-	glm::mat4 view = glm::rotate(glm::mat4(1), glm::radians(planets[SOI].View.viewAngle.y + 90), glm::vec3(1, 0, 0));
-	view = glm::rotate(view, glm::radians(planets[SOI].View.viewAngle.x), glm::vec3(0, 0, 1));
+	glm::mat4 view = glm::rotate(glm::mat4(1), glm::radians(planets[SOI].view.viewAngle.y + 90), glm::vec3(1, 0, 0));
+	view = glm::rotate(view, glm::radians(planets[SOI].view.viewAngle.x), glm::vec3(0, 0, 1));
 	view = glm::scale(view, glm::vec3(scale));
 	//float radius = 50;
 
@@ -463,31 +463,31 @@ void OrbitDisplay::OrbitListOption(Draw *draw, OrbitData* o, Orbit *orb, ManData
 		int sy = pos.y + 15;
 		draw->DrawString(f, "SOI: " + planets[SOI = o->SOINumber].name, pos.x + 10, sy); sy += 15;
 		if (olc == 0) {
-			sprintf_s(buff, "Alt: %.0f m", client->Vessel.Alt);
+			sprintf(buff, "Alt: %.0f m", client->Vessel.Alt);
 			draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
 		}
 		draw->DrawString(f, "Anomoly : " + std::to_string(o->anomoly), pos.x + 10, sy); sy += 15;
 		if (o->transEnd != T_FINAL) {
 			draw->DrawString(f, "Patch EndAnomoly : " + std::to_string(o->anomolyEnd), pos.x + 10, sy); sy += 15;
 
-			sprintf_s(buff, "Time To Patch End: %d s", o->T2PatchEnd);
+			sprintf(buff, "Time To Patch End: %d s", o->T2PatchEnd);
 			draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
 		}
-		sprintf_s(buff, "SLR: %.0f m", o->SemiLatusRectum);
+		sprintf(buff, "SLR: %.0f m", o->SemiLatusRectum);
 		draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
-		sprintf_s(buff, "Inc: %.2f deg", o->inc);
+		sprintf(buff, "Inc: %.2f deg", o->inc);
 		draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
-		sprintf_s(buff, "LAN: %.2f deg", o->longOfAscNode);
+		sprintf(buff, "LAN: %.2f deg", o->longOfAscNode);
 		draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
-		sprintf_s(buff, "AOP: %.2f deg", o->argOfPE);
+		sprintf(buff, "AOP: %.2f deg", o->argOfPE);
 		draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
 		draw->DrawString(f, "Ecentricity: " + std::to_string(o->e), pos.x + 10, sy); sy += 15;
 		if (o->transEnd == T_FINAL) {
-			sprintf_s(buff, "Period: %d s", o->period);
+			sprintf(buff, "Period: %d s", o->period);
 			draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
 		}
 		if (orb->renderAP) {
-			sprintf_s(buff, "AP: %.0f m", o->AP);
+			sprintf(buff, "AP: %.0f m", o->AP);
 			draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
 			int t2ap = 0;
 			if (o->anomoly > 0) {
@@ -496,57 +496,57 @@ void OrbitDisplay::OrbitListOption(Draw *draw, OrbitData* o, Orbit *orb, ManData
 			else {
 				t2ap = o->T2Pe + o->period / 2;
 			}
-			sprintf_s(buff, "T2 AP: %d s", t2ap);
+			sprintf(buff, "T2 AP: %d s", t2ap);
 			draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
 		}
 		if (orb->renderPE) {
-			sprintf_s(buff, "PE: %.0f m", o->PE);
+			sprintf(buff, "PE: %.0f m", o->PE);
 			draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
-			sprintf_s(buff, "T2 PE: %d s", o->T2Pe);
+			sprintf(buff, "T2 PE: %d s", o->T2Pe);
 			draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
 		}
 		if (orb->isFinal) {
 			if (o->T2DN < o->T2AN) {
-				sprintf_s(buff, "T2 DN: %d s", o->T2DN);
+				sprintf(buff, "T2 DN: %d s", o->T2DN);
 			}
 			else {
-				sprintf_s(buff, "T2 AN: %d s", o->T2AN);
+				sprintf(buff, "T2 AN: %d s", o->T2AN);
 			}
 			draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
 		}
 		if (CAD) {
 			sy += 15;
-			sprintf_s(buff, "Rel Inc: %.2f deg", CAD->RelInc);
+			sprintf(buff, "Rel Inc: %.2f deg", CAD->RelInc);
 			draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
 			if (CAD->T2DN < CAD->T2AN) {
-				sprintf_s(buff, "T2 rel. DN: %d s", CAD->T2DN);
+				sprintf(buff, "T2 rel. DN: %d s", CAD->T2DN);
 			}
 			else {
-				sprintf_s(buff, "T2 rel. AN: %d s", CAD->T2AN);
+				sprintf(buff, "T2 rel. AN: %d s", CAD->T2AN);
 			}
 			draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
 
-			sprintf_s(buff, "T2 CA: %d s", CAD->T2CA);
+			sprintf(buff, "T2 CA: %d s", CAD->T2CA);
 			draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
-			sprintf_s(buff, "Sep @ CA: %d m", CAD->SepAtCA);
+			sprintf(buff, "Sep @ CA: %d m", CAD->SepAtCA);
 			draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
 
 
-			//sprintf_s(buff, "Rel Inc: %f deg", CAD.);
+			//sprintf(buff, "Rel Inc: %f deg", CAD.);
 			//draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
 
 		}
 		if (o->transStart == T_MANEUVER) {
 			sy += 15; sy += 15;
-			sprintf_s(buff, "Man dV: %.1f m/s", manD->DV);
+			sprintf(buff, "Man dV: %.1f m/s", manD->DV);
 			draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
-			sprintf_s(buff, "Time To Man: %d s", int(manD->UT - client->Vessel.UT));
+			sprintf(buff, "Time To Man: %d s", int(manD->UT - client->Vessel.UT));
 			draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
-			sprintf_s(buff, "dV-Grade: %.2f m/s", manD->Z);
+			sprintf(buff, "dV-Grade: %.2f m/s", manD->Z);
 			draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
-			sprintf_s(buff, "dV-Normal: %.2f m/s", manD->Y);
+			sprintf(buff, "dV-Normal: %.2f m/s", manD->Y);
 			draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
-			sprintf_s(buff, "dV-Radial: %.2f m/s", manD->X);
+			sprintf(buff, "dV-Radial: %.2f m/s", manD->X);
 			draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
 			printf("%f\n", float(client->Vessel.UT));
 		}
