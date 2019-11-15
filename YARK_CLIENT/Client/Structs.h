@@ -1,6 +1,8 @@
 #pragma once
 #pragma pack(push, 1)
 
+#include <cmath>
+
 //defines for MainControls
 #define MC_SAS (1 << 0)
 #define MC_RCS (1 << 1)
@@ -134,7 +136,7 @@ struct ControlPacket
 		}
 	}
 	void ReSetSASHoldVector() {
-		targetHeading = targetPitch = targetRoll = 0;
+		targetHeading = targetPitch = targetRoll = NAN;
 	}
 	void SetSASHoldVector(float pitch, float heading, float roll) {
 		targetHeading = heading;
