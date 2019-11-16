@@ -3,7 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
-#include <gtc/type_ptr.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 GLuint LoadRawShader(const GLchar* vertexPath, const GLchar* fragmentPath)
 {

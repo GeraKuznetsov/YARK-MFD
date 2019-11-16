@@ -11,7 +11,7 @@ AtitudeIndicator::AtitudeIndicator(WidgetStuff ws) : Widget(ws) {
 }
 
 //#define GLM_ENABLE_EXPERIMENTAL
-#include "gtc\matrix_transform.hpp"
+#include "glm/gtc/matrix_transform.hpp"
 
 #define XSPACE 35
 #define YSPACE 8
@@ -110,7 +110,7 @@ void AtitudeIndicator::Tick(Draw* draw) {
 	//draw->draw2DShader->SetView(glm::mat4(1));
 	draw->DrawRect2D(pos.x + size.x / 2 - 8, pos.y + TRI_TEX_OFFSET , pos.x + size.x / 2 + 8, pos.y + TRI_TEX_OFFSET - 16); //DRAW TRIANGLE OVER ARC
 	draw->draw2DShader->SetView(glm::mat4(1));
-	
+
 
 	draw->SetDrawColor2D(1, 1, 1); //DRAW CHEVRON
 	draw->BindTex2D(chevronTex);

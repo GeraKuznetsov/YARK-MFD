@@ -21,7 +21,7 @@ class OrbitDisplay : public Widget {
 		float rad;
 		float soiDist;
 		float mass;
-		View View;
+		View view;
 	};
 	class Orbit {
 		float pRad;

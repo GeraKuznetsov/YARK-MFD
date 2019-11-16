@@ -1,6 +1,8 @@
 #pragma once
 #pragma pack(push, 1)
 
+#include <cmath>
+
 //defines for MainControls
 #define MC_SAS (1 << 0)
 #define MC_RCS (1 << 1)
@@ -55,7 +57,7 @@
 #define CONTROLLER_WHEEL 3
 
 #define AXIS_IGNORE 0 //Always uses interal KSP value, ignoring client value
-#define AXIS_OVERIDE 1 //Client always used overrides KSP value 
+#define AXIS_OVERIDE 1 //Client always used overrides KSP value
 #define AXIS_INT_NZ 2 //Client value is used if the internal KSP value is zero, otherwise interal KSP value is used (KSP interal value overrides client value)
 #define AXIS_EXT_NZ 3 //Interal KSP value is used if the client value is zero, otherwise client value is sent (Client value overrides KSP internal value)
 
@@ -95,11 +97,11 @@ struct ControlPacket
 	uint32_t ID;
 	uint8_t MainControls;                   //SAS RCS Lights Gear Brakes Abort Stage
 	uint16_t ActionGroups;                //action groups 1-10 in 2 bytes
-	   // Throttle and axis controls have the following settings: 
+	   // Throttle and axis controls have the following settings:
 	   // 0: The internal value (supplied by KSP) is always used.
 	   // 1: The external value (read from serial packet) is always used.
 	   // 2: If the internal value is not zero use it, otherwise use the external value.
-	   // 3: If the external value is not zero use it, otherwise use the internal value.  
+	   // 3: If the external value is not zero use it, otherwise use the internal value.
 	uint8_t ControlerMode;                //DDCCBBAA (2 bits each)
 	float SASTol;
 	int16_t Pitch;                        //-1000 -> 1000 //A
@@ -107,7 +109,7 @@ struct ControlPacket
 	int16_t Yaw;                          //-1000 -> 1000
 	int16_t TX;                           //-1000 -> 1000 //B
 	int16_t TY;                           //-1000 -> 1000
-	int16_t TZ;                           //-1000 -> 1000 
+	int16_t TZ;                           //-1000 -> 1000
 	int16_t Throttle;                     // 0 -> 1000    //C
 	int16_t WheelSteer;                   //-1000 -> 1000 //D
 	int16_t WheelThrottle;                // 0 -> 1000
@@ -176,7 +178,7 @@ struct ControlPacket
 };
 
 struct StatusPacket {
-	//Header h; //Implied 
+	//Header h; //Implied
 	int32_t ID;
 	int8_t inFlight;
 	int8_t YarkVersion;
@@ -222,7 +224,7 @@ struct ManData {
 };
 
 struct VesselPacket {
-	//Header h; //Implied 
+	//Header h; //Implied
 	int ID;
 
 	float deltaTime;

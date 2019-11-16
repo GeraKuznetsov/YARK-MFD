@@ -1,5 +1,5 @@
 #include "Dock.h"
-#include <gtc\matrix_transform.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 Dock::Dock(WidgetStuff ws) : NavBall(ws) {
 
@@ -12,7 +12,7 @@ void Dock::Tick(Draw* draw) {
 
 	VesselPacket VP = client->Vessel;
 
-	float rad = (min(size.x, size.y) - 50) / 2;
+	float rad = (std::min(size.x, size.y) - 50) / 2;
 
 	//render the ball
 	glm::mat4 modelMat = glm::mat4(1);
@@ -37,14 +37,14 @@ void Dock::Tick(Draw* draw) {
 		char buff[32];
 
 		renderNavHeading(VP.Target, &VP, draw, &modelMat, TL->SASModeTex(SAS_TARGET));
-		renderNavHeading(NavHeading(-VP.Target.Pitch, VP.Target.Heading + 180), &VP, draw, &modelMat, TL->SASModeTex(SAS_ANTITARGET)); 
+		renderNavHeading(NavHeading(-VP.Target.Pitch, VP.Target.Heading + 180), &VP, draw, &modelMat, TL->SASModeTex(SAS_ANTITARGET));
 		renderNavHeading(NavHeading(-VP.TargetRotation.Pitch, VP.TargetRotation.Heading + 180), &VP, draw, &modelMat, TL->SASModeTex(SAS_PROGRADE));
 		draw->BindTextShader();
 		draw->SetTextColor(1, 1, 1);
 		draw->DrawString(f, "Target: " + client->OrbitPlan.TargetName, pos.x + 5, pos.y + 15);
-		sprintf_s(buff, "Rel. V: %.1f m/s", client->Vessel.TargetV);
+		sprintf(buff, "Rel. V: %.1f m/s", client->Vessel.TargetV);
 		draw->DrawString(f, buff, pos.x + 5, pos.y + 30);
-		sprintf_s(buff, "Dist.: %.1f m", client->Vessel.TargetDist);
+		sprintf(buff, "Dist.: %.1f m", client->Vessel.TargetDist);
 		draw->DrawString(f, buff, pos.x + 5, pos.y + 45);
 	}
 	else {

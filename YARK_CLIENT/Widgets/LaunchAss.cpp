@@ -1,5 +1,5 @@
 #include "LaunchAss.h"
-#include "Util\IM.h"
+#include "Util/IM.h"
 #include "../Reg.h"
 LaunchAss::LaunchAss(WidgetStuff ws) : Widget(ws) {
 
@@ -48,7 +48,7 @@ void LaunchAss::Tick(Draw* draw) {
 		CP->targetRoll = VP.Roll;
 		float throttle = 100;
 		if (VP.Vsurf > 200.f) {
-			throttle -= (VP.Vsurf - 200); //lets not go too fast 
+			throttle -= (VP.Vsurf - 200); //lets not go too fast
 		}
 		if (throttle < 5) {
 			throttle = 5;

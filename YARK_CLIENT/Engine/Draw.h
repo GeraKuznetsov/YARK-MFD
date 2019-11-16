@@ -1,8 +1,8 @@
 #pragma once
 #define GLEW_STATIC
-#include <glew.h>
+#include <GL/glew.h>
 #include "Font.h"
-#include <glm.hpp>
+#include <glm/glm.hpp>
 #include "Texture.h"
 #include "Draw2DShader.h"
 #include "TextShader.h"
@@ -16,7 +16,7 @@ private:
 	int currentOrthroMatID = 0, currentViewMatID = 0, currentProjMatID = 0;
 	glm::mat4 orthroMat;
 	glm::mat4 view;
-	glm::mat4 proj; //should ideally be with orthromat due to screen size change 
+	glm::mat4 proj; //should ideally be with orthromat due to screen size change
 
 	GLuint Dyn2DDrawVBOID = 0, Dyn2DDrawVAOID = 0;
 	GLuint Dyn3DDrawVBOID = 0, Dyn3DDrawVAOID = 0;

@@ -1,7 +1,7 @@
 #pragma once
 #include "../Engine/Window.h"
 #include "../Client/Client.h"
-#include "Util\TextureLoader.h"
+#include "Util/TextureLoader.h"
 
 struct WidgetStuff {
 	XY pos; XY size; std::string title; Font* f; Window* win; Client* client; TextureLoader *TL;  std::string startUpName;

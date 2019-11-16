@@ -62,7 +62,7 @@ void AirPlaneAutoPilot::Tick(Draw* draw) {
 			float pitchTarg;
 
 			if (abs(deltaAlt) < 200) {
-				Registry["SASS_PITCH"] = max(sqrt(abs(deltaAlt / 200))  * maxAngle, 0.1f) * SIGN(deltaAlt);
+				Registry["SASS_PITCH"] = std::max(sqrt(abs(deltaAlt / 200))  * maxAngle, 0.1f) * SIGN(deltaAlt);
 			}
 			//else if (abs(deltaAlt) < 200) {
 			//	SASS.Pitch = (deltaAlt - 100) / 200 * maxAngle;
@@ -82,7 +82,7 @@ void AirPlaneAutoPilot::Tick(Draw* draw) {
 			double dTime = thisTime - lastTime; //Calulate change in time between packets
 			lastTime = thisTime;
 
-			double dSpeedPerSecond = dSpeed / dTime; //change in speed per second 
+			double dSpeedPerSecond = dSpeed / dTime; //change in speed per second
 
 			double speedError = speed - thisSpead; //how much we need to change our speed
 

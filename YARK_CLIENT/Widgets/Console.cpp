@@ -2,7 +2,7 @@
 #include "NavBall.h"
 #include "AirMap.h"
 #include "AtitudeIndicator.h"
-#include "SoyuzNavball.h"
+#include "SoyuzNavBall.h"
 #include "Settings.h"
 #include "VInfo.h"
 #include "LaunchAss.h"

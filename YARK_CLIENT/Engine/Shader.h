@@ -1,7 +1,7 @@
 #pragma once
 #define GLEW_STATIC
-#include <glew.h>
-#include <glm.hpp>
+#include <GL/glew.h>
+#include <glm/glm.hpp>
 
 GLuint LoadRawShader(const GLchar* vertexPath, const GLchar* fragmentPath);
 

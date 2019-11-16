@@ -1,5 +1,5 @@
 #include "Draw3DShader.h"
-#include <gtc/type_ptr.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 Draw3DShader::Draw3DShader(GLuint shader) {
 	shaderID = shader;

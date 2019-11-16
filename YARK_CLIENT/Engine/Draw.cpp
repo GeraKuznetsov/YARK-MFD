@@ -1,9 +1,9 @@
 #include <iostream>
 #include "Draw.h"
-#include <gtc/type_ptr.hpp>
-#include <gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
-#include <gtx/string_cast.hpp>
+#include <glm/gtx/string_cast.hpp>
 
 void BindTexure(int slot, GLuint id) {
 	glActiveTexture(GL_TEXTURE0 + slot);

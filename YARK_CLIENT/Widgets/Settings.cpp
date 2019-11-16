@@ -1,5 +1,5 @@
 #include "Settings.h"
-#include "Util\IM.h"
+#include "Util/IM.h"
 #include "../Reg.h"
 
 Settings::Settings(WidgetStuff ws) : Widget(ws) {}
