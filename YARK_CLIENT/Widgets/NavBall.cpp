@@ -2,6 +2,13 @@
 #include <iostream>
 #include "../Reg.h"
 
+#undef min
+#undef max
+
+#if _WIN32
+#define sprintf sprintf_s
+#endif
+
 SphereDraw *NavBall::SD;
 
 SphereDraw::SphereDraw() {
@@ -117,7 +124,7 @@ void NavBall::Tick(Draw* draw) {
 
 	VesselPacket VP = client->Vessel;
 
-	float rad = (std::min(size.x, size.y) - 130) / 2;
+	float rad = (glm::min(size.x, size.y) - 130) / 2;
 
 	//render the ball
 	glm::mat4 modelMat = glm::mat4(1);

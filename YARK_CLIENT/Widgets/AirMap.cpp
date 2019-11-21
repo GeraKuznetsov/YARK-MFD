@@ -2,6 +2,9 @@
 
 #define CROSS_WIDTH 1
 
+#undef min
+#undef max
+
 AirMap::AirMap(WidgetStuff ws) :Widget(ws) {
 	glEnable(GL_LINE_SMOOTH);
 	glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
@@ -40,10 +43,10 @@ void AirMap::drawTarget(Target* t, Draw* draw, VesselPacket* VP, float zoom) {
 	y1 = -start.y + pos.y + size.y / 2;
 	x2 = stop.x + pos.x + size.x / 2;
 	y2 = -stop.y + pos.y + size.y / 2;
-	mx1 = std::min(x1, x2) - 5;
-	mx2 = std::max(x1, x2) + 5;
-	my1 = std::min(y1, y2) - 5;
-	my2 = std::max(y1, y2) + 5;
+	mx1 = glm::min(x1, x2) - 5;
+	mx2 = glm::max(x1, x2) + 5;
+	my1 = glm::min(y1, y2) - 5;
+	my2 = glm::max(y1, y2) + 5;
 	if (mouseInWindow && win->MouseX() > mx1 && win->MouseY() > my1 && win->MouseX() < mx2  && win->MouseY() < my2) {
 		draw->SetDrawColor2D(1, 0, 0);
 		if (win->MouseClicked(SDL_BUTTON_LEFT)) {
@@ -111,7 +114,7 @@ void AirMap::Tick(Draw* draw) {
 	if (target) {
 		start = glm::rotate(target->start.coord - longLat, glm::radians(VP.Heading));
 		stop = glm::rotate(target->stop.coord - longLat, glm::radians(VP.Heading));
-		float dist = std::max(glm::length(start), glm::length(stop));
+		float dist = glm::max(glm::length(start), glm::length(stop));
 		if (longLatFixed) { zoom = (size.x / 2 - 20) / dist; }
 	}
 	glm::vec2 uv1, uv2, uv3, uv4, p1, p2, p3, p4; //ugly code to calulate map UVs

@@ -5,6 +5,13 @@
 #include <glm/gtx/string_cast.hpp>
 #define PI ((double)(3.14159265358979323846264338327950288))
 
+#undef min
+#undef max
+
+#if _WIN32
+#define sprintf sprintf_s
+#endif
+
 OrbitDisplay::Orbit::Orbit(int vertCount) {
 	this->vertCount = vertCount;
 	glGenBuffers(1, &VBOID);
@@ -190,7 +197,7 @@ void OrbitDisplay::Tick(Draw* draw) {
 	draw->SetDrawColor2D(0, 0, 0);
 	draw->DrawRect2D(pos.x, pos.y, pos.x + size.x, pos.y + size.y);
 
-	float rad = (std::min(size.x, size.y) - 100) / 2;
+	float rad = (glm::min(size.x, size.y) - 100) / 2;
 	Planet p = planets[SOI];
 
 	if (mouseInWindow && win->MouseDown(3)) {

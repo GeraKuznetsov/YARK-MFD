@@ -115,7 +115,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\CPP_LIB\freetype\include;C:\CPP_LIB\glew-2.0.0\include\GL;C:\CPP_LIB\SDL2\include;C:\CPP_LIB\glm\;C:\CPP_LIB\lodepng\;C:\CPP_LIB\Dirent\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\CPP_LIB\freetype\include;C:\CPP_LIB\glew-2.0.0\include\;C:\CPP_LIB\SDL2\include;C:\CPP_LIB\;C:\CPP_LIB\lodepng\;C:\CPP_LIB\Dirent\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>

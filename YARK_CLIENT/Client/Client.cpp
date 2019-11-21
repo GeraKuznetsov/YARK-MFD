@@ -51,7 +51,7 @@ void Client::SendManChange(uint8_t mode, uint8_t ID, float UT, glm::vec3 vector)
 void Client::Send(char *buff, int length) {
 	int	iResult = send(ConnectSocket, buff, length, 0);
 	if (iResult == -1) {
-#ifdef __WIN32
+#ifdef _WIN32
 		int errorN = WSAGetLastError();
 		if (errorN != WSAEWOULDBLOCK) {
 			sprintf(error, "error sending: %d", errorN);
@@ -78,7 +78,7 @@ bool Client::ReadBytes(char *buffer, uint16_t *checkSum, int bytesToRead) {
 			return false;
 		}
 		else {
-#ifdef __WIN32
+#ifdef _WIN32
 			int errorN = WSAGetLastError();
 			if (errorN != WSAEWOULDBLOCK) {
 				sprintf(error, "Recv failed: %d", errorN);
@@ -105,7 +105,7 @@ void Client::errBadPacket() {
 
 void Client::Run(std::string IP, std::string PORT) {
 	int iResult;
-#ifdef __WIN32
+#ifdef _WIN32
 #pragma region winsock stuff
 	WSADATA wsaData;
 
@@ -130,7 +130,7 @@ void Client::Run(std::string IP, std::string PORT) {
 	if (iResult != 0) {
 		sprintf(error, "getaddrinfo failed: %d", iResult);
 		state = TCP_FAILED;
-#ifdef __WIN32
+#ifdef _WIN32
 		WSACleanup();
 #endif
 		return;
@@ -138,7 +138,7 @@ void Client::Run(std::string IP, std::string PORT) {
 
 	for (ptr = result; ptr != NULL; ptr = ptr->ai_next) {
 		ConnectSocket = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
-#ifdef __WIN32
+#ifdef _WIN32
 		if (ConnectSocket == INVALID_SOCKET) {
 			state = TCP_FAILED;
 			sprintf(error, "INVALID_SOCKET: %ld\n", WSAGetLastError());
@@ -155,7 +155,7 @@ void Client::Run(std::string IP, std::string PORT) {
 
 		iResult = connect(ConnectSocket, ptr->ai_addr, (int)ptr->ai_addrlen);
 		if (iResult == -1) {
-#ifdef __WIN32
+#ifdef _WIN32
 			sprintf(error, "SOCKET_ERROR: %ld\n", WSAGetLastError());
 			closesocket(ConnectSocket);
 #else
@@ -173,7 +173,7 @@ void Client::Run(std::string IP, std::string PORT) {
 	if (ConnectSocket == -1) {
 		sprintf(error, "Unable to connect to server!");
 		state = TCP_FAILED;
-#ifdef __WIN32
+#ifdef _WIN32
 		WSACleanup();
 #endif
 		return;
@@ -191,7 +191,7 @@ void Client::Run(std::string IP, std::string PORT) {
 	}*/
 
 	state = TCP_CONNECTED;
-#ifdef __WIN32
+#ifdef _WIN32
 	#pragma endregion
 #endif
 	Running = true;
@@ -328,7 +328,7 @@ void Client::WaitForConnection() {
 void Client::Shutdown() {
 	state = TCP_FAILED;
 	Running = false;
-#ifdef __WIN32
+#ifdef _WIN32
 	if (shutdown(ConnectSocket, SD_SEND) == SOCKET_ERROR) {
 		sprintf(error, "shutdown failed with error: %d\n", WSAGetLastError());
 		closesocket(ConnectSocket);

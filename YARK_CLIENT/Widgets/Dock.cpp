@@ -1,6 +1,13 @@
 #include "Dock.h"
 #include <glm/gtc/matrix_transform.hpp>
 
+#undef min
+#undef max
+
+#if _WIN32
+#define sprintf sprintf_s
+#endif
+
 Dock::Dock(WidgetStuff ws) : NavBall(ws) {
 
 }
@@ -12,7 +19,7 @@ void Dock::Tick(Draw* draw) {
 
 	VesselPacket VP = client->Vessel;
 
-	float rad = (std::min(size.x, size.y) - 50) / 2;
+	float rad = (glm::min(size.x, size.y) - 50) / 2;
 
 	//render the ball
 	glm::mat4 modelMat = glm::mat4(1);

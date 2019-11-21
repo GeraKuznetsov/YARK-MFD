@@ -1,6 +1,6 @@
 #pragma once
 
-#if __WIN32
+#if _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -36,7 +36,7 @@ class Client {
 		float X, Y, Z;
 	} ManChangePacket;
 
-#ifdef __WIN32
+#ifdef _WIN32
 	SOCKET ConnectSocket;
 #else
 	int ConnectSocket;

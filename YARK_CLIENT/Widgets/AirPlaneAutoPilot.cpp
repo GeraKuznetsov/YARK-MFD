@@ -2,6 +2,9 @@
 #include "Util/IM.h"
 #include "../Reg.h"
 
+#undef min
+#undef max
+
 AirPlaneAutoPilot::AirPlaneAutoPilot(WidgetStuff ws) : Control(ws) {
 	RegInt("AP_MAX_AOA", 10);
 	RegInt("AP_SPEED", 1000);
@@ -62,7 +65,7 @@ void AirPlaneAutoPilot::Tick(Draw* draw) {
 			float pitchTarg;
 
 			if (abs(deltaAlt) < 200) {
-				Registry["SASS_PITCH"] = std::max(sqrt(abs(deltaAlt / 200))  * maxAngle, 0.1f) * SIGN(deltaAlt);
+				Registry["SASS_PITCH"] = glm::max(sqrt(abs(deltaAlt / 200))  * maxAngle, 0.1f) * SIGN(deltaAlt);
 			}
 			//else if (abs(deltaAlt) < 200) {
 			//	SASS.Pitch = (deltaAlt - 100) / 200 * maxAngle;

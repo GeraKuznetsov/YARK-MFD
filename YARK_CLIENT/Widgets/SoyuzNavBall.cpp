@@ -1,6 +1,9 @@
 #include "SoyuzNavBall.h"
 #include "glm/gtc/matrix_transform.hpp"
 
+#undef min
+#undef max
+
 SoyuzNavBall::SoyuzNavBall(WidgetStuff ws) :NavBall(ws) {
 
 }
@@ -21,7 +24,7 @@ void SoyuzNavBall::Tick(Draw* draw) {
 	WindowUpdate(draw);
 
 
-	float rad = std::min(size.x, size.y) / 2;
+	float rad = glm::min(size.x, size.y) / 2;
 
 	glm::mat4 modelMat = glm::mat4(1);
 	modelMat = glm::translate(modelMat, glm::vec3(pos.x + size.x / 2, pos.y + size.y / 2, 1));

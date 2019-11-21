@@ -7,7 +7,7 @@ cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
 ############################################################
 
 # Project
-get_filename_component(PROJECT_DIR "${CMAKE_CURRENT_SOURCE_DIR}" ABSOLUTE)
+get_filename_component(PROJECT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/YARK_CLIENT" ABSOLUTE)
 set(DEPENDENCIES_DIR ${PROJECT_DIR}/dependencies)
 set(PROJECT_NAME YARK-MFD)
 
@@ -168,5 +168,5 @@ find_package(GLEW REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(SDL2 REQUIRED)
 find_package(Freetype REQUIRED)
-include_directories(${GLEW_INCLUDE_DIR} ${OPENGL_INCLUDE_DIR} ${SDL2_INCLUDE_DIR} ${FREETYPE_INCLUDE_DIRS})
+include_directories(${GLEW_INCLUDE_DIR} ${OPENGL_INCLUDE_DIR} ${SDL2_INCLUDE_DIRS} ${FREETYPE_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} ${GLEW_LIBRARIES} ${OPENGL_LIBRARIES} ${SDL2_LIBRARIES} ${FREETYPE_LIBRARIES})
