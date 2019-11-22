@@ -7,7 +7,7 @@ cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
 ############################################################
 
 # Project
-get_filename_component(PROJECT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/YARK_CLIENT" ABSOLUTE)
+get_filename_component(PROJECT_DIR "${CMAKE_CURRENT_SOURCE_DIR}" ABSOLUTE)
 set(DEPENDENCIES_DIR ${PROJECT_DIR}/dependencies)
 set(PROJECT_NAME YARK-MFD)
 
