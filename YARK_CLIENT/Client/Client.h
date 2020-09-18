@@ -1,9 +1,13 @@
 #pragma once
 
+#if _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <windows.h>
+#else
+#include <sys/socket.h>
+#endif
 #include <string>
 #include <thread>
 #include "Structs.h"
@@ -12,7 +16,7 @@
 #define TCP_FAILED 2
 #define TCP_CONNECTED 3
 #include <vector>
-#include <vec3.hpp>
+#include <glm/vec3.hpp>
 
 struct OrbitPlan {
 	std::vector<OrbitData> CurrentOrbitPatches;
@@ -33,7 +37,11 @@ class Client {
 		float X, Y, Z;
 	} ManChangePacket;
 
+#ifdef _WIN32
 	SOCKET ConnectSocket;
+#else
+	int ConnectSocket;
+#endif
 	void Run(std::string IP, std::string PORT);
 	bool ReadBytes(char *buffer, uint16_t* checkSum, int bytesToRead);
 	void errBadPacket();
@@ -47,7 +55,7 @@ public:
 	StatusPacket Status;
 	VesselPacket Vessel;
 	ControlPacket Control;
-	OrbitPlan OrbitPlan;
+	OrbitPlan orbitPlan;
 
 	//Event callbacks
 	void(*SPCallback)();

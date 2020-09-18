@@ -8,11 +8,21 @@
 #include <stdio.h>
 #include <iostream>
 #include <thread>
+#include <cstring>
 
+#ifdef _WIN32
 // Need to link with Ws2_32.lib, Mswsock.lib, and Advapi32.lib
 #pragma comment (lib, "Ws2_32.lib")
 #pragma comment (lib, "Mswsock.lib")
 #pragma comment (lib, "AdvApi32.lib")
+#else
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <unistd.h>
+#endif
 #include "Client.h"
 
 uint16_t checksum(uint8_t *buffer, int length) {
@@ -41,12 +51,18 @@ void Client::SendManChange(uint8_t mode, uint8_t ID, float UT, glm::vec3 vector)
 
 void Client::Send(char *buff, int length) {
 	int	iResult = send(ConnectSocket, buff, length, 0);
-	if (iResult == SOCKET_ERROR) {
+	if (iResult == -1) {
+#ifdef _WIN32
 		int errorN = WSAGetLastError();
 		if (errorN != WSAEWOULDBLOCK) {
 			sprintf(error, "error sending: %d", errorN);
 			WSACleanup();
 		}
+#else
+		if (errno != EWOULDBLOCK) {
+			sprintf(error, "error sending: %d", errno);
+		}
+#endif
 	}
 }
 
@@ -63,12 +79,17 @@ bool Client::ReadBytes(char *buffer, uint16_t *checkSum, int bytesToRead) {
 			return false;
 		}
 		else {
+#ifdef _WIN32
 			int errorN = WSAGetLastError();
 			if (errorN != WSAEWOULDBLOCK) {
-				state = TCP_FAILED;
-				sprintf(error, "Recv Failed: %d", errorN);
-				return false;
+				sprintf(error, "Recv failed: %d", errorN);
+				WSACleanup();
 			}
+#else
+			if (errno != EWOULDBLOCK) {
+				sprintf(error, "Recv failed: %d", errno);
+			}
+#endif
 		}
 	}
 	if (checkSum) {
@@ -84,14 +105,12 @@ void Client::errBadPacket() {
 }
 
 void Client::Run(std::string IP, std::string PORT) {
-#pragma region winsock stuff
 	state = TCP_CONNECTING;
-	WSADATA wsaData;
-	struct addrinfo *result = NULL,
-		*ptr = NULL,
-		hints;
-
 	int iResult;
+#ifdef _WIN32
+#pragma region winsock stuff
+	WSADATA wsaData;
+
 	iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
 	if (iResult != 0) {
 		sprintf(error, "WSAStartup failed");
@@ -99,7 +118,12 @@ void Client::Run(std::string IP, std::string PORT) {
 		state = TCP_FAILED;
 		return;
 	}
-	ZeroMemory(&hints, sizeof(hints));
+#endif
+	struct addrinfo *result = NULL,
+		*ptr = NULL,
+		hints;
+
+	//ZeroMemory(&hints, sizeof(hints));
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = IPPROTO_TCP;
@@ -108,24 +132,39 @@ void Client::Run(std::string IP, std::string PORT) {
 	if (iResult != 0) {
 		sprintf(error, "getaddrinfo failed: %d", iResult);
 		state = TCP_FAILED;
+#ifdef _WIN32
 		WSACleanup();
+#endif
 		return;
 	}
 
 	for (ptr = result; ptr != NULL; ptr = ptr->ai_next) {
 		ConnectSocket = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
+#ifdef _WIN32
 		if (ConnectSocket == INVALID_SOCKET) {
 			state = TCP_FAILED;
 			sprintf(error, "INVALID_SOCKET: %ld\n", WSAGetLastError());
 			WSACleanup();
 			return;
 		}
+#else
+		if (ConnectSocket == -1) {
+			state = TCP_FAILED;
+			sprintf(error, "INVALID_SOCKET: %ld\n", errno);
+			return;
+		}
+#endif
 
 		iResult = connect(ConnectSocket, ptr->ai_addr, (int)ptr->ai_addrlen);
-		if (iResult == SOCKET_ERROR) {
+		if (iResult == -1) {
+#ifdef _WIN32
 			sprintf(error, "SOCKET_ERROR: %ld\n", WSAGetLastError());
 			closesocket(ConnectSocket);
-			ConnectSocket = INVALID_SOCKET;
+#else
+			sprintf(error, "SOCKET_ERROR: %ld\n", errno);
+			close(ConnectSocket);
+#endif
+			ConnectSocket = -1;
 			continue;
 		}
 		break;
@@ -133,27 +172,17 @@ void Client::Run(std::string IP, std::string PORT) {
 
 	freeaddrinfo(result);
 
-	if (ConnectSocket == INVALID_SOCKET) {
+	if (ConnectSocket == -1) {
 		sprintf(error, "Unable to connect to server!");
 		state = TCP_FAILED;
+#ifdef _WIN32
 		WSACleanup();
+#endif
 		return;
 	}
-
-	/*
-	u_long mode = 1;
-	iResult = ioctlsocket(ConnectSocket, FIONBIO, &mode);
-	if (iResult != NO_ERROR) {
-		error = "oof";
-		state = TCPCLIENT_FAILED;
-		printf("ioctlsocket failed with error: %ld\n", iResult);
-		WSACleanup();
-		return;
-	}*/
-
+	
 	state = TCP_CONNECTED;
-
-#pragma endregion
+	
 	Running = true;
 	StatusPacket sP;
 	VesselPacket vP;
@@ -202,34 +231,34 @@ void Client::Run(std::string IP, std::string PORT) {
 						int offset = 0;
 
 						int numOrbits = data[offset]; offset++; //CurrentOrbitPatches
-						OrbitPlan.CurrentOrbitPatches.resize(numOrbits);
+						orbitPlan.CurrentOrbitPatches.resize(numOrbits);
 						for (int i = 0; i < numOrbits; i++) {
-							memcpy(&OrbitPlan.CurrentOrbitPatches[i], data + offset, sizeof(OrbitData));
+							memcpy(&orbitPlan.CurrentOrbitPatches[i], data + offset, sizeof(OrbitData));
 							offset += sizeof(OrbitData);
 						}
 
-						OrbitPlan.ManPatchNum = data[offset]; offset++;
+						orbitPlan.ManPatchNum = data[offset]; offset++;
 
 						int numOrbitsPlanned = data[offset]; offset++; //PlannedOrbitPatches
-						OrbitPlan.PlannedOrbitPatches.resize(numOrbitsPlanned);
+						orbitPlan.PlannedOrbitPatches.resize(numOrbitsPlanned);
 						for (int i = 0; i < numOrbitsPlanned; i++) {
-							memcpy(&OrbitPlan.PlannedOrbitPatches[i], data + offset, sizeof(OrbitData));
+							memcpy(&orbitPlan.PlannedOrbitPatches[i], data + offset, sizeof(OrbitData));
 							offset += sizeof(OrbitData);
 						}
-						memcpy(&OrbitPlan.TargetOrbit, data + offset, sizeof(OrbitData)); //targetorbit
+						memcpy(&orbitPlan.TargetOrbit, data + offset, sizeof(OrbitData)); //targetorbit
 						offset += sizeof(OrbitData);
 
 						//targetname
-						OrbitPlan.TargetName = std::string(data + offset + 1);
+						orbitPlan.TargetName = std::string(data + offset + 1);
 						offset += data[offset] + 2;
 
-						memcpy(&OrbitPlan.CAD, data + offset, sizeof(OrbitPlan.CAD));
-						offset += sizeof(OrbitPlan.CAD);
+						memcpy(&orbitPlan.CAD, data + offset, sizeof(orbitPlan.CAD));
+						offset += sizeof(orbitPlan.CAD);
 
 						int numMans = data[offset]; offset++;
-						OrbitPlan.Mans.resize(numMans);
+						orbitPlan.Mans.resize(numMans);
 						for (int i = 0; i < numMans; i++) {
-							memcpy(&OrbitPlan.Mans[i], data + offset, sizeof(ManData));
+							memcpy(&orbitPlan.Mans[i], data + offset, sizeof(ManData));
 							offset += sizeof(ManData);
 						}
 					}
@@ -288,11 +317,18 @@ void Client::WaitForConnection() {
 void Client::Shutdown() {
 	state = TCP_FAILED;
 	Running = false;
+#ifdef _WIN32
 	if (shutdown(ConnectSocket, SD_SEND) == SOCKET_ERROR) {
 		sprintf(error, "shutdown failed with error: %d\n", WSAGetLastError());
 		closesocket(ConnectSocket);
 		WSACleanup();
 	}
+#else
+	if (shutdown(ConnectSocket, SHUT_WR) == -1) {
+		sprintf(error, "shutdown failed with error: %d\n", errno);
+		close(ConnectSocket);
+	}
+#endif
 }
 
 

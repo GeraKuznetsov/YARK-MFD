@@ -3,13 +3,8 @@
 std::string IP = "127.0.0.1";
 std::string PORT = "9999";
 
-TextBox tb = TextBox{
-&IP
-};
-
-TextBox tb2 = TextBox{
-&PORT
-};
+TextBox tb = TextBox(&IP);
+TextBox tb2 = TextBox(&PORT);
 
 Widget::Widget() {
 
@@ -36,7 +31,9 @@ void RadioOpt(XY pos, std::string option, std::string key) {
 #define TEXT_OFFSET 35
 #include "../Arduino/Serial.h"
 extern bool ConnectedWithHand();
+#if ENABLE_ARDUINO
 extern SerialPort* sp;
+#endif
 
 void Widget::Draw(XY pos, XY size) {
 	draw->SwitchShader(SHADER_TEXT);

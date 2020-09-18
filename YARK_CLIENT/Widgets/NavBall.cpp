@@ -1,6 +1,11 @@
 #include "NavBall.h"
 #include <iostream>
 #include "../Reg.h"
+
+#if not _WIN32
+#define sprintf_s sprintf
+#endif
+
 SphereDraw *NavBall::SD;
 
 SphereDraw::SphereDraw() {
@@ -45,8 +50,8 @@ NavBall::NavBall() {
 }
 
 #define GLM_ENABLE_EXPERIMENTAL
-#include "gtc\matrix_transform.hpp"
-#include "gtx/rotate_vector.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtx/rotate_vector.hpp"
 
 std::string NavBall::GetTitle() {
 	return "NavBall";
@@ -116,7 +121,7 @@ void NavBall::Draw(XY pos, XY size) {
 
 	VesselPacket VP = client.Vessel;
 
-	float rad = (min(size.x, size.y) - 130) / 2;
+	float rad = (glm::min(size.x, size.y) - 130) / 2;
 
 	//render the ball
 	glm::mat4 modelMat = glm::mat4(1);

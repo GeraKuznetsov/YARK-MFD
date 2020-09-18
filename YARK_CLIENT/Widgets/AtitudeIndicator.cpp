@@ -10,7 +10,7 @@ AtitudeIndicator::AtitudeIndicator() {
 }
 
 //#define GLM_ENABLE_EXPERIMENTAL
-#include "gtc\matrix_transform.hpp"
+#include "glm/gtc/matrix_transform.hpp"
 
 #define XSPACE 35
 #define YSPACE 8

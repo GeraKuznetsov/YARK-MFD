@@ -18,8 +18,8 @@ int JoyStickCurve(int in, int deadZone) {
 }
 
 #define GLM_ENABLE_EXPERIMENTAL
-#include "gtc\matrix_transform.hpp"
-#include "gtx/rotate_vector.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtx/rotate_vector.hpp"
 
 glm::vec4 toVec(VesselPacket VP, float pitch, float heading) {
 	float tempHeading = glm::radians(heading);

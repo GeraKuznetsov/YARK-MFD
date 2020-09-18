@@ -1,2 +1,3 @@
 #pragma once
-#define ENABLE_ARDUINO 1
+//no linux support
+#define ENABLE_ARDUINO 0

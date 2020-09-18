@@ -10,9 +10,9 @@
 #include <fstream>
 #include <thread>
 
-#include "Client\Client.h"
-#include "Engine\Window.h"
-#include "Engine\Sound.h"
+#include "Client/Client.h"
+#include "Engine/Window.h"
+#include "Engine/Sound.h"
 #include "Widgets/Container.h"
 #include "Widgets/Util/IM.h"
 #include "Widgets/Util/TextureLoader.h"
@@ -115,17 +115,17 @@ void Tick(float delta) {
 	SDL_SetWindowTitle(win->gWindow, std::to_string(win->FPS).c_str());
 }
 
-void main() {
+int main() {
 	int error = 0;
 	XY size = XY{ DEFUALT_WIDTH,DEFUALT_HEIGHT };
 
 	win = new Window(size, 0, &error);
 	if (error) {
 		std::cout << "error opening SDL window\n";
-		return;
+		return 1;
 	}
 	win->onExit = &OnExit;
-	f = new Font(16, 16, "C:\\Windows\\Fonts\\arial.ttf");
+	f = new Font(16, 16, "arial.ttf");
 	client = Client();
 	glEnable(GL_LINE_SMOOTH);
 	glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
@@ -143,5 +143,6 @@ void main() {
 #endif
 	//console->command("config config.txt");
 	win->Run(&Tick);
+	return 0;
 }
 

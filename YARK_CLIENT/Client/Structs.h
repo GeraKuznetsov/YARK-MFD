@@ -1,4 +1,7 @@
 #pragma once
+
+#include <cmath>
+
 #pragma pack(push, 1)
 
 //defines for MainControls

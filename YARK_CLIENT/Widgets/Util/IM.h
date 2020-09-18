@@ -6,6 +6,9 @@ struct TextBox {
 	std::string* text;
 	bool type = 0;
 	int pos = 0;
+	TextBox(std::string* t){
+		text = t;
+	}
 };
 
 namespace IM {

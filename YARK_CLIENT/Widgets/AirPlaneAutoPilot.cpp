@@ -64,7 +64,7 @@ void AirPlaneAutoPilot::Draw(XY pos, XY size) {
 
 			float pitchTarg;
 			if (abs(deltaAlt) < 200) {
-				Registry["SASS_PITCH"] = max(sqrt(abs(deltaAlt / 200)) * maxAngle, 0.1f) * SIGN(deltaAlt);
+				Registry["SASS_PITCH"] = glm::max(sqrt(abs(deltaAlt / 200)) * maxAngle, 0.1f) * SIGN(deltaAlt);
 			}
 			else {
 				Registry["SASS_PITCH"] = maxAngle * SIGN(deltaAlt);
@@ -91,7 +91,7 @@ void AirPlaneAutoPilot::Draw(XY pos, XY size) {
 
 			float p = speed - thisSpead;
 			float d = dSpeedPerSecond * (-0.5);
-			float thr = min(max(p + d, 0), 1);
+			float thr = glm::min(glm::max(p + d, 0.f), 1.f);
 
 			printf("%f \n", thr);
 			THROTTLE = 1000.f * thr;

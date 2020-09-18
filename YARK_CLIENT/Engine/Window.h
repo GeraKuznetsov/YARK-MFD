@@ -1,10 +1,10 @@
 #pragma once
-#include "glm.hpp"
+#include <glm/glm.hpp>
 #define GLEW_STATIC
-#include <glew.h>
+#include <GL/glew.h>
 #define SDL_MAIN_HANDLED 
-#include <SDL.h>
-#include <SDL_opengl.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_opengl.h>
 #include "Texture.h"
 #include "Font.h"
 #include "Draw.h"

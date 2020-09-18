@@ -1,5 +1,5 @@
 #include "Serial.h"
-
+#if ENABLE_ARDUINO 
 SerialPort::SerialPort(char* portName)
 {
 	connected = false;
@@ -94,3 +94,4 @@ bool SerialPort::isConnected()
 {
 	return connected;
 }
+#endif

@@ -1,5 +1,5 @@
-#include "SoyuzNavball.h"
-#include "gtc\matrix_transform.hpp"
+#include "SoyuzNavBall.h"
+#include "glm/gtc/matrix_transform.hpp"
 
 SoyuzNavBall::SoyuzNavBall() {
 
@@ -22,7 +22,7 @@ void SoyuzNavBall::Draw(XY pos, XY size) {
 		textureID = TL.getPlanetTexture(lastSOI = VP.CurrentOrbit.SOINumber);
 	}
 
-	float rad = min(size.x, size.y) / 2;
+	float rad = glm::min(size.x, size.y) / 2;
 
 	glm::mat4 modelMat = glm::mat4(1);
 	modelMat = glm::translate(modelMat, glm::vec3(pos.x + size.x / 2, pos.y + size.y / 2, 1));
