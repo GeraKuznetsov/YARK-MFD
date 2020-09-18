@@ -1,16 +1,12 @@
 ﻿#include "Orbit.h"
-#include <glm/gtc/matrix_transform.hpp>
+#include <gtc/matrix_transform.hpp>
 
 #define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/string_cast.hpp>
+#include <gtx/string_cast.hpp>
 #define PI ((double)(3.14159265358979323846264338327950288))
 
 #undef min
 #undef max
-
-#if _WIN32
-#define sprintf sprintf_s
-#endif
 
 OrbitDisplay::Orbit::Orbit(int vertCount) {
 	this->vertCount = vertCount;
@@ -47,7 +43,7 @@ void OrbitDisplay::Orbit::DrawPath(GLuint colorUnif) {
 	glBindVertexArray(0);
 }
 
-void OrbitDisplay::Orbit::DrawFlair(Draw* draw, bool drawAN) {
+void OrbitDisplay::Orbit::DrawFlair(bool drawAN) {
 	draw->SetDrawColor3D(1, 0, 1);
 	if (isFinal && drawAN) {
 		draw->DrawPoint3D(AN);
@@ -74,8 +70,8 @@ void OrbitDisplay::Orbit::DrawFlair(Draw* draw, bool drawAN) {
 	}
 }
 
-OrbitDisplay::OrbitDisplay(WidgetStuff ws) : Widget(ws) {
-	shader = LoadRawShader("Shaders/line.vert", "Shaders/line.frag");
+OrbitDisplay::OrbitDisplay() {
+	shader = LoadSHader("Shaders/line.vert", "Shaders/line.frag");
 	glUseProgram(shader);
 	viewUnif = glGetUniformLocation(shader, "view");
 	projUnif = glGetUniformLocation(shader, "proj");
@@ -190,68 +186,66 @@ void OrbitDisplay::Orbit::PropogateOrbit(OrbitData* o, std::vector<Planet> plane
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void OrbitDisplay::Tick(Draw* draw) {
-	WindowUpdate(draw);
-
-	draw->BindDraw2DShader();
+void OrbitDisplay::Draw(XY pos, XY size) {
+	draw->SwitchShader(SHADER_2D);
 	draw->SetDrawColor2D(0, 0, 0);
 	draw->DrawRect2D(pos.x, pos.y, pos.x + size.x, pos.y + size.y);
 
 	float rad = (glm::min(size.x, size.y) - 100) / 2;
 	Planet p = planets[SOI];
-
+	bool mouseInWindow = win->MouseX() > pos.x && win->MouseX() < pos.x + size.x && win->MouseY() > pos.y && win->MouseY() < pos.y + size.y;
 	if (mouseInWindow && win->MouseDown(3)) {
-		planets[SOI].view.viewAngle += glm::vec2(win->MouseDXY()) * glm::vec2(0.5);
+		planets[SOI].View.viewAngle += glm::vec2(win->MouseDXY()) * glm::vec2(0.5);
 	}
 	if (win->KeyDown(SDL_SCANCODE_W)) {
-		planets[SOI].view.viewAngle.y++;
+		planets[SOI].View.viewAngle.y++;
 	}
 	if (win->KeyDown(SDL_SCANCODE_S)) {
-		planets[SOI].view.viewAngle.y--;
+		planets[SOI].View.viewAngle.y--;
 	}
 	if (win->KeyDown(SDL_SCANCODE_A)) {
-		planets[SOI].view.viewAngle.x++;
+		planets[SOI].View.viewAngle.x++;
 	}
 	if (win->KeyDown(SDL_SCANCODE_D)) {
-		planets[SOI].view.viewAngle.x--;
+		planets[SOI].View.viewAngle.x--;
 	}
 	if (win->KeyDown(SDL_SCANCODE_E)) {
-		planets[SOI].view.zoom += planets[SOI].view.zoom / 8;
+		planets[SOI].View.zoom += planets[SOI].View.zoom / 8;
 	}
 	if (win->KeyDown(SDL_SCANCODE_Q)) {
-		planets[SOI].view.zoom -= planets[SOI].view.zoom / 8;
+		planets[SOI].View.zoom -= planets[SOI].View.zoom / 8;
 	}
-	if (planets[SOI].view.viewAngle.y > 90) {
-		planets[SOI].view.viewAngle.y = 90;
+	if (planets[SOI].View.viewAngle.y > 90) {
+		planets[SOI].View.viewAngle.y = 90;
 	}
-	else if (planets[SOI].view.viewAngle.y < -90) {
-		planets[SOI].view.viewAngle.y = -90;
+	else if (planets[SOI].View.viewAngle.y < -90) {
+		planets[SOI].View.viewAngle.y = -90;
 	}
-	if (planets[SOI].view.viewAngle.x < 0) {
-		planets[SOI].view.viewAngle.x += 360;
+	if (planets[SOI].View.viewAngle.x < 0) {
+		planets[SOI].View.viewAngle.x += 360;
 	}
-	if (planets[SOI].view.viewAngle.x > 360) {
-		planets[SOI].view.viewAngle.x -= 360;
+	if (planets[SOI].View.viewAngle.x > 360) {
+		planets[SOI].View.viewAngle.x -= 360;
 	}
 
-	bool hasTarget = client->Vessel.HasTarget;
-	planets[SOI].view.zoom += win->getMouseWheelDelta().y * planets[SOI].view.zoom / 8;
-	float scale = 1.f / p.soiDist * planets[SOI].view.zoom;
+	bool hasTarget = client.Vessel.HasTarget;
+	planets[SOI].View.zoom += win->getMouseWheelDelta().y * planets[SOI].View.zoom / 8;
+	float scale = 1.f / p.soiDist * planets[SOI].View.zoom;
 	if (p.rad * scale > rad) {
-		scale = 1.f / p.soiDist * (planets[SOI].view.zoom = rad / p.rad * p.soiDist);
+		scale = 1.f / p.soiDist * (planets[SOI].View.zoom = rad / p.rad * p.soiDist);
 	}
 
 	OrbitData* lastPatch = 0;
-	if (client->OrbitPlan.PlannedOrbitPatches.size()) {
-		lastPatch = &client->OrbitPlan.PlannedOrbitPatches[client->OrbitPlan.PlannedOrbitPatches.size() - 1];
+	if (client.OrbitPlan.PlannedOrbitPatches.size()) {
+		lastPatch = &client.OrbitPlan.PlannedOrbitPatches[client.OrbitPlan.PlannedOrbitPatches.size() - 1];
 	}
-	else {
-		if (client->OrbitPlan.CurrentOrbitPatches.size()) {
-			lastPatch = &client->OrbitPlan.CurrentOrbitPatches[client->OrbitPlan.CurrentOrbitPatches.size() - 1];
+	else { //TODO: WHAT? causing NPE when have target but no path to it
+		if (client.OrbitPlan.CurrentOrbitPatches.size()) {
+			lastPatch = &client.OrbitPlan.CurrentOrbitPatches[client.OrbitPlan.CurrentOrbitPatches.size() - 1];
 		}
 	}
 
-	OrbitData* o = &client->Vessel.CurrentOrbit;
+	OrbitData* o = &client.Vessel.CurrentOrbit;
 	OrbitRecalcFrameSkip++;
 	if ((OrbitRecalcFrameSkip % (60 / 15)) == 0 || SOI != lastSOI) {
 		if (SOI != lastSOI) {
@@ -274,30 +268,30 @@ void OrbitDisplay::Tick(Draw* draw) {
 
 		lastSOI = SOI;
 		OrbitPatchesCount = 0;
-		for (int i = 0; i < client->OrbitPlan.CurrentOrbitPatches.size(); i++) {
-			if (client->OrbitPlan.CurrentOrbitPatches[i].SOINumber == SOI) {
-				OrbitPatches[OrbitPatchesCount]->PropogateOrbit(&client->OrbitPlan.CurrentOrbitPatches[i], planets, GetCol(false, i), false);
+		for (int i = 0; i < client.OrbitPlan.CurrentOrbitPatches.size(); i++) {
+			if (client.OrbitPlan.CurrentOrbitPatches[i].SOINumber == SOI) {
+				OrbitPatches[OrbitPatchesCount]->PropogateOrbit(&client.OrbitPlan.CurrentOrbitPatches[i], planets, GetCol(false, i), false);
 				OrbitPatchesCount++;
 			}
 		}
-		for (int i = 0; i < client->OrbitPlan.PlannedOrbitPatches.size(); i++) {
-			if (client->OrbitPlan.PlannedOrbitPatches[i].SOINumber == SOI) {
-				OrbitPatches[OrbitPatchesCount]->PropogateOrbit(&client->OrbitPlan.PlannedOrbitPatches[i], planets, GetCol(true, i), false);
+		for (int i = 0; i < client.OrbitPlan.PlannedOrbitPatches.size(); i++) {
+			if (client.OrbitPlan.PlannedOrbitPatches[i].SOINumber == SOI) {
+				OrbitPatches[OrbitPatchesCount]->PropogateOrbit(&client.OrbitPlan.PlannedOrbitPatches[i], planets, GetCol(true, i), false);
 				OrbitPatchesCount++;
 			}
 		}
-		if (hasTarget && client->OrbitPlan.TargetOrbit.SOINumber == SOI) {
-			targetOrbit->PropogateOrbit(&client->OrbitPlan.TargetOrbit, planets, glm::vec3(1, 0, 1), false);
+		if (hasTarget && client.OrbitPlan.TargetOrbit.SOINumber == SOI) {
+			targetOrbit->PropogateOrbit(&client.OrbitPlan.TargetOrbit, planets, glm::vec3(1, 0, 1), false);
 
-			OrbitData *targetOrbit = &client->OrbitPlan.TargetOrbit;
-			V_AN = kep_2_cart(lastPatch->SemiLatusRectum, -client->OrbitPlan.CAD.ANAnom, lastPatch->e, glm::radians(lastPatch->inc), glm::radians(lastPatch->argOfPE), glm::radians(lastPatch->longOfAscNode));
-			T_AN = kep_2_cart(targetOrbit->SemiLatusRectum, -client->OrbitPlan.CAD.TargetANAnom, targetOrbit->e, glm::radians(targetOrbit->inc), glm::radians(targetOrbit->argOfPE), glm::radians(targetOrbit->longOfAscNode));
+			OrbitData *targetOrbit = &client.OrbitPlan.TargetOrbit;
+			V_AN = kep_2_cart(lastPatch->SemiLatusRectum, -client.OrbitPlan.CAD.ANAnom, lastPatch->e, glm::radians(lastPatch->inc), glm::radians(lastPatch->argOfPE), glm::radians(lastPatch->longOfAscNode));
+			T_AN = kep_2_cart(targetOrbit->SemiLatusRectum, -client.OrbitPlan.CAD.TargetANAnom, targetOrbit->e, glm::radians(targetOrbit->inc), glm::radians(targetOrbit->argOfPE), glm::radians(targetOrbit->longOfAscNode));
 
-			V_DN = kep_2_cart(lastPatch->SemiLatusRectum, -client->OrbitPlan.CAD.ANAnom - PI, lastPatch->e, glm::radians(lastPatch->inc), glm::radians(lastPatch->argOfPE), glm::radians(lastPatch->longOfAscNode));
-			T_DN = kep_2_cart(targetOrbit->SemiLatusRectum, -client->OrbitPlan.CAD.TargetANAnom - PI, targetOrbit->e, glm::radians(targetOrbit->inc), glm::radians(targetOrbit->argOfPE), glm::radians(targetOrbit->longOfAscNode));
+			V_DN = kep_2_cart(lastPatch->SemiLatusRectum, -client.OrbitPlan.CAD.ANAnom - PI, lastPatch->e, glm::radians(lastPatch->inc), glm::radians(lastPatch->argOfPE), glm::radians(lastPatch->longOfAscNode));
+			T_DN = kep_2_cart(targetOrbit->SemiLatusRectum, -client.OrbitPlan.CAD.TargetANAnom - PI, targetOrbit->e, glm::radians(targetOrbit->inc), glm::radians(targetOrbit->argOfPE), glm::radians(targetOrbit->longOfAscNode));
 
-			V_CA = kep_2_cart(lastPatch->SemiLatusRectum, -client->OrbitPlan.CAD.CAAnom, lastPatch->e, glm::radians(lastPatch->inc), glm::radians(lastPatch->argOfPE), glm::radians(lastPatch->longOfAscNode));
-			T_CA = kep_2_cart(targetOrbit->SemiLatusRectum, -client->OrbitPlan.CAD.TargetCAAnom, targetOrbit->e, glm::radians(targetOrbit->inc), glm::radians(targetOrbit->argOfPE), glm::radians(targetOrbit->longOfAscNode));
+			V_CA = kep_2_cart(lastPatch->SemiLatusRectum, -client.OrbitPlan.CAD.CAAnom, lastPatch->e, glm::radians(lastPatch->inc), glm::radians(lastPatch->argOfPE), glm::radians(lastPatch->longOfAscNode));
+			T_CA = kep_2_cart(targetOrbit->SemiLatusRectum, -client.OrbitPlan.CAD.TargetCAAnom, targetOrbit->e, glm::radians(targetOrbit->inc), glm::radians(targetOrbit->argOfPE), glm::radians(targetOrbit->longOfAscNode));
 		}
 	}
 
@@ -305,8 +299,8 @@ void OrbitDisplay::Tick(Draw* draw) {
 	glm::mat4 orthroMat = glm::ortho(float(-centr.x), float(win->getSize().x - centr.x), float(win->getSize().y - centr.y), float(-centr.y), -1000000.f, 1000000.f);
 
 	//glm::mat4 view = glm::translate(glm::mat4(1), glm::vec3(-0, 0, -002));
-	glm::mat4 view = glm::rotate(glm::mat4(1), glm::radians(planets[SOI].view.viewAngle.y + 90), glm::vec3(1, 0, 0));
-	view = glm::rotate(view, glm::radians(planets[SOI].view.viewAngle.x), glm::vec3(0, 0, 1));
+	glm::mat4 view = glm::rotate(glm::mat4(1), glm::radians(planets[SOI].View.viewAngle.y + 90), glm::vec3(1, 0, 0));
+	view = glm::rotate(view, glm::radians(planets[SOI].View.viewAngle.x), glm::vec3(0, 0, 1));
 	view = glm::scale(view, glm::vec3(scale));
 	//float radius = 50;
 
@@ -333,22 +327,22 @@ void OrbitDisplay::Tick(Draw* draw) {
 	for (int i = 0; i < OrbitPatchesCount; i++) {
 		OrbitPatches[i]->DrawPath(colorUnif);
 	}
-	if (hasTarget && client->OrbitPlan.TargetOrbit.SOINumber == SOI) {
+	if (hasTarget && client.OrbitPlan.TargetOrbit.SOINumber == SOI) {
 		targetOrbit->DrawPath(colorUnif);
 	}
 
 	draw->SetView3D(view);
 	draw->SetProj3D(orthroMat);
-	draw->BindDraw3DShader();
-	draw->draw3DShader->BindTex();
+	draw->SwitchShader(SHADER_3D);
+	draw->BindTex3D();
 
 	glPointSize(6);
 	for (int i = 0; i < OrbitPatchesCount; i++) {
-		OrbitPatches[i]->DrawFlair(draw, !hasTarget);
+		OrbitPatches[i]->DrawFlair(!hasTarget);
 	}
 
-	if (hasTarget && client->OrbitPlan.TargetOrbit.SOINumber == SOI) {
-		targetOrbit->DrawFlair(draw, false);
+	if (hasTarget && client.OrbitPlan.TargetOrbit.SOINumber == SOI) {
+		targetOrbit->DrawFlair(false);
 	}
 	if (win->KeyRepeating(SDL_SCANCODE_UP) && orbitSelected != 0) {
 		orbitSelected--;
@@ -363,7 +357,8 @@ void OrbitDisplay::Tick(Draw* draw) {
 		orbitSelected = 0;
 	}
 
-	if (hasTarget && lastPatch->SOINumber == SOI && lastPatch->transEnd == T_FINAL) {
+	//TODO fix
+	/*if (hasTarget/* && lastPatch->SOINumber == SOI && lastPatch->transEnd == T_FINAL) {
 		glLineWidth(2);
 		draw->SetDrawColor3D(1, 0, 1);
 		draw->DrawTri3DLine(T_AN, V_DN);
@@ -371,7 +366,7 @@ void OrbitDisplay::Tick(Draw* draw) {
 		draw->SetDrawColor3D(0, 0.5, 1);
 		draw->DrawPoint3D(V_CA);
 		draw->DrawPoint3D(T_CA);
-	}
+	}*/
 
 	olc = 0;
 	olx = pos.x + size.x - 120;
@@ -382,16 +377,16 @@ void OrbitDisplay::Tick(Draw* draw) {
 	}
 	targetOrbit->selected = false;
 
-	draw->BindTextShader();
+		draw->SwitchShader(SHADER_TEXT);
 	draw->SetTextColor(1, 1, 1);
 	draw->DrawString(f, "==Current Orbit==", olx - f->GetTextWidth("==Current Orbit==") / 2, oly); oly += 15;
 
 	int OCount = 0;
-	for (int i = 0; i < client->OrbitPlan.CurrentOrbitPatches.size(); i++) {
-		OrbitData *next = (i == (client->OrbitPlan.CurrentOrbitPatches.size() - 1)) ? 0 : &client->OrbitPlan.CurrentOrbitPatches[i + 1];
-		ClosestAprouchData *CAD = ((i == client->OrbitPlan.CurrentOrbitPatches.size() - 1) && (client->OrbitPlan.PlannedOrbitPatches.size() == 0) && hasTarget) ? &client->OrbitPlan.CAD : 0;
-		OrbitListOption(draw, &client->OrbitPlan.CurrentOrbitPatches[i], OrbitPatches[OCount], 0, next, CAD, 0);
-		if (client->OrbitPlan.CurrentOrbitPatches[i].SOINumber == SOI) {
+	for (int i = 0; i < client.OrbitPlan.CurrentOrbitPatches.size(); i++) {
+		OrbitData *next = (i == (client.OrbitPlan.CurrentOrbitPatches.size() - 1)) ? 0 : &client.OrbitPlan.CurrentOrbitPatches[i + 1];
+		ClosestAprouchData *CAD = ((i == client.OrbitPlan.CurrentOrbitPatches.size() - 1) && (client.OrbitPlan.PlannedOrbitPatches.size() == 0) && hasTarget) ? &client.OrbitPlan.CAD : 0;
+		OrbitListOption(pos, &client.OrbitPlan.CurrentOrbitPatches[i], OrbitPatches[OCount], 0, next, CAD, 0);
+		if (client.OrbitPlan.CurrentOrbitPatches[i].SOINumber == SOI) {
 			OCount++;
 		}
 	}
@@ -401,22 +396,22 @@ void OrbitDisplay::Tick(Draw* draw) {
 	if (hasTarget) {
 		draw->SetTextColor(1, 1, 1);
 		draw->DrawString(f, "==Target==", olx - f->GetTextWidth("==Target==") / 2, oly); oly += 15;
-		OrbitListOption(draw, &client->OrbitPlan.TargetOrbit, targetOrbit, 0, 0, 0, (char *)client->OrbitPlan.TargetName.c_str()); oly += 15;
+		OrbitListOption(pos, &client.OrbitPlan.TargetOrbit, targetOrbit, 0, 0, 0, (char *)client.OrbitPlan.TargetName.c_str()); oly += 15;
 	}
 
-	if (client->OrbitPlan.PlannedOrbitPatches.size() != 0) {
+	if (client.OrbitPlan.PlannedOrbitPatches.size() != 0) {
 		draw->SetTextColor(1, 1, 1);
 		draw->DrawString(f, "==Planned Orbit==", olx - f->GetTextWidth("==Planned Orbit==") / 2, oly); oly += 15;
-		for (int i = 0; i < client->OrbitPlan.PlannedOrbitPatches.size(); i++) {
-			OrbitData *next = (i == (client->OrbitPlan.PlannedOrbitPatches.size() - 1)) ? 0 : &client->OrbitPlan.PlannedOrbitPatches[i + 1];
+		for (int i = 0; i < client.OrbitPlan.PlannedOrbitPatches.size(); i++) {
+			OrbitData *next = (i == (client.OrbitPlan.PlannedOrbitPatches.size() - 1)) ? 0 : &client.OrbitPlan.PlannedOrbitPatches[i + 1];
 			ManData *md = 0;
-			ClosestAprouchData *CAD = ((i == client->OrbitPlan.PlannedOrbitPatches.size() - 1) && hasTarget) ? &client->OrbitPlan.CAD : 0;
-			if (client->OrbitPlan.PlannedOrbitPatches[i].transStart == T_MANEUVER) {
-				md = &client->OrbitPlan.Mans[MCount];
+			ClosestAprouchData *CAD = ((i == client.OrbitPlan.PlannedOrbitPatches.size() - 1) && hasTarget) ? &client.OrbitPlan.CAD : 0;
+			if (client.OrbitPlan.PlannedOrbitPatches[i].transStart == T_MANEUVER) {
+				md = &client.OrbitPlan.Mans[MCount];
 				MCount++;
 			}
-			OrbitListOption(draw, &client->OrbitPlan.PlannedOrbitPatches[i], OrbitPatches[OCount], md, next, CAD, 0);
-			if (client->OrbitPlan.PlannedOrbitPatches[i].SOINumber == SOI) {
+			OrbitListOption(pos, &client.OrbitPlan.PlannedOrbitPatches[i], OrbitPatches[OCount], md, next, CAD, 0);
+			if (client.OrbitPlan.PlannedOrbitPatches[i].SOINumber == SOI) {
 				OCount++;
 			}
 		}
@@ -425,15 +420,15 @@ void OrbitDisplay::Tick(Draw* draw) {
 
 glm::vec3 OrbitDisplay::GetCol(bool man, int i) {
 	if (man) {
-		return glm::vec3(1, 1 - float(i) / float(client->OrbitPlan.PlannedOrbitPatches.size()), 0);
+		return glm::vec3(1, 1 - float(i) / float(client.OrbitPlan.PlannedOrbitPatches.size()), 0);
 	}
 	else {
-		return glm::vec3(0, float(i) / float(client->OrbitPlan.PlannedOrbitPatches.size()), 1);
+		return glm::vec3(0, float(i) / float(client.OrbitPlan.PlannedOrbitPatches.size()), 1);
 	}
 
 }
 
-void OrbitDisplay::OrbitListOption(Draw *draw, OrbitData* o, Orbit *orb, ManData *manD, OrbitData* next, ClosestAprouchData *CAD, char *forceName) {
+void OrbitDisplay::OrbitListOption(XY pos, OrbitData* o, Orbit *orb, ManData *manD, OrbitData* next, ClosestAprouchData *CAD, char *forceName) {
 	std::string text;
 	if (forceName) {
 		text = forceName;
@@ -470,31 +465,31 @@ void OrbitDisplay::OrbitListOption(Draw *draw, OrbitData* o, Orbit *orb, ManData
 		int sy = pos.y + 15;
 		draw->DrawString(f, "SOI: " + planets[SOI = o->SOINumber].name, pos.x + 10, sy); sy += 15;
 		if (olc == 0) {
-			sprintf(buff, "Alt: %.0f m", client->Vessel.Alt);
+			sprintf_s(buff, "Alt: %.0f m", client.Vessel.Alt);
 			draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
 		}
 		draw->DrawString(f, "Anomoly : " + std::to_string(o->anomoly), pos.x + 10, sy); sy += 15;
 		if (o->transEnd != T_FINAL) {
 			draw->DrawString(f, "Patch EndAnomoly : " + std::to_string(o->anomolyEnd), pos.x + 10, sy); sy += 15;
 
-			sprintf(buff, "Time To Patch End: %d s", o->T2PatchEnd);
+			sprintf_s(buff, "Time To Patch End: %d s", o->T2PatchEnd);
 			draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
 		}
-		sprintf(buff, "SLR: %.0f m", o->SemiLatusRectum);
+		sprintf_s(buff, "SLR: %.0f m", o->SemiLatusRectum);
 		draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
-		sprintf(buff, "Inc: %.2f deg", o->inc);
+		sprintf_s(buff, "Inc: %.2f deg", o->inc);
 		draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
-		sprintf(buff, "LAN: %.2f deg", o->longOfAscNode);
+		sprintf_s(buff, "LAN: %.2f deg", o->longOfAscNode);
 		draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
-		sprintf(buff, "AOP: %.2f deg", o->argOfPE);
+		sprintf_s(buff, "AOP: %.2f deg", o->argOfPE);
 		draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
 		draw->DrawString(f, "Ecentricity: " + std::to_string(o->e), pos.x + 10, sy); sy += 15;
 		if (o->transEnd == T_FINAL) {
-			sprintf(buff, "Period: %d s", o->period);
+			sprintf_s(buff, "Period: %d s", o->period);
 			draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
 		}
 		if (orb->renderAP) {
-			sprintf(buff, "AP: %.0f m", o->AP);
+			sprintf_s(buff, "AP: %.0f m", o->AP);
 			draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
 			int t2ap = 0;
 			if (o->anomoly > 0) {
@@ -503,59 +498,59 @@ void OrbitDisplay::OrbitListOption(Draw *draw, OrbitData* o, Orbit *orb, ManData
 			else {
 				t2ap = o->T2Pe + o->period / 2;
 			}
-			sprintf(buff, "T2 AP: %d s", t2ap);
+			sprintf_s(buff, "T2 AP: %d s", t2ap);
 			draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
 		}
 		if (orb->renderPE) {
-			sprintf(buff, "PE: %.0f m", o->PE);
+			sprintf_s(buff, "PE: %.0f m", o->PE);
 			draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
-			sprintf(buff, "T2 PE: %d s", o->T2Pe);
+			sprintf_s(buff, "T2 PE: %d s", o->T2Pe);
 			draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
 		}
 		if (orb->isFinal) {
 			if (o->T2DN < o->T2AN) {
-				sprintf(buff, "T2 DN: %d s", o->T2DN);
+				sprintf_s(buff, "T2 DN: %d s", o->T2DN);
 			}
 			else {
-				sprintf(buff, "T2 AN: %d s", o->T2AN);
+				sprintf_s(buff, "T2 AN: %d s", o->T2AN);
 			}
 			draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
 		}
 		if (CAD) {
 			sy += 15;
-			sprintf(buff, "Rel Inc: %.2f deg", CAD->RelInc);
+			sprintf_s(buff, "Rel Inc: %.2f deg", CAD->RelInc);
 			draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
 			if (CAD->T2DN < CAD->T2AN) {
-				sprintf(buff, "T2 rel. DN: %d s", CAD->T2DN);
+				sprintf_s(buff, "T2 rel. DN: %d s", CAD->T2DN);
 			}
 			else {
-				sprintf(buff, "T2 rel. AN: %d s", CAD->T2AN);
+				sprintf_s(buff, "T2 rel. AN: %d s", CAD->T2AN);
 			}
 			draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
 
-			sprintf(buff, "T2 CA: %d s", CAD->T2CA);
+			sprintf_s(buff, "T2 CA: %d s", CAD->T2CA);
 			draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
-			sprintf(buff, "Sep @ CA: %d m", CAD->SepAtCA);
+			sprintf_s(buff, "Sep @ CA: %d m", CAD->SepAtCA);
 			draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
 
 
-			//sprintf(buff, "Rel Inc: %f deg", CAD.);
+			//sprintf_s(buff, "Rel Inc: %f deg", CAD.);
 			//draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
 
 		}
 		if (o->transStart == T_MANEUVER) {
 			sy += 15; sy += 15;
-			sprintf(buff, "Man dV: %.1f m/s", manD->DV);
+			sprintf_s(buff, "Man dV: %.1f m/s", manD->DV);
 			draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
-			sprintf(buff, "Time To Man: %d s", int(manD->UT - client->Vessel.UT));
+			sprintf_s(buff, "Time To Man: %d s", int(manD->UT - client.Vessel.UT));
 			draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
-			sprintf(buff, "dV-Grade: %.2f m/s", manD->Z);
+			sprintf_s(buff, "dV-Grade: %.2f m/s", manD->Z);
 			draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
-			sprintf(buff, "dV-Normal: %.2f m/s", manD->Y);
+			sprintf_s(buff, "dV-Normal: %.2f m/s", manD->Y);
 			draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
-			sprintf(buff, "dV-Radial: %.2f m/s", manD->X);
+			sprintf_s(buff, "dV-Radial: %.2f m/s", manD->X);
 			draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
-			printf("%f\n", float(client->Vessel.UT));
+			printf("%f\n", float(client.Vessel.UT));
 		}
 		draw->SetTextColor(1, 1, 0);
 		text = ">" + text;
@@ -568,6 +563,9 @@ void OrbitDisplay::OrbitListOption(Draw *draw, OrbitData* o, Orbit *orb, ManData
 	olc++;
 }
 
+std::string OrbitDisplay::GetTitle() {
+	return "Orbit Display";
+}
 
 OrbitDisplay::~OrbitDisplay() {
 	delete equator;

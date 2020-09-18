@@ -10,7 +10,7 @@
 struct SphereDraw {
 	GLuint vao, vbo, shader, proj, modelUnif, rotUnif;
 	SphereDraw();
-	void DrawSphere(Draw *draw, GLuint texture, glm::mat4 modelMat, glm::mat4 rotMat);
+	void DrawSphere( GLuint texture, glm::mat4 modelMat, glm::mat4 rotMat);
 };
 
 struct renderCoords {
@@ -21,12 +21,13 @@ class NavBall : public Widget {
 	GLuint navballTex;
 	GLuint chevron;
 	//Font* font;
-	void DrawRect(int x, int y, int width, int height, Draw* draw);
+	void DrawRect(int x, int y, int width, int height, XY pos);
 public:
+	std::string GetTitle();
 	renderCoords calcRenderCoords(NavHeading NH, VesselPacket *VP, glm::mat4 *modelMat);
-	void  renderNavHeading(NavHeading NH, VesselPacket *VP, Draw* draw, glm::mat4 *modelMat, GLuint Tex);
+	void  renderNavHeading(NavHeading NH, VesselPacket *VP, glm::mat4 *modelMat, GLuint Tex);
 	static SphereDraw *SD;
-	NavBall(WidgetStuff ws);
+	NavBall();
 	void LoadNavBallTextures();
-	void Tick(Draw* draw);
+	void Draw(XY pos, XY size);
 };

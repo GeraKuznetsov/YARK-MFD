@@ -9,6 +9,7 @@
 class AtitudeIndicator : public Widget {
 	GLuint chevronTex, triTex, tri_90;
 public:
-	AtitudeIndicator(WidgetStuff ws);
-	void Tick(Draw* draw);
+	std::string GetTitle();
+	AtitudeIndicator();
+	void Draw(XY pos, XY size);
 };

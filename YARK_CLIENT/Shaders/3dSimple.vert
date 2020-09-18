@@ -11,6 +11,6 @@ out vec2 uv;
 
 void main()
 {
-   gl_Position =  proj * view * model * vec4(InVert, 1); 
+    gl_Position =  proj * view * model * vec4(InVert, 1); 
     uv = InText;  
 }

@@ -1,8 +1,8 @@
 #pragma once
-#include <glm/glm.hpp>
+#include "glm.hpp"
 #define GLEW_STATIC
-#include <GL/glew.h>
-#define SDL_MAIN_HANDLED
+#include <glew.h>
+#define SDL_MAIN_HANDLED 
 #include <SDL.h>
 #include <SDL_opengl.h>
 #include "Texture.h"
@@ -34,7 +34,6 @@ class Window {
 	bool running = false;
 	SDL_GLContext gGlContext;
 	int targetRate;
-	Draw *draw;
 public:
 	int16_t joystickDir[4];
 	XY size;
@@ -45,7 +44,7 @@ public:
 	int FPS = 0; //theoFPS only works when vsync is on, otherwise it should be around real FPS
 	void SetTargetFPS(int fps);
 	Window(XY s, int flags, int *error);
-	void Run(void(*tick)(float delta, Draw* draw));
+	void Run(void(*tick)(float delta));
 	bool(*onExit)();
 	bool KeyDown(int key);
 	bool KeyRepeating(int key);

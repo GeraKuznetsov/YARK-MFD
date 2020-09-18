@@ -1,130 +1,98 @@
 #include "Widget.h"
-#include "Util/IM.h"
 
-#define BAR_HEIGHT 15
-#define BORDER 4
+std::string IP = "127.0.0.1";
+std::string PORT = "9999";
 
-#include <iostream>
+TextBox tb = TextBox{
+&IP
+};
 
-GLuint window_x;
+TextBox tb2 = TextBox{
+&PORT
+};
 
-Widget::Widget(WidgetStuff ws) {
-	if (!window_x) {
-		window_x = loadTexture("Tex/x.png", false);
-	}
-	IM::Load();
+Widget::Widget() {
 
-	Resize(ws.pos, ws.size);
-	this->f = ws.f;
-	this->title = ws.title;
-	this->win = ws.win;
-	this->client = ws.client;
-	this->TL = ws.TL;
-	this->startUpName = ws.startUpName;
 }
+
+std::string Widget::GetTitle() {
+	return "Options";
+}
+
 #include "../Reg.h"
 
-void Widget::Resize(XY pos, XY size) {
-	if (Registry["ENABLE_WINDOW_FRAMES"]) {
-		border = BORDER;
-		barHeight = BAR_HEIGHT;
+void RadioOpt(XY pos, std::string option, std::string key) {
+	bool val = RegInt(key, 0);
+	if (IM::Radio(pos, &val)) {
+		Registry[key] = val ? 1 : 0;
 	}
-	else {
-		border = 0;
-		barHeight = 0;
-	}
-	this->pos = pos;
-	this->size = size;
-	this->pos.y += barHeight;
-	this->size.y -= barHeight + border;
-	this->pos.x += border;
-	this->size.x -= border * 2;
-}
-
-void Widget::Tick(Draw* draw) {
-	WindowUpdate(draw);
-}
-
-std::string Widget::getSaveParams() {
-	return startUpName + " " + std::to_string(pos.x - border) + " " + std::to_string(pos.y - barHeight) + " " + std::to_string(size.x + border * 2) + " " + std::to_string(size.y + barHeight + border) + "\n";
-}
-
-extern std::vector<Widget*> widgets;
-
-int Widget::Input() { //0-ignore //1-move to front //2-close
-	if (close) return 2;
-	mouseInWindow = (win->MouseX() > pos.x && win->MouseY() > pos.y && win->MouseX() < pos.x + size.x && win->MouseY() < pos.y + size.y);
-	if (win->MouseDown(SDL_BUTTON_LEFT)) {
-		if (drag || (win->MouseX() > pos.x - border && win->MouseY() > pos.y - barHeight && win->MouseX() < pos.x + size.x + border && win->MouseY() < pos.y)) {
-			if (!drag) {
-				win->MouseDXY();
-				drag = true;
-			}
-			XY d = win->MouseDXY();
-			pos += d;
-		}
-		else {
-			if (dragBottom || (win->MouseX() > pos.x - border && win->MouseY() > pos.y + size.y && win->MouseX() < pos.x + size.x + border && win->MouseY() < pos.y + size.y + border)) {
-				if (!dragBottom) {
-					dragBottom = true;
-					win->MouseDY();
-				}
-				size.y += win->MouseDY();
-				if (size.y < 20) {
-					size.y = 20;
-				}
-			}
-			if (dragRight || (win->MouseX() > pos.x + size.x && win->MouseY() > pos.y && win->MouseX() < pos.x + size.x + border && win->MouseY() < pos.y + size.y)) {
-				if (!dragRight) {
-					dragRight = true;
-					win->MouseDX();
-				}
-				size.x += win->MouseDX();
-				if (size.x < 20) {
-					size.x = 20;
-				}
-			}
-			else if (dragLeft || (win->MouseX() > pos.x - border && win->MouseY() > pos.y && win->MouseX() < pos.x  && win->MouseY() < pos.y + size.y)) {
-				if (!dragLeft) {
-					dragLeft = true;
-					win->MouseDX();
-				}
-				int dx = win->MouseDX();
-				size.x -= dx;
-				pos.x += dx;
-				if (size.x < 20) {
-					size.x = 20;
-				}
-			}
-		}
-	}
-	else {
-		drag = dragBottom = dragRight = dragLeft = false;
-	}
-
-	if (((win->MouseDown(SDL_BUTTON_LEFT) || win->MouseDown(SDL_BUTTON_MIDDLE) || win->MouseDown(SDL_BUTTON_RIGHT)) && mouseInWindow || drag || dragBottom || dragRight || dragLeft)) {
-		return 1;
-	}
-	return 0;
-}
-
-void Widget::WindowUpdate(Draw* draw) {
-	draw->BindDraw2DShader();
-	draw->BindTex2D(0);
-	draw->SetDrawColor2D(0, 0, 1);
-
-	draw->DrawRect2D(pos.x - border, pos.y - barHeight, pos.x + size.x + border, pos.y + size.y + border);
-	if (IM::Button(XY{ pos.x + size.x - 12,pos.y - barHeight + 2 }, XY{ 12, 12 }, win, draw, window_x)) {
-		close = true;
-	}
-
-	draw->BindTextShader();
+	draw->SwitchShader(SHADER_TEXT);
 	draw->SetTextColor(1, 1, 1);
-	draw->DrawString(f, title, pos.x, pos.y);
+	draw->DrawString(f, option, pos.x + 20, pos.y + 14);
+}
 
-	glScissor(pos.x, win->size.y - pos.y - size.y, size.x, size.y);
+#include "../Arduino/EnableArduino.h"
 
-	draw->BindDraw2DShader();
-	draw->SetDrawColor2D(0, 0, 0);
-	draw->DrawRect2D(pos.x, pos.y, pos.x + size.x, pos.y + size.y);
+#define TEXT_OFFSET 35
+#include "../Arduino/Serial.h"
+extern bool ConnectedWithHand();
+extern SerialPort* sp;
+
+void Widget::Draw(XY pos, XY size) {
+	draw->SwitchShader(SHADER_TEXT);
+	switch (client.GetState()) {
+	case TCP_NEW:
+		draw->SetTextColor(1, 1, 0);
+		draw->DrawString(f, "Client: Not Started", pos.x + 15, pos.y + 40);
+		break;
+	case TCP_CONNECTING:
+		draw->SetTextColor(1, 1, 0);
+		draw->DrawString(f, "Client: Connecting... ", pos.x + 15, pos.y + 40);
+		break;
+	case TCP_CONNECTED:
+		draw->SetTextColor(0, 1, 0);
+		draw->DrawString(f, "Client: Connected", pos.x + 15, pos.y + 40);
+		break;
+	case TCP_FAILED:
+		draw->SetTextColor(1, 0, 0);
+		draw->DrawString(f, "Client: Connection Failed: " + std::string(client.error), pos.x + 15, pos.y + 40);
+		break;
+	}
+	if (client.GetState() != TCP_CONNECTED) {
+		IM::TextInput(pos + XY{ 15,40 + 30 }, 100, f, &tb, "Enter IP: ");
+		IM::TextInput(pos + XY{ 15,40 + 30 * 2 }, 100, f, &tb2, "Enter PORT: ");
+		if (client.GetState() != TCP_CONNECTING) {
+			if (IM::Button(pos + XY{ 15,40 + 30 * 3 }, f, "Connect")) {
+				client.Connect(IP, PORT);
+			}
+		}
+	}
+	RadioOpt(pos + XY{ 15,40 + 30 * 4 }, "Radio Altemeter", "ENABLE_RADIO-ALT");
+	draw->SwitchShader(SHADER_TEXT);
+	if (win->HasJoyStick()) {
+		draw->SetTextColor(0, 1, 0);
+		draw->DrawString(f, "JoyStick: Connected", 15, 40 + 30 * 5 + TEXT_OFFSET);
+	}
+	else {
+		draw->SetTextColor(1, 0, 0);
+		draw->DrawString(f, "JoyStick: Not Connected", 15, 40 + 30 * 5 + TEXT_OFFSET);
+	}
+	RadioOpt(pos + XY{ 15  ,40 + 30 * 6 }, "Fly-By-Wire", "ENABLE_FLYBYWIRE");
+	RadioOpt(pos + XY{ 15 + 30,40 + 30 * 7 }, "Rocket Mode", "FLYBYWIRE_ROCKETMODE");
+	RadioOpt(pos + XY{ 15 + 30,40 + 30 * 8 }, "Joystick Vector Mode", "FORCE_SASS");
+
+	draw->SwitchShader(SHADER_TEXT);
+#if ENABLE_ARDUINO
+	if (sp && sp->isConnected() && ConnectedWithHand()) {
+		draw->SetTextColor(0, 1, 0);
+		draw->DrawString(f, "Arduino: Connected", 15, 40 + 30 * 9 + TEXT_OFFSET);
+	}
+	else {
+		draw->SetTextColor(1, 0, 0);
+		draw->DrawString(f, "Arduino: Disconnected", 15, 40 + 30 * 9 + TEXT_OFFSET);
+	}
+#else
+	draw->SetTextColor(1, 1, 0);
+	draw->DrawString(f, "Arduino: Disabled In build", 15, 40 + 30 * 9 + TEXT_OFFSET);
+#endif
 }

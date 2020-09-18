@@ -1,17 +1,16 @@
 #include "AtitudeIndicator.h"
 
-#include "NavBall.h"
+//#include "NavBall.h"
 #include <iostream>
 
-AtitudeIndicator::AtitudeIndicator(WidgetStuff ws) : Widget(ws) {
-	this->client = client;
+AtitudeIndicator::AtitudeIndicator() {
 	chevronTex = loadTexture("Tex/ai/chevron.png");
 	triTex = loadTexture("Tex/ai/triangle.png");
 	tri_90 = loadTexture("Tex/ai/tri_90.png");
 }
 
 //#define GLM_ENABLE_EXPERIMENTAL
-#include "glm/gtc/matrix_transform.hpp"
+#include "gtc\matrix_transform.hpp"
 
 #define XSPACE 35
 #define YSPACE 8
@@ -23,14 +22,16 @@ AtitudeIndicator::AtitudeIndicator(WidgetStuff ws) : Widget(ws) {
 
 #include "../Reg.h"
 
-void AtitudeIndicator::Tick(Draw* draw) {
-	WindowUpdate(draw);
+std::string AtitudeIndicator::GetTitle() {
+	return "Atitude Indicator";
+}
 
-	draw->BindDraw2DShader();
+void AtitudeIndicator::Draw(XY pos, XY size) {
+	draw->SwitchShader(SHADER_2D);
 	draw->SetDrawColor2D(0, 0, 0);
 	draw->DrawRect2D(pos.x, pos.y, pos.x + size.x, pos.y + size.y);
 
-	VesselPacket VP = client->Vessel;
+	VesselPacket VP = client.Vessel;
 	//VP.Heading = 0;
 	float rad = (size.x - 100) / 2;
 
@@ -38,7 +39,7 @@ void AtitudeIndicator::Tick(Draw* draw) {
 	view = glm::rotate(view, glm::radians(VP.Roll), glm::vec3(0, 0, 1));
 	view = glm::translate(view, glm::vec3(0, VP.Pitch * YSPACE + DOWN_SHIFT, 0));
 
-	draw->draw2DShader->SetView(view);
+	draw->SetView2D(view);
 
 	draw->SetDrawColor2D(29.f / 256.f, 90.f / 256.f, 234.f / 256.f); //DRAW HORIZON
 	draw->DrawRect2D(-size.x, -90 * YSPACE, size.x * 2, 0);
@@ -56,16 +57,16 @@ void AtitudeIndicator::Tick(Draw* draw) {
 		}
 	}
 
-	draw->BindTextShader();
+	draw->SwitchShader(SHADER_TEXT);
 	draw->SetDrawColor2D(0, 1, 0);
-	draw->textShader->SetView(view);
+	draw->SetViewText(view);
 	for (int y = -90; y <= 90; y += 5) { //DRAW PITCH ANGLES
 		if (!(y % 2)) {
 			draw->DrawString(f, std::to_string(-y), -XSPACE - f->GetTextWidth(std::to_string(-y)), (y)* YSPACE + TEX_Y_OFFSET);
 			draw->DrawString(f, std::to_string(-y), XSPACE, (y)* YSPACE + TEX_Y_OFFSET);
 		}
 	}
-	draw->textShader->SetView(glm::mat4(1));
+	draw->SetViewText();
 	std::string text = std::to_string((int)VP.Pitch);
 	draw->DrawString(f, text, pos.x + size.x / 2 - 85 - f->GetTextWidth(text), pos.y + size.y / 2 + 4 + DOWN_SHIFT);//DRAW PITCH ANGLES BY CHEVRON
 	draw->DrawString(f, text, pos.x + size.x / 2 + 85, pos.y + size.y / 2 + 4 + DOWN_SHIFT);
@@ -79,7 +80,7 @@ void AtitudeIndicator::Tick(Draw* draw) {
 	draw->DrawString(f, text, pos.x + size.x / 2 - f->GetTextWidth(text) / 2, pos.y + 60);//DRAW ROLL ANGLE UNDER ARC
 
 
-	draw->BindDraw2DShader();
+	draw->SwitchShader(SHADER_2D);
 
 	glLineWidth(3);
 	draw->SetDrawColor2D(0.5, 0.5, 0);
@@ -105,12 +106,11 @@ void AtitudeIndicator::Tick(Draw* draw) {
 	view = glm::translate(glm::mat4(1), glm::vec3(pos.x + size.x / 2, pos.y + size.x / 2, 0));
 	view = glm::rotate(view, glm::radians(VP.Roll), glm::vec3(0, 0, 1));
 	view = glm::translate(view, -glm::vec3(pos.x + size.x / 2, pos.y + size.x / 2, 0));
-	draw->draw2DShader->SetView(view);
+	draw->SetView2D(view);
 #define TRI_TEX_OFFSET 20
-	//draw->draw2DShader->SetView(glm::mat4(1));
 	draw->DrawRect2D(pos.x + size.x / 2 - 8, pos.y + TRI_TEX_OFFSET , pos.x + size.x / 2 + 8, pos.y + TRI_TEX_OFFSET - 16); //DRAW TRIANGLE OVER ARC
-	draw->draw2DShader->SetView(glm::mat4(1));
-
+	draw->SetView2D();
+	
 
 	draw->SetDrawColor2D(1, 1, 1); //DRAW CHEVRON
 	draw->BindTex2D(chevronTex);
@@ -157,13 +157,13 @@ void AtitudeIndicator::Tick(Draw* draw) {
 	draw->BindTex2D(tri_90);
 	draw->DrawRectUV2D(pos.x + BAR_INSET + 2, pos.y + size.y / 2 - 8, pos.x + BAR_INSET + 2 + 16, pos.y + size.y / 2 + 8, 1, 0, 0, 1);
 	draw->BindTex2D();
-	draw->BindTextShader();
+		draw->SwitchShader(SHADER_TEXT);
 	for (int i = -height / 2 / VELO_YSPACE; i <= height / 2 / VELO_YSPACE; i++) {
 		std::string s = std::to_string((i * VELO_DELTA + y_down));
 		draw->DrawString(f, s, pos.x + BAR_INSET - 10 - f->GetTextWidth(s), pos.y + size.y / 2 - i * VELO_YSPACE + TEX_Y_OFFSET + y_mod);
 	}
 
-	draw->BindDraw2DShader(); //DRAW ALTITUDE BAR
+	draw->SwitchShader(SHADER_2D); //DRAW ALTITUDE BAR
 
 	int ALT_YSPACE = RegInt("ATI-IN_ALT_YSPACE", 35);
 	int ALT_DELTA = RegInt("ATI-IN_ALT_DELTA", 10);
@@ -177,7 +177,7 @@ void AtitudeIndicator::Tick(Draw* draw) {
 	draw->BindTex2D(tri_90);
 	draw->DrawRect2D(pos.x + size.x - BAR_INSET - 16 - 2, pos.y + size.y / 2 - 8, pos.x + size.x - BAR_INSET - 2, pos.y + size.y / 2 + 8);
 	draw->BindTex2D();
-	draw->BindTextShader();
+		draw->SwitchShader(SHADER_TEXT);
 	for (int i = -height / 2 / ALT_YSPACE; i <= height / 2 / ALT_YSPACE; i++) {
 		std::string s = std::to_string((i * ALT_DELTA + y_down));
 		draw->DrawString(f, s, pos.x + size.x - BAR_INSET + 10, pos.y + size.y / 2 - i * ALT_YSPACE + TEX_Y_OFFSET + y_mod);

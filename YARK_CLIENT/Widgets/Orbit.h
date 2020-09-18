@@ -21,7 +21,7 @@ class OrbitDisplay : public Widget {
 		float rad;
 		float soiDist;
 		float mass;
-		View view;
+		View View;
 	};
 	class Orbit {
 		float pRad;
@@ -38,7 +38,7 @@ class OrbitDisplay : public Widget {
 		void PropogateOrbit(OrbitData* o, std::vector<Planet> planets, glm::vec3 col, bool forceSolid);
 		~Orbit();
 		void DrawPath(GLuint colorUnif);
-		void DrawFlair(Draw* draw, bool drawAN);
+		void DrawFlair(bool drawAN);
 	};
 	GLuint shader, viewUnif, projUnif, colorUnif;
 	Orbit *equator, *primeMerid, *primeMerid2;
@@ -56,11 +56,12 @@ class OrbitDisplay : public Widget {
 	//orbit list
 	int orbitSelected = 0;
 	int oly, olx, olc = 0;
-	void OrbitListOption(Draw *draw, OrbitData* o, Orbit *orb, ManData *manD, OrbitData* next, ClosestAprouchData *CAD, char *forceName);
+	void OrbitListOption(XY pos, OrbitData *o, Orbit *orb, ManData *manD, OrbitData *next, ClosestAprouchData *CAD, char *forceName);
 	glm::vec3 GetCol(bool man, int i);
 public:
+	std::string GetTitle();
 	~OrbitDisplay();
 	std::vector<Planet> planets;
-	OrbitDisplay(WidgetStuff ws);
-	void Tick(Draw* draw);
+	OrbitDisplay();
+	void Draw(XY pos, XY size);
 };

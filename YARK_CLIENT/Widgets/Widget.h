@@ -1,34 +1,20 @@
 #pragma once
 #include "../Engine/Window.h"
-#include "../Client/Client.h"
+#include "../Engine/Draw.h"
+#include "Util/IM.h"
 #include "Util/TextureLoader.h"
+#include "../Client/Client.h"
 
-struct WidgetStuff {
-	XY pos; XY size; std::string title; Font* f; Window* win; Client* client; TextureLoader *TL;  std::string startUpName;
-};
+extern Window* win;
+extern Font* f;
+extern Draw* draw;
+extern Client client;
+extern TextureLoader TL;
 
 class Widget {
-private:
-	bool drag, dragBottom, dragRight, dragLeft;
-protected:
-	XY pos;
-	XY size;
-	Font* f;
-	Window* win;
-	Client* client;
-	bool mouseInWindow;
-	TextureLoader *TL;
-	std::string startUpName;
 public:
-	bool focus;
-	bool close = false;
-	std::string title;
-	Widget(WidgetStuff ws);
-	void Resize(XY pos, XY size);
-	virtual void Tick(Draw* draw);
-	void WindowUpdate(Draw* draw);
-	int Input();
-	std::string getSaveParams();
-	bool hadFrame;
-	int barHeight, border;
+	Widget();
+	virtual std::string GetTitle();
+	virtual void Draw(XY pos, XY size);
 };
+

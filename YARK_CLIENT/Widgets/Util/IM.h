@@ -2,17 +2,24 @@
 #include "../../Engine/Window.h"
 #include <string>
 
+struct TextBox {
+	std::string* text;
+	bool type = 0;
+	int pos = 0;
+};
+
 namespace IM {
 	extern GLuint rad0, rad1, T_UP, T_DOWN, led0, led1, seg_v, seg_h, push;
 	//, push;
-	void SegDigit(XY pos, Window *win, Draw* draw, int dig);
-	void SegInt(XY pos, Window *win, Draw* draw, int dig, int fig, bool negS);
-	bool PushButton(Draw* draw, Window *win, XY renderAt);
-	bool Button(XY pos, Window *win, Draw* draw, Font *f, std::string text);
-	bool Button(XY pos, XY size, Window *win, Draw* draw, GLuint tex);
-	bool Radio(XY pos, Window *win, Draw* draw, bool* ptr);
-	void LED(XY pos, Window *win, Draw* draw, bool state);
-	bool ToggleSwitch(XY pos, Window *win, Draw* draw, std::string text, bool* ptr);
+	void TextInput(XY pos, int width, Font* f, TextBox* tb, std::string prompt = "");
+	void SegDigit(XY pos, int dig);
+	void SegInt(XY pos, int dig, int fig, bool negS);
+	bool PushButton(XY renderAt);
+	bool Button(XY pos, Font* f, std::string text);
+	bool Button(XY pos, XY size, GLuint tex);
+	bool Radio(XY pos, bool* ptr);
+	void LED(XY pos, bool state);
+	bool ToggleSwitch(XY pos, std::string text, bool* ptr);
 
 	void Load();
 }

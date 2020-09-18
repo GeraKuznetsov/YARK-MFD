@@ -113,11 +113,10 @@ Window::Window(XY s, int flags, int* error) {
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	MouseScroll = mouseXY = mouseDXY = XY{ 0,0 };
 	targetRate = 0;
-	draw = new Draw(size.x, size.y);
 	*error = 0;
 }
 
-void Window::Run(void(*tick)(float delta, Draw* draw)) {
+void Window::Run(void(*tick)(float delta)) {
 	running = true;
 	SDL_Event sdlEvent;
 	int fpsCounter = 0;
@@ -230,9 +229,8 @@ void Window::Run(void(*tick)(float delta, Draw* draw)) {
 		}
 		SDL_GetWindowSize(gWindow, &size.x, &size.y);
 		glViewport(0, 0, size.x, size.y);
-		draw->UpdateSize(size.x, size.y);
 
-		tick(float(delta), draw);
+		tick(float(delta));
 
 		mouseDXY = XY{ 0,0 }; //reset delta events
 		for (int i = 0; i < NUMER_MOUSE_BUTTONS; i++) {
@@ -262,12 +260,11 @@ bool Window::KeyDown(int key) {
 }
 bool Window::KeyRepeating(int key) {
 	bool b = keyRepeating[key];
-	keyRepeating[key] = false;
+	keyRepeating[key] = 0;
 	return b;
 }
 bool Window::KeyTyped(int key) {
 	bool b = keyTyped[key];
-	keyTyped[key] = false;
 	return b;
 }
 bool Window::MouseDown(int button) {
@@ -310,6 +307,7 @@ XY Window::MouseDXY()
 {
 	return mouseDXY;
 }
+
 XY Window::getMouseWheelDelta() {
 	XY ret = MouseScroll;
 	MouseScroll = XY{ 0,0 };

@@ -2,6 +2,85 @@
 
 GLuint IM::rad0, IM::rad1, IM::T_UP, IM::T_DOWN, IM::led0, IM::led1, IM::seg_v, IM::seg_h, IM::push;
 //Font* IM::f;
+extern Draw* draw;
+extern Window* win;
+
+void IM::TextInput(XY pos, int width, Font* f, TextBox* tb, std::string prompt) {
+	draw->SwitchShader(SHADER_TEXT);
+	draw->SetTextColor(1, 1, 1);
+	draw->DrawString(f, prompt, pos.x, pos.y + 15);
+	pos.x += f->GetTextWidth(prompt);
+
+	XY size = XY{ width + 15,20 };
+	bool in = win->MouseX() > pos.x && win->MouseY() > pos.y && win->MouseX() < pos.x + size.x && win->MouseY() < pos.y + size.y;
+	draw->SwitchShader(SHADER_2D);
+	if (tb->type) {
+		draw->SetDrawColor2D(33.f / 256.f, 66.f / 256.f, 103.f / 256.f);
+	}
+	else {
+		if (in) {
+			if (win->MouseDown(SDL_BUTTON_LEFT)) draw->SetDrawColor2D(33.f / 256.f, 66.f / 256.f, 103.f / 256.f);
+			else draw->SetDrawColor2D(53.f / 256.f, 86.f / 256.f, 123.f / 256.f);
+		}
+		else {
+			draw->SetDrawColor2D(43.f / 256.f, 76.f / 256.f, 113.f / 256.f);
+		}
+	}
+	draw->BindTex2D(0);
+
+	draw->DrawRect2D(pos.x, pos.y, pos.x + size.x, pos.y + size.y);
+	draw->SwitchShader(SHADER_TEXT);
+	draw->DrawString(f, *tb->text, pos.x +  10, pos.y + 15);
+	if (tb->type) {
+		if (win->KeyRepeating(SDL_SCANCODE_LEFT) && tb->pos != 0) {
+			tb->pos--;
+		}
+		if (win->KeyRepeating(SDL_SCANCODE_RIGHT) && tb->pos < tb->text->size()) {
+			tb->pos++;
+		}
+		for (int i = SDL_SCANCODE_A; i <= SDL_SCANCODE_Z; i++) {
+			if (win->KeyRepeating(i)) {
+				int add = (win->KeyDown(SDL_SCANCODE_LSHIFT) || win->KeyDown(SDL_SCANCODE_RSHIFT)) ? 'A' : 'a';
+				tb->text->insert(tb->text->begin() + tb->pos, (i - SDL_SCANCODE_A + add));
+				tb->pos++;
+			}
+		}
+		for (int i = SDL_SCANCODE_1; i <= SDL_SCANCODE_9; i++) {
+			if (win->KeyRepeating(i)) {
+				tb->text->insert(tb->text->begin() + tb->pos, (i - SDL_SCANCODE_1 + '1'));
+				tb->pos++;
+			}
+		}
+		if (win->KeyRepeating(SDL_SCANCODE_0)) {
+			tb->text->insert(tb->text->begin() + tb->pos, '0');
+			tb->pos++;
+		}
+		if (win->KeyRepeating(SDL_SCANCODE_PERIOD)) {
+			tb->text->insert(tb->text->begin() + tb->pos, '.');
+			tb->pos++;
+		}
+		if (win->KeyRepeating(SDL_SCANCODE_SEMICOLON) && (win->KeyDown(SDL_SCANCODE_LSHIFT) || win->KeyDown(SDL_SCANCODE_RSHIFT))) {
+			tb->text->insert(tb->text->begin() + tb->pos, ':');
+			tb->pos++;
+		}
+		if (win->KeyRepeating(SDL_SCANCODE_BACKSPACE) && tb->pos != 0) {
+			tb->text->erase(tb->pos - 1, 1);
+			tb->pos--;
+		}
+		if (win->KeyRepeating(SDL_SCANCODE_DELETE) && tb->pos < tb->text->size()) {
+			tb->text->erase(tb->pos, 1);
+		}
+		draw->DrawChar(f, '_', pos.x + 10 + f->GetTextWidth(*tb->text, tb->pos) + 2, pos.y + 15 + 2);
+	}
+	if (win->MouseClicked(SDL_BUTTON_LEFT)) {
+		if (in) {
+			tb->type = true;
+		}
+		else {
+			tb->type = false;
+		}
+	}
+}
 
 void IM::Load() {
 	if (!rad0) {
@@ -44,8 +123,8 @@ void IM::Load() {
 #define width 20
 #define height 20
 
-void IM::SegDigit(XY pos, Window *win, Draw* draw, int dig) {
-	draw->BindDraw2DShader();
+void IM::SegDigit(XY pos, int dig) {
+	draw->SwitchShader(SHADER_2D);
 
 	draw->BindTex2D(seg_h);
 	SEG_STATE(dig == 2 || dig == 3 || dig == 5 || dig == 6 || dig == 7 || dig == 8 || dig == 9 || dig == 0);
@@ -67,8 +146,8 @@ void IM::SegDigit(XY pos, Window *win, Draw* draw, int dig) {
 	draw->DrawRect2D(pos.x + h_space, pos.y + v_space + v_move, pos.x + width + h_space, pos.y + height + v_space + v_move);
 }
 
-void IM::SegInt(XY pos, Window *win, Draw* draw, int dig, int fig, bool negS) {
-	draw->BindDraw2DShader();
+void IM::SegInt(XY pos, int dig, int fig, bool negS) {
+	draw->SwitchShader(SHADER_2D);
 	int xOffset = (fig - 1) * 20;
 	if (negS) {
 		if (dig < 0) {
@@ -85,50 +164,60 @@ void IM::SegInt(XY pos, Window *win, Draw* draw, int dig, int fig, bool negS) {
 	int div = 10;
 	for (int i = 0; i < fig; i++) {
 		int mod = dig % div;
-		SegDigit(pos + XY{ xOffset, 0 }, win, draw, dig % div * 10 / div);
+		SegDigit(pos + XY{ xOffset, 0 }, dig % div * 10 / div);
 		xOffset -= 20;
 		div *= 10;
 		dig -= mod;
 	}
 }
 
-bool IM::PushButton(Draw* draw, Window *win, XY renderAt) {
-	draw->BindDraw2DShader();
+bool IM::PushButton(XY renderAt) {
+	draw->SwitchShader(SHADER_2D);
 	draw->BindTex2D(push);
 	draw->DrawRect2D(renderAt.x, renderAt.y, renderAt.x + 64, renderAt.y + 64);
 
 	renderAt += XY{ 32,32 };
-	return ((win->MouseX() - renderAt.x)*(win->MouseX() - renderAt.x) + (win->MouseY() - renderAt.y)*(win->MouseY() - renderAt.y) < 32 * 32) && win->MouseClicked(SDL_BUTTON_LEFT);
+	return ((win->MouseX() - renderAt.x) * (win->MouseX() - renderAt.x) + (win->MouseY() - renderAt.y) * (win->MouseY() - renderAt.y) < 32 * 32) && win->MouseClicked(SDL_BUTTON_LEFT);
 }
 
-bool IM::Button(XY pos, Window *win, Draw* draw, Font *f, std::string text) {
-	draw->BindDraw2DShader();
-	draw->SetDrawColor2D(43.f / 256.f, 76.f / 256.f, 113.f / 256.f);
-	draw->BindTex2D(0);
+bool IM::Button(XY pos, Font* f, std::string text) {
 	int textWidth = f->GetTextWidth(text);
 	XY size = XY{ textWidth + 15,20 };
-	draw->DrawRect2D(pos.x, pos.y, pos.x + size.x, pos.y + size.y);
-	draw->BindTextShader();
-	draw->DrawString(f, text, pos.x + (size.x / 2) - (textWidth / 2), pos.y + 15);
-	if (win->MouseX() > pos.x && win->MouseY() > pos.y && win->MouseX() < pos.x + size.x && win->MouseY() < pos.y + size.y) {
-		return win->MouseClicked(SDL_BUTTON_LEFT);
+	bool in = win->MouseX() > pos.x && win->MouseY() > pos.y && win->MouseX() < pos.x + size.x && win->MouseY() < pos.y + size.y;
+	draw->SwitchShader(SHADER_2D);
+	if (in) {
+		if (win->MouseDown(SDL_BUTTON_LEFT)) draw->SetDrawColor2D(33.f / 256.f, 66.f / 256.f, 103.f / 256.f);
+		else draw->SetDrawColor2D(53.f / 256.f, 86.f / 256.f, 123.f / 256.f);
 	}
-	return false;
+	else {
+		draw->SetDrawColor2D(43.f / 256.f, 76.f / 256.f, 113.f / 256.f);
+	}
+	draw->BindTex2D(0);
+
+	draw->DrawRect2D(pos.x, pos.y, pos.x + size.x, pos.y + size.y);
+	draw->SwitchShader(SHADER_TEXT);
+	draw->DrawString(f, text, pos.x + (size.x / 2) - (textWidth / 2), pos.y + 15);
+	return in && win->MouseClicked(SDL_BUTTON_LEFT);
 }
-bool IM::Button(XY pos, XY size, Window *win, Draw* draw, GLuint tex) {
-	draw->BindDraw2DShader();
-	draw->SetDrawColor2D(1, 1, 1);
+
+bool IM::Button(XY pos, XY size, GLuint tex) {
+	bool in = win->MouseX() > pos.x && win->MouseY() > pos.y && win->MouseX() < pos.x + size.x && win->MouseY() < pos.y + size.y;
+	draw->SwitchShader(SHADER_2D);
+	if (in) {
+		if (win->MouseDown(SDL_BUTTON_LEFT)) draw->SetDrawColor2D(0.8, 0.8, 0.8);
+		else draw->SetDrawColor2D(1, 1, 1);
+	}
+	else {
+		draw->SetDrawColor2D(0.9, 0.9, 0.9);
+	}
 	draw->BindTex2D(tex);
 	draw->DrawRect2D(pos.x, pos.y, pos.x + size.x, pos.y + size.y);
 	draw->BindTex2D();
-	if (win->MouseX() > pos.x && win->MouseY() > pos.y && win->MouseX() < pos.x + size.x && win->MouseY() < pos.y + size.y) {
-		return win->MouseClicked(SDL_BUTTON_LEFT);
-	}
-	return false;
+	return in && win->MouseClicked(SDL_BUTTON_LEFT);
 }
 
-bool IM::Radio(XY pos, Window *win, Draw* draw, bool* ptr) {
-	draw->BindDraw2DShader();
+bool IM::Radio(XY pos, bool* ptr) {
+	draw->SwitchShader(SHADER_2D);
 	draw->SetDrawColor2D(1, 1, 1);
 	draw->BindTex2D(*ptr ? IM::rad1 : IM::rad0);
 	draw->DrawRect2D(pos.x, pos.y, pos.x + 16, pos.y + 16);
@@ -147,20 +236,20 @@ bool IM::Radio(XY pos, Window *win, Draw* draw, bool* ptr) {
 
 extern Font* f;
 
-void IM::LED(XY pos, Window *win, Draw* draw, bool state) {
-	draw->BindDraw2DShader();
+void IM::LED(XY pos, bool state) {
+	draw->SwitchShader(SHADER_2D);
 	draw->SetDrawColor2D(1, 1, 1);
 	draw->BindTex2D(state ? led1 : led0);
 	draw->DrawRect2D(pos.x, pos.y, pos.x + 32, pos.y + 32);
 }
 
-bool IM::ToggleSwitch(XY pos, Window *win, Draw* draw, std::string text, bool* ptr) {
-	LED(XY{ pos.x + 16, pos.y }, win, draw, *ptr);
+bool IM::ToggleSwitch(XY pos, std::string text, bool* ptr) {
+	LED(XY{ pos.x + 16, pos.y }, *ptr);
 	draw->BindTex2D(*ptr ? IM::T_UP : IM::T_DOWN);
 	int offset = *ptr ? YOFFSET : YOFFSET + 6;
 	draw->DrawRect2D(pos.x + XOFFSET, pos.y + offset, pos.x + TOGGLE_SIZE + XOFFSET, pos.y + TOGGLE_SIZE + offset);
 	draw->BindTex2D();
-	draw->BindTextShader();
+	draw->SwitchShader(SHADER_TEXT);
 	draw->SetTextColor(1, 1, 1);
 	draw->DrawString(f, text, pos.x + TOGGLE_SIZE / 2 - f->GetTextWidth(text) / 2, pos.y + TOGGLE_SIZE + 54);
 	if (win->MouseX() > pos.x + XOFFSET && win->MouseY() > pos.y + offset && win->MouseX() < pos.x + XOFFSET + TOGGLE_SIZE && win->MouseY() < pos.y + offset + TOGGLE_SIZE) {

@@ -115,7 +115,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\CPP_LIB\freetype\include;C:\CPP_LIB\glew-2.0.0\include\;C:\CPP_LIB\SDL2\include;C:\CPP_LIB\;C:\CPP_LIB\lodepng\;C:\CPP_LIB\Dirent\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\CPP_LIB\freetype\include;C:\CPP_LIB\glew-2.0.0\include\GL;C:\CPP_LIB\SDL2\include;C:\CPP_LIB\glm\;C:\CPP_LIB\lodepng\;C:\CPP_LIB\Dirent\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -125,67 +125,53 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Arduino\Arduino.cpp" />
     <ClCompile Include="Arduino\Serial.cpp" />
-    <ClCompile Include="Arduino\Test.cpp" />
+    <ClCompile Include="Client\Client.cpp" />
     <ClCompile Include="Engine\Draw.cpp" />
-    <ClCompile Include="Engine\Draw2DShader.cpp" />
-    <ClCompile Include="Engine\Draw3DShader.cpp" />
     <ClCompile Include="Engine\Font.cpp" />
     <ClCompile Include="Engine\Shader.cpp" />
     <ClCompile Include="Engine\Sound.cpp" />
-    <ClCompile Include="Engine\TextShader.cpp" />
     <ClCompile Include="Engine\Texture.cpp" />
     <ClCompile Include="Engine\Window.cpp" />
     <ClCompile Include="lodepng\lodepng.cpp" />
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="Client\Client.cpp" />
-    <ClCompile Include="Widgets\AtitudeIndicator.cpp" />
     <ClCompile Include="Widgets\AirMap.cpp" />
-    <ClCompile Include="Widgets\Console.cpp" />
-    <ClCompile Include="Widgets\Control.cpp" />
     <ClCompile Include="Widgets\AirPlaneAutoPilot.cpp" />
-    <ClCompile Include="Widgets\Dock.cpp" />
-    <ClCompile Include="Widgets\LaunchAss.cpp" />
+    <ClCompile Include="Widgets\AtitudeIndicator.cpp" />
+    <ClCompile Include="Widgets\Container.cpp" />
+    <ClCompile Include="Widgets\Control.cpp" />
     <ClCompile Include="Widgets\NavBall.cpp" />
     <ClCompile Include="Widgets\Orbit.cpp" />
-    <ClCompile Include="Widgets\Settings.cpp" />
     <ClCompile Include="Widgets\SoyuzNavBall.cpp" />
     <ClCompile Include="Widgets\Util\IM.cpp" />
     <ClCompile Include="Widgets\Util\TextureLoader.cpp" />
-    <ClCompile Include="Widgets\VInfo.cpp" />
     <ClCompile Include="Widgets\Widget.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AltiMeter.h" />
+    <ClInclude Include="Arduino\EnableArduino.h" />
     <ClInclude Include="Arduino\Serial.h" />
-    <ClInclude Include="Arduino\Structs.h" />
+    <ClInclude Include="Client\Client.h" />
     <ClInclude Include="Client\Structs.h" />
     <ClInclude Include="Engine\Draw.h" />
-    <ClInclude Include="Engine\Draw2DShader.h" />
-    <ClInclude Include="Engine\Draw3DShader.h" />
     <ClInclude Include="Engine\Font.h" />
     <ClInclude Include="Engine\Shader.h" />
     <ClInclude Include="Engine\Sound.h" />
-    <ClInclude Include="Engine\TextShader.h" />
     <ClInclude Include="Engine\Texture.h" />
     <ClInclude Include="Engine\Window.h" />
     <ClInclude Include="JoyStick.h" />
     <ClInclude Include="lodepng\lodepng.h" />
-    <ClInclude Include="Client\Client.h" />
-    <ClInclude Include="AltiMeter.h" />
     <ClInclude Include="Reg.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="Widgets\AtitudeIndicator.h" />
     <ClInclude Include="Widgets\AirMap.h" />
-    <ClInclude Include="Widgets\Console.h" />
-    <ClInclude Include="Widgets\Control.h" />
     <ClInclude Include="Widgets\AirPlaneAutoPilot.h" />
-    <ClInclude Include="Widgets\Dock.h" />
-    <ClInclude Include="Widgets\LaunchAss.h" />
-    <ClInclude Include="Widgets\Orbit.h" />
-    <ClInclude Include="Widgets\VInfo.h" />
+    <ClInclude Include="Widgets\AtitudeIndicator.h" />
+    <ClInclude Include="Widgets\Container.h" />
+    <ClInclude Include="Widgets\Control.h" />
     <ClInclude Include="Widgets\NavBall.h" />
-    <ClInclude Include="Widgets\Settings.h" />
-    <ClInclude Include="Widgets\SoyuzNavball.h" />
+    <ClInclude Include="Widgets\Orbit.h" />
+    <ClInclude Include="Widgets\SoyuzNavBall.h" />
     <ClInclude Include="Widgets\Util\IM.h" />
     <ClInclude Include="Widgets\Util\TextureLoader.h" />
     <ClInclude Include="Widgets\Widget.h" />

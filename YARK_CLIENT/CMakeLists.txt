@@ -53,73 +53,59 @@ message("${PROJECT_NAME}: CURR BIN DIR: ${CMAKE_CURRENT_BINARY_DIR}")
 
 # Source Files
 set(SRC_FILES
-    #Arduino/Serial.cpp
-    #Arduino/Test.cpp
-    Client/Client.cpp
-    Engine/Draw.cpp
-    Engine/Draw2DShader.cpp
-    Engine/Draw3DShader.cpp
-    Engine/Font.cpp
-    Engine/Shader.cpp
-    Engine/Sound.cpp
-    Engine/TextShader.cpp
-    Engine/Texture.cpp
-    Engine/Window.cpp
-    lodepng/lodepng.cpp
-    Main.cpp
-    Widgets/AirMap.cpp
-    Widgets/AirPlaneAutoPilot.cpp
-    Widgets/AtitudeIndicator.cpp
-    Widgets/Console.cpp
-    Widgets/Control.cpp
-    Widgets/Dock.cpp
-    Widgets/LaunchAss.cpp
-    Widgets/NavBall.cpp
-    Widgets/Orbit.cpp
-    Widgets/Settings.cpp
-    Widgets/SoyuzNavBall.cpp
-    Widgets/Util/IM.cpp
-    Widgets/Util/TextureLoader.cpp
-    Widgets/VInfo.cpp
-    Widgets/Widget.cpp
+    Arduino/Arduino.cpp 
+    Arduino/Serial.cpp 
+    Client/Client.cpp 
+    Engine/Draw.cpp 
+    Engine/Font.cpp 
+    Engine/Shader.cpp 
+    Engine/Sound.cpp 
+    Engine/Texture.cpp 
+    Engine/Window.cpp 
+    lodepng/lodepng.cpp 
+    Main.cpp 
+    Widgets/AirMap.cpp 
+    Widgets/AirPlaneAutoPilot.cpp 
+    Widgets/AtitudeIndicator.cpp 
+    Widgets/Container.cpp 
+    Widgets/Control.cpp 
+    Widgets/NavBall.cpp 
+    Widgets/Orbit.cpp 
+    Widgets/SoyuzNavBall.cpp 
+    Widgets/Util/IM.cpp 
+    Widgets/Util/TextureLoader.cpp 
+    Widgets/Widget.cpp 
 )
 source_group("Sources" FILES ${SRC_FILES})
 
 # Header Files
 set(HEADERS_FILES
-    #Arduino/Serial.h
-    #Arduino/Structs.h
-    Client/Client.h
-    Client/Structs.h
-    Engine/Draw.h
-    Engine/Draw2DShader.h
-    Engine/Draw3DShader.h
-    Engine/Font.h
-    Engine/Shader.h
-    Engine/Sound.h
-    Engine/TextShader.h
-    Engine/Texture.h
-    Engine/Window.h
-    lodepng/lodepng.h
-    AltiMeter.h
-    JoyStick.h
-    Reg.h
-    resource.h
-    Widgets/AirMap.h
-    Widgets/AirPlaneAutoPilot.h
-    Widgets/AtitudeIndicator.h
-    Widgets/Console.h
-    Widgets/Control.h
-    Widgets/Dock.h
-    Widgets/LaunchAss.h
-    Widgets/NavBall.h
-    Widgets/Orbit.h
-    Widgets/Settings.h
-    Widgets/SoyuzNavBall.h
-    Widgets/Util/IM.h
-    Widgets/Util/TextureLoader.h
-    Widgets/VInfo.h
-    Widgets/Widget.h
+  AltiMeter.h 
+  Arduino/EnableArduino.h 
+  Arduino/Serial.h 
+  Client/Client.h 
+  Client/Structs.h 
+  Engine/Draw.h 
+  Engine/Font.h 
+  Engine/Shader.h 
+  Engine/Sound.h 
+  Engine/Texture.h 
+  Engine/Window.h 
+  JoyStick.h 
+  lodepng/lodepng.h 
+  Reg.h 
+  resource.h 
+  Widgets/AirMap.h 
+  Widgets/AirPlaneAutoPilot.h 
+  Widgets/AtitudeIndicator.h 
+  Widgets/Container.h 
+  Widgets/Control.h 
+  Widgets/NavBall.h 
+  Widgets/Orbit.h 
+  Widgets/SoyuzNavBall.h 
+  Widgets/Util/IM.h 
+  Widgets/Util/TextureLoader.h 
+  Widgets/Widget.h 
 )
 source_group("Headers" FILES ${HEADERS_FILES})
 

@@ -3,10 +3,11 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
-#include <glm/gtc/type_ptr.hpp>
+#include <gtc/type_ptr.hpp>
 
-GLuint LoadRawShader(const GLchar* vertexPath, const GLchar* fragmentPath)
+GLuint LoadSHader(const GLchar* vertexPath, const GLchar* fragmentPath)
 {
+	printf("Loading shader %s %s \n", vertexPath, fragmentPath);
 	GLuint shaderID;
 	bool hadError = false;
 	std::string vertexCode;
@@ -85,7 +86,7 @@ GLuint LoadRawShader(const GLchar* vertexPath, const GLchar* fragmentPath)
 	glDeleteShader(vertex);
 	glDeleteShader(fragment);
 	if (hadError) {
-		std::cout << "Could not load shader";
+		std::cout << "Could not load shader\n";
 	}
 	return shaderID;
 }

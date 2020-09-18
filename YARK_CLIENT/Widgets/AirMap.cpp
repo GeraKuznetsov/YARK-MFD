@@ -2,13 +2,7 @@
 
 #define CROSS_WIDTH 1
 
-#undef min
-#undef max
-
-AirMap::AirMap(WidgetStuff ws) :Widget(ws) {
-	glEnable(GL_LINE_SMOOTH);
-	glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-
+AirMap::AirMap() {
 	longLatFixed = true;
 	zoom = 50;
 
@@ -27,12 +21,16 @@ AirMap::AirMap(WidgetStuff ws) :Widget(ws) {
 }
 
 #define GLM_ENABLE_EXPERIMENTAL
-#include "glm/gtc/matrix_transform.hpp"
-#include "glm/gtx/rotate_vector.hpp"
+#include "gtc\matrix_transform.hpp"
+#include "gtx/rotate_vector.hpp"
 #include <iostream>
-#include "glm/gtx/string_cast.hpp"
+#include "gtx/string_cast.hpp"
 
-void AirMap::drawTarget(Target* t, Draw* draw, VesselPacket* VP, float zoom) {
+std::string AirMap::GetTitle() {
+	return "AirMap";
+}
+
+void AirMap::drawTarget(Target* t, XY pos, XY size, VesselPacket* VP, float zoom) {
 	//longLat = glm::vec2(VP->Lon, VP->Lat);
 	glm::vec2 start = glm::rotate(t->start.coord - longLat, glm::radians(VP->Heading));
 	glm::vec2 stop = glm::rotate(t->stop.coord - longLat, glm::radians(VP->Heading));
@@ -43,11 +41,11 @@ void AirMap::drawTarget(Target* t, Draw* draw, VesselPacket* VP, float zoom) {
 	y1 = -start.y + pos.y + size.y / 2;
 	x2 = stop.x + pos.x + size.x / 2;
 	y2 = -stop.y + pos.y + size.y / 2;
-	mx1 = glm::min(x1, x2) - 5;
-	mx2 = glm::max(x1, x2) + 5;
-	my1 = glm::min(y1, y2) - 5;
-	my2 = glm::max(y1, y2) + 5;
-	if (mouseInWindow && win->MouseX() > mx1 && win->MouseY() > my1 && win->MouseX() < mx2  && win->MouseY() < my2) {
+	mx1 = min(x1, x2) - 5;
+	mx2 = max(x1, x2) + 5;
+	my1 = min(y1, y2) - 5;
+	my2 = max(y1, y2) + 5;
+	if (win->MouseX() > mx1 && win->MouseY() > my1 && win->MouseX() < mx2 && win->MouseY() < my2) {
 		draw->SetDrawColor2D(1, 0, 0);
 		if (win->MouseClicked(SDL_BUTTON_LEFT)) {
 			if (target == t) {
@@ -71,16 +69,14 @@ void AirMap::drawTarget(Target* t, Draw* draw, VesselPacket* VP, float zoom) {
 
 }
 
-void AirMap::Tick(Draw* draw) {
-	WindowUpdate(draw);
-
-	VesselPacket VP = client->Vessel;
+void AirMap::Draw(XY pos, XY size) {
+	VesselPacket VP = client.Vessel;
 
 	if (lastSOI != VP.CurrentOrbit.SOINumber) {
-		mapTexture = TL->getPlanetTexture(lastSOI = VP.CurrentOrbit.SOINumber);
+		mapTexture = TL.getPlanetTexture(lastSOI = VP.CurrentOrbit.SOINumber);
 	}
 
-	if (mouseInWindow) {
+	if (win->MouseX() > pos.x && win->MouseX() < pos.x + size.x && win->MouseY() > pos.y && win->MouseY() < pos.y + size.y) {
 		if (win->MouseDoubleClicked(SDL_BUTTON_MIDDLE)) {
 			longLatFixed = true;
 		}
@@ -114,7 +110,7 @@ void AirMap::Tick(Draw* draw) {
 	if (target) {
 		start = glm::rotate(target->start.coord - longLat, glm::radians(VP.Heading));
 		stop = glm::rotate(target->stop.coord - longLat, glm::radians(VP.Heading));
-		float dist = glm::max(glm::length(start), glm::length(stop));
+		float dist = max(glm::length(start), glm::length(stop));
 		if (longLatFixed) { zoom = (size.x / 2 - 20) / dist; }
 	}
 	glm::vec2 uv1, uv2, uv3, uv4, p1, p2, p3, p4; //ugly code to calulate map UVs
@@ -147,14 +143,13 @@ void AirMap::Tick(Draw* draw) {
 
 	glm::vec2 cntr = glm::vec2(pos.x + size.x / 2, pos.y + size.y / 2);
 
-	draw->BindDraw2DShader();
+	draw->SwitchShader(SHADER_2D);
 	draw->SetDrawColor2D(0, 0, 0);
 	draw->DrawRect2D(pos.x, pos.y, pos.x + size.x, pos.y + size.y);
 	draw->BindTex2D(mapTexture);
 	draw->SetDrawColor2D(1, 1, 1);
 	draw->DrawRectUV2D(p1 + cntr, p2 + cntr, p3 + cntr, p4 + cntr, uv1, uv2, uv3, uv4);
 	draw->BindTex2D(0);
-
 
 	draw->SetDrawColor2D(0, 0, 1, 0.5); //DRAW CROSSHAIRS
 	draw->DrawRect2D(pos.x, pos.y + size.y / 2 - CROSS_WIDTH, pos.x + size.x, pos.y + size.y / 2 + CROSS_WIDTH);
@@ -164,7 +159,7 @@ void AirMap::Tick(Draw* draw) {
 	draw->SetDrawColor2D(1, 1, 1);
 	glLineWidth(3);
 	for (int i = 0; i < targets.size(); i++) {
-		drawTarget(&targets[i], draw, &VP, zoom);
+		drawTarget(&targets[i], pos, size, &VP, zoom);
 	}
 
 	if (target) {
@@ -189,7 +184,7 @@ void AirMap::Tick(Draw* draw) {
 			start += -dir * dash_size;
 		}
 	}
-	draw->BindTextShader();
+	draw->SwitchShader(SHADER_TEXT);
 	draw->SetTextColor(1, 1, 1);
 	if (target) {
 		draw->DrawString(f, target->name, pos.x, pos.y + 15);

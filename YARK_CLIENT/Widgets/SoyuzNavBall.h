@@ -5,7 +5,8 @@ class SoyuzNavBall :public NavBall {
 	int lastSOI = -1;
 	GLuint textureID;
 public:
-	SoyuzNavBall(WidgetStuff ws);
+	std::string GetTitle();
+	SoyuzNavBall();
 	void LoadNavBallTextures();
-	void Tick(Draw* draw);
+	void Draw(XY pos, XY size);
 };

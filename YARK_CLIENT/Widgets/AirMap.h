@@ -31,10 +31,11 @@ class AirMap : public Widget {
 
 	float zoom;
 	std::vector<Target> targets;
-	void drawTarget(Target* t, Draw* draw, VesselPacket* VP, float zoom);
+	void drawTarget(Target* t, XY pos, XY size, VesselPacket* VP, float zoom);
 
 	int lastSOI = -1;
 public:
-	AirMap(WidgetStuff ws);
-	void Tick(Draw* draw);
+	std::string GetTitle();
+	AirMap();
+	void Draw(XY pos, XY size);
 };

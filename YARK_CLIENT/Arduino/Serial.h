@@ -1,6 +1,8 @@
 #pragma once
-#define ARDUINO_WAIT_TIME 2000
-#define MAX_DATA_LENGTH 255
+//gives time for arduino to reset, run bootloader, etc
+#define ARDUINO_WAIT_TIME 4000
+#define ARDUINO_BAUD CBR_115200
+#define ARDUINO_TIME_OUT 1000
 
 #include <windows.h>
 #include <stdio.h>
@@ -14,10 +16,9 @@ private:
 	COMSTAT status;
 	DWORD errors;
 public:
-	SerialPort(char *portName);
+	SerialPort(char* portName);
 	~SerialPort();
-
-	int readSerialPort(char *buffer, unsigned int buf_size);
-	bool writeSerialPort(char *buffer, unsigned int buf_size);
+	bool readBytes(unsigned char* buffer, unsigned int buf_size);
+	bool writeBytes(unsigned char* buffer, unsigned int buf_size);
 	bool isConnected();
 };

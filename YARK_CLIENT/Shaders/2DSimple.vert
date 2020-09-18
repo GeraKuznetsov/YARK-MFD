@@ -8,6 +8,6 @@ uniform mat4 view;
 
 void main()
 {
-   gl_Position =  orthro * view * vec4(InVert,0, 1); 
+   gl_Position =  orthro * view * vec4(InVert, 0, 1); 
    uv = InText;  
 }
