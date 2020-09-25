@@ -1,10 +1,10 @@
 #include "Widget.h"
 
-std::string IP = "127.0.0.1";
-std::string PORT = "9999";
+extern std::string IP ;
+extern std::string PORT;
 
-TextBox tb = TextBox(&IP);
-TextBox tb2 = TextBox(&PORT);
+TextBox tb = TextBox(&IP, TEXT_ALLOW_ALL);
+TextBox tb2 = TextBox(&PORT, TEXT_ALLOW_ALL);
 
 Widget::Widget() {
 
@@ -18,17 +18,13 @@ std::string Widget::GetTitle() {
 
 void RadioOpt(XY pos, std::string option, std::string key) {
 	bool val = RegInt(key, 0);
-	if (IM::Radio(pos, &val)) {
+	if (IM::Radio(pos, &val, f, option)) {
 		Registry[key] = val ? 1 : 0;
 	}
-	draw->SwitchShader(SHADER_TEXT);
-	draw->SetTextColor(1, 1, 1);
-	draw->DrawString(f, option, pos.x + 20, pos.y + 14);
 }
 
 #include "../Arduino/EnableArduino.h"
 
-#define TEXT_OFFSET 35
 #include "../Arduino/Serial.h"
 extern bool ConnectedWithHand();
 #if ENABLE_ARDUINO
@@ -68,28 +64,29 @@ void Widget::Draw(XY pos, XY size) {
 	draw->SwitchShader(SHADER_TEXT);
 	if (win->HasJoyStick()) {
 		draw->SetTextColor(0, 1, 0);
-		draw->DrawString(f, "JoyStick: Connected", 15, 40 + 30 * 5 + TEXT_OFFSET);
+		draw->DrawString(f, "JoyStick: Connected", pos.x + 15, pos.y + 40 + 30 * 5 + TEXT_OFFSET);
 	}
 	else {
 		draw->SetTextColor(1, 0, 0);
-		draw->DrawString(f, "JoyStick: Not Connected", 15, 40 + 30 * 5 + TEXT_OFFSET);
+		draw->DrawString(f, "JoyStick: Not Connected", pos.x + 15, pos.y + 40 + 30 * 5 + TEXT_OFFSET);
 	}
 	RadioOpt(pos + XY{ 15  ,40 + 30 * 6 }, "Fly-By-Wire", "ENABLE_FLYBYWIRE");
 	RadioOpt(pos + XY{ 15 + 30,40 + 30 * 7 }, "Rocket Mode", "FLYBYWIRE_ROCKETMODE");
 	RadioOpt(pos + XY{ 15 + 30,40 + 30 * 8 }, "Joystick Vector Mode", "FORCE_SASS");
+	RadioOpt(pos + XY{ 15 ,40 + 30 * 9 }, "Fullscreen (Restart)", "FULLSCREEN");
 
 	draw->SwitchShader(SHADER_TEXT);
 #if ENABLE_ARDUINO
 	if (sp && sp->isConnected() && ConnectedWithHand()) {
 		draw->SetTextColor(0, 1, 0);
-		draw->DrawString(f, "Arduino: Connected", 15, 40 + 30 * 9 + TEXT_OFFSET);
+		draw->DrawString(f, "Arduino: Connected", pos.x + 15, pos.y + size.y - 20);
 	}
 	else {
 		draw->SetTextColor(1, 0, 0);
-		draw->DrawString(f, "Arduino: Disconnected", 15, 40 + 30 * 9 + TEXT_OFFSET);
+		draw->DrawString(f, "Arduino: Disconnected", pos.x + 15, pos.y + size.y - 20);
 	}
 #else
 	draw->SetTextColor(1, 1, 0);
-	draw->DrawString(f, "Arduino: Disabled In build", 15, 40 + 30 * 9 + TEXT_OFFSET);
+	draw->DrawString(f, "Arduino: Disabled In build", pos.x + 15, pos.y + size.y - 20);
 #endif
 }

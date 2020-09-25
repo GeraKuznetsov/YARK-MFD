@@ -2,9 +2,9 @@
 
 #include "Widget.h"
 #include "../Client/Client.h"
-#include "../Engine/Texture.h"
-#include "../Engine/Window.h"
-#include "../Engine/Draw.h"
+#include "../Wrap/Texture.h"
+#include "../Wrap/Window.h"
+#include "../Wrap/Draw.h"
 
 class AtitudeIndicator : public Widget {
 	GLuint chevronTex, triTex, tri_90;

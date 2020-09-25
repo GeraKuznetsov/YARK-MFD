@@ -1,6 +1,9 @@
 #include "SoyuzNavBall.h"
 #include "glm/gtc/matrix_transform.hpp"
 
+#undef min
+#undef max
+
 SoyuzNavBall::SoyuzNavBall() {
 
 }
@@ -19,7 +22,7 @@ void SoyuzNavBall::Draw(XY pos, XY size) {
 	VesselPacket VP = client.Vessel;
 
 	if (lastSOI != VP.CurrentOrbit.SOINumber) {
-		textureID = TL.getPlanetTexture(lastSOI = VP.CurrentOrbit.SOINumber);
+		textureID = TL.getPlanetTextureLow(lastSOI = VP.CurrentOrbit.SOINumber);
 	}
 
 	float rad = glm::min(size.x, size.y) / 2;

@@ -1,6 +1,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 
-#include <assert.h> 
+#include <assert.h>
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -25,7 +25,7 @@
 #endif
 #include "Client.h"
 
-uint16_t checksum(uint8_t *buffer, int length) {
+uint16_t checksum(uint8_t* buffer, int length) {
 	uint16_t acc = 0;
 	for (int i = 0; i < length; i++) {
 		acc += buffer[i];
@@ -49,7 +49,7 @@ void Client::SendManChange(uint8_t mode, uint8_t ID, float UT, glm::vec3 vector)
 	Send((char*)&ManChangePacket, sizeof(ManChangePacket));
 }
 
-void Client::Send(char *buff, int length) {
+void Client::Send(char* buff, int length) {
 	int	iResult = send(ConnectSocket, buff, length, 0);
 	if (iResult == -1) {
 #ifdef _WIN32
@@ -66,7 +66,7 @@ void Client::Send(char *buff, int length) {
 	}
 }
 
-bool Client::ReadBytes(char *buffer, uint16_t *checkSum, int bytesToRead) {
+bool Client::ReadBytes(char* buffer, uint16_t* checkSum, int bytesToRead) {
 	int bytesRead = 0;
 	while (bytesRead < bytesToRead) {
 		int result = recv(ConnectSocket, buffer + bytesRead, bytesToRead - bytesRead, 0);
@@ -119,11 +119,11 @@ void Client::Run(std::string IP, std::string PORT) {
 		return;
 	}
 #endif
-	struct addrinfo *result = NULL,
-		*ptr = NULL,
+	struct addrinfo* result = NULL,
+		* ptr = NULL,
 		hints;
 
-	//ZeroMemory(&hints, sizeof(hints));
+	ZeroMemory(&hints, sizeof(hints));
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = IPPROTO_TCP;
@@ -180,9 +180,20 @@ void Client::Run(std::string IP, std::string PORT) {
 #endif
 		return;
 	}
-	
+
+	/*
+	u_long mode = 1;
+	iResult = ioctlsocket(ConnectSocket, FIONBIO, &mode);
+	if (iResult != NO_ERROR) {
+		error = "oof";
+		state = TCPCLIENT_FAILED;
+		printf("ioctlsocket failed with error: %ld\n", iResult);
+		WSACleanup();
+		return;
+	}*/
+
 	state = TCP_CONNECTED;
-	
+
 	Running = true;
 	StatusPacket sP;
 	VesselPacket vP;
@@ -311,7 +322,7 @@ int Client::GetState() {
 }
 
 void Client::WaitForConnection() {
-	while (GetState() == TCP_CONNECTING) {} //wait for connection	
+	while (GetState() == TCP_CONNECTING) {} //wait for connection
 }
 
 void Client::Shutdown() {
@@ -330,5 +341,3 @@ void Client::Shutdown() {
 	}
 #endif
 }
-
-

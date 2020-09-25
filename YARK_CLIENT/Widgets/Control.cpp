@@ -20,8 +20,6 @@ void Control::SASOption(uint8_t thisMode, XY pos) {
 	if (IM::PushButton(renderAt)) {
 		client.Control.SASMode = thisMode;
 	}
-	//draw->BindTex2D(push);
-	//draw->DrawRect2D(renderAt.x, renderAt.y, renderAt.x + 64, renderAt.y + 64);
 	draw->BindTex2D(TL.SASModeTex(thisMode));
 	int inset = 10;
 	draw->DrawRect2D(renderAt.x + inset, renderAt.y + inset, renderAt.x + 64 - inset, renderAt.y + 64 - inset);
@@ -188,6 +186,7 @@ void Control::Draw(XY pos, XY size) {
 	Registry["SASS_ROLL"] = roll;
 
 	client.Control.SetControlerMode(CONTROLLER_THROTTLE, AXIS_OVERIDE);
+	printf("set: %d\n", client.Control.ControlerMode);
 
 	memcpy(&oldVessel, &vp, sizeof(VesselPacket));
 }

@@ -1,8 +1,18 @@
 #include "AirMap.h"
-
+#include <glm/gtc/type_ptr.hpp>
 #define CROSS_WIDTH 1
 
+#undef min
+#undef max
+
 AirMap::AirMap() {
+	shader = LoadSHader("Shaders/tilingMap.vert", "Shaders/tilingMap.frag");
+	glUseProgram(shader);
+	unifView = glGetUniformLocation(shader, "orthro");
+	glUniform1f(glGetUniformLocation(shader, "tileWidth"), BIG_TEX_NUM_X);
+	glUniform1f(glGetUniformLocation(shader, "tileHeight"), BIG_TEX_NUM_Y);
+	glUniform1i(glGetUniformLocation(shader, "tex"), 0);
+
 	longLatFixed = true;
 	zoom = 50;
 
@@ -31,7 +41,6 @@ std::string AirMap::GetTitle() {
 }
 
 void AirMap::drawTarget(Target* t, XY pos, XY size, VesselPacket* VP, float zoom) {
-	//longLat = glm::vec2(VP->Lon, VP->Lat);
 	glm::vec2 start = glm::rotate(t->start.coord - longLat, glm::radians(VP->Heading));
 	glm::vec2 stop = glm::rotate(t->stop.coord - longLat, glm::radians(VP->Heading));
 	start *= zoom;
@@ -72,9 +81,7 @@ void AirMap::drawTarget(Target* t, XY pos, XY size, VesselPacket* VP, float zoom
 void AirMap::Draw(XY pos, XY size) {
 	VesselPacket VP = client.Vessel;
 
-	if (lastSOI != VP.CurrentOrbit.SOINumber) {
-		mapTexture = TL.getPlanetTexture(lastSOI = VP.CurrentOrbit.SOINumber);
-	}
+	GLuint mapTexture = TL.getPlanetTextureHigh(lastSOI = VP.CurrentOrbit.SOINumber);
 
 	if (win->MouseX() > pos.x && win->MouseX() < pos.x + size.x && win->MouseY() > pos.y && win->MouseY() < pos.y + size.y) {
 		if (win->MouseDoubleClicked(SDL_BUTTON_MIDDLE)) {
@@ -105,7 +112,6 @@ void AirMap::Draw(XY pos, XY size) {
 		longLat = glm::vec2(VP.Lon, VP.Lat);
 	}
 
-	//float zoom = 0;
 	glm::vec2 start, stop;
 	if (target) {
 		start = glm::rotate(target->start.coord - longLat, glm::radians(VP.Heading));
@@ -113,6 +119,8 @@ void AirMap::Draw(XY pos, XY size) {
 		float dist = glm::max(glm::length(start), glm::length(stop));
 		if (longLatFixed) { zoom = (size.x / 2 - 20) / dist; }
 	}
+
+
 	glm::vec2 uv1, uv2, uv3, uv4, p1, p2, p3, p4; //ugly code to calulate map UVs
 	glm::vec2 o1, o2, o3, o4;
 	o1 = glm::rotate((p1 = glm::vec2(-size.x / 2, -size.y / 2)), glm::radians(-VP.Heading));
@@ -124,8 +132,6 @@ void AirMap::Draw(XY pos, XY size) {
 	uv2 = longLat + o2 / zoom;
 	uv3 = longLat + o3 / zoom;
 	uv4 = longLat + o4 / zoom;
-
-	//std::cout << glm::to_string(longLat) << "\n";
 
 	uv1 = uv1 / glm::vec2(360.f, 180.f) + glm::vec2(0.5f, 0.5f);
 	uv2 = uv2 / glm::vec2(360.f, 180.f) + glm::vec2(0.5f, 0.5f);
@@ -143,19 +149,16 @@ void AirMap::Draw(XY pos, XY size) {
 
 	glm::vec2 cntr = glm::vec2(pos.x + size.x / 2, pos.y + size.y / 2);
 
-	draw->SwitchShader(SHADER_2D);
-	draw->SetDrawColor2D(0, 0, 0);
-	draw->DrawRect2D(pos.x, pos.y, pos.x + size.x, pos.y + size.y);
-	draw->BindTex2D(mapTexture);
-	draw->SetDrawColor2D(1, 1, 1);
+	glUseProgram(shader);
+	glUniformMatrix4fv(unifView, 1, false, glm::value_ptr(draw->GetOrthroMat()));
+	glBindTexture(GL_TEXTURE_2D_ARRAY, TL.getPlanetTextureHigh(VP.CurrentOrbit.SOINumber));
 	draw->DrawRectUV2D(p1 + cntr, p2 + cntr, p3 + cntr, p4 + cntr, uv1, uv2, uv3, uv4);
-	draw->BindTex2D(0);
 
+	draw->SwitchShader(SHADER_2D);
 	draw->SetDrawColor2D(0, 0, 1, 0.5); //DRAW CROSSHAIRS
 	draw->DrawRect2D(pos.x, pos.y + size.y / 2 - CROSS_WIDTH, pos.x + size.x, pos.y + size.y / 2 + CROSS_WIDTH);
 	draw->SetDrawColor2D(1, 0, 0, 0.5);
 	draw->DrawRect2D(pos.x + size.x / 2 - CROSS_WIDTH, pos.y, pos.x + size.x / 2 + CROSS_WIDTH, pos.y + size.y);
-
 	draw->SetDrawColor2D(1, 1, 1);
 	glLineWidth(3);
 	for (int i = 0; i < targets.size(); i++) {
@@ -189,9 +192,4 @@ void AirMap::Draw(XY pos, XY size) {
 	if (target) {
 		draw->DrawString(f, target->name, pos.x, pos.y + 15);
 	}
-	//draw->DrawString(f, "zoom: " + std::to_string(zoom), pos.x, pos.y + 45);
-	//std::string fixed = longLatFixed ? "(fixed)" : "";
-	//draw->DrawString(f, "longLat: " + std::to_string(longLat.x) + " : " + std::to_string(longLat.y) + fixed, pos.x, pos.y + 90);
-
-
 }

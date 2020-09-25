@@ -1,6 +1,7 @@
 #pragma once
 #include "Widget.h"
 #include "../Client/Client.h"
+#include "Util/BodyInfo.h"
 
 #define T_INITIAL 0
 #define T_FINAL 1
@@ -12,17 +13,12 @@
 #define ORBIT_MAX_PATCHES 20
 
 class OrbitDisplay : public Widget {
+	bool LockView;
 	struct View{
 		glm::vec2 viewAngle;
 		float zoom;
 	};
-	struct Planet {
-		std::string name;
-		float rad;
-		float soiDist;
-		float mass;
-		View view;
-	};
+	View views[NUM_BODIES];
 	class Orbit {
 		float pRad;
 	public:
@@ -35,13 +31,14 @@ class OrbitDisplay : public Widget {
 		bool renderAP, renderPE;
 		glm::vec3 Craft, AP, PE, EN, AN, DN;
 		Orbit(int vertCount);
-		void PropogateOrbit(OrbitData* o, std::vector<Planet> planets, glm::vec3 col, bool forceSolid);
+		void PropogateOrbit(OrbitData* o, glm::vec3 col, bool forceSolid);
 		~Orbit();
 		void DrawPath(GLuint colorUnif);
 		void DrawFlair(bool drawAN);
 	};
+	OrbitData* lockTo = 0;
 	GLuint shader, viewUnif, projUnif, colorUnif;
-	Orbit *equator, *primeMerid, *primeMerid2;
+	Orbit *equator, *primeMerid, *primeMerid2, *orthToCam;
 
 	glm::vec3 V_AN, V_DN, T_AN, T_DN, V_CA, T_CA;
 
@@ -50,18 +47,16 @@ class OrbitDisplay : public Widget {
 	int OrbitPatchesCount;
 	Orbit *OrbitPatches[ORBIT_MAX_PATCHES];
 
-	int OrbitRecalcFrameSkip = 0;
 	int SOI = 4, lastSOI = -1;
 
 	//orbit list
 	int orbitSelected = 0;
 	int oly, olx, olc = 0;
-	void OrbitListOption(XY pos, OrbitData *o, Orbit *orb, ManData *manD, OrbitData *next, ClosestAprouchData *CAD, char *forceName);
+	void OrbitListOption(XY pos, XY size, OrbitData *o, Orbit *orb, ManData *manD,int mID, OrbitData *next, ClosestAprouchData *CAD, char *forceName, OrbitData* prev);
 	glm::vec3 GetCol(bool man, int i);
 public:
 	std::string GetTitle();
 	~OrbitDisplay();
-	std::vector<Planet> planets;
 	OrbitDisplay();
 	void Draw(XY pos, XY size);
 };

@@ -17,10 +17,7 @@ AtitudeIndicator::AtitudeIndicator() {
 #define XINSET 5
 
 #define TEX_Y_OFFSET 6
-//#define TEX_LEFT_X_OFFSET 10
 #define DOWN_SHIFT 5
-
-#include "../Reg.h"
 
 std::string AtitudeIndicator::GetTitle() {
 	return "Atitude Indicator";
@@ -101,7 +98,7 @@ void AtitudeIndicator::Draw(XY pos, XY size) {
 	draw->SetDrawColor2D(1, 1, 1);
 	draw->BindTex2D(triTex);
 
-	int ARC_OFFSET = RegInt("ATI-IN_ARC_OFFSET", 65);
+	int ARC_OFFSET = 65;
 
 	view = glm::translate(glm::mat4(1), glm::vec3(pos.x + size.x / 2, pos.y + size.x / 2, 0));
 	view = glm::rotate(view, glm::radians(VP.Roll), glm::vec3(0, 0, 1));
@@ -139,9 +136,9 @@ void AtitudeIndicator::Draw(XY pos, XY size) {
 		draw->DrawLine2D(pos.x + size.x / 2 + x * r1, pos.y + y_down + y * r1, pos.x + size.x / 2 + x * r2, pos.y + y_down + y * r2);
 	}
 
-	int BAR_INSET = RegInt("ATI-IN_BARSINSET", 50);
-	int VELO_YSPACE = RegInt("ATI-IN_VELO_YSPACE", 35);
-	int VELO_DELTA = RegInt("ATI-IN_VELO_DELTA", 10);
+	int BAR_INSET = 50;
+	int VELO_YSPACE = 35;
+	int VELO_DELTA = 10;
 
 	float height = (pos.y + size.y - 10) - (pos.y + 10);
 
@@ -165,8 +162,8 @@ void AtitudeIndicator::Draw(XY pos, XY size) {
 
 	draw->SwitchShader(SHADER_2D); //DRAW ALTITUDE BAR
 
-	int ALT_YSPACE = RegInt("ATI-IN_ALT_YSPACE", 35);
-	int ALT_DELTA = RegInt("ATI-IN_ALT_DELTA", 10);
+	int ALT_YSPACE = 35;
+	int ALT_DELTA = 10;
 
 	y_mod = int(VP.RAlt / ALT_DELTA * ALT_YSPACE) % ALT_YSPACE;
 	y_down = int(VP.RAlt) / ALT_DELTA * ALT_DELTA;

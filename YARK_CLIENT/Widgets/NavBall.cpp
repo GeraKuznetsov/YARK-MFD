@@ -2,6 +2,9 @@
 #include <iostream>
 #include "../Reg.h"
 
+#undef min
+#undef max
+
 #if not _WIN32
 #define sprintf_s sprintf
 #endif
@@ -56,6 +59,7 @@ NavBall::NavBall() {
 std::string NavBall::GetTitle() {
 	return "NavBall";
 }
+
 void SphereDraw::DrawSphere(GLuint texture, glm::mat4 modelMat, glm::mat4 rotMat) {
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture);

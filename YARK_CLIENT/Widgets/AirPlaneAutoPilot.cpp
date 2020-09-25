@@ -2,6 +2,18 @@
 #include "Util/IM.h"
 #include "../Reg.h"
 
+#undef min
+#undef max
+
+std::string spdtxt = "200";
+std::string alttxt = "2000";
+std::string maxpitchtxt = "10";
+std::string maxaoatxt = "5";
+TextBox inSpeed = TextBox(&spdtxt, TEXT_ALLOW_NUM);
+TextBox inAlt = TextBox(&alttxt, TEXT_ALLOW_NUM);
+TextBox inMP = TextBox(&maxpitchtxt, TEXT_ALLOW_NUM);
+TextBox inMAOA = TextBox(&maxaoatxt, TEXT_ALLOW_NUM);
+
 AirPlaneAutoPilot::AirPlaneAutoPilot() {
 	RegInt("AP_MAX_AOA", 10);
 	RegInt("AP_SPEED", 1000);
@@ -10,17 +22,6 @@ AirPlaneAutoPilot::AirPlaneAutoPilot() {
 
 #define SIGN(x) ((x<0)?((float)-1):((float)1))
 #define CLAMP(x, low, high)  (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
-
-/*void AirPlaneAutoPilot::FloatPM(Draw* draw, float* fl, int dig, float grad) {
-	if (IM::Button(pos + lastPos + XY{ 0,-7 }, win, draw, f, "-")) {
-		(*fl) -= grad;
-	}
-	IM::SegInt(pos + lastPos + XY{ 45,-12 }, win, draw, int(*fl), dig);
-	if (IM::Button(pos + lastPos + XY{ 100, -7 }, win, draw, f, "+")) {
-		(*fl) += grad;
-	}
-	lastPos.y += 40;
-}*/
 
 std::string AirPlaneAutoPilot::GetTitle() {
 	return "AirPlane auto Pilot";
@@ -31,102 +32,95 @@ void AirPlaneAutoPilot::Draw(XY pos, XY size) {
 	draw->SetDrawColor2D(62.f / 256.f, 62.f / 256.f, 61.f / 256.f);
 	draw->DrawRect2D(pos.x, pos.y, pos.x + size.x, pos.y + size.y);
 
-	lastPos = XY{ 48,0 };
+	int y = 0;
 
-	Toggle("Autopilot", &enabled, pos);
+	IM::Radio(pos + XY{ 40,40 + 30 * y++ }, &maintainAlt, f, "Maintain altitude");
+	IM::Radio(pos + XY{ 40,40 + 30 * y++ }, &maintainSpeed, f, "Maintain speed");
+	draw->SwitchShader(SHADER_TEXT);
+	draw->SetTextColor(1, 1, 1);
+	if (IM::Button(pos + XY{ 40,40 + 30 * y++ }, f, "Target Altitude: " + std::to_string(targetAlt))) {
+		open = (open == 1) ? 0 : 1;
+	}
+	if (open == 1) {
+		IM::TextInput(pos + XY{ 40,40 + 30 * y++ }, 100, f, &inAlt, "Input Target Altitude: ");
+		if (IM::Button(pos + XY{ 40,40 + 30 * y++ }, f, "Set")) {
+			targetAlt = std::stoi(alttxt);
+		}
+	}
+	if (IM::Button(pos + XY{ 40,40 + 30 * y++ }, f, "Target Speed: " + std::to_string(targetSpeed))) {
+		open = (open == 2) ? 0 : 2;
+	}
+	if (open == 2) {
+		IM::TextInput(pos + XY{ 40,40 + 30 * y++ }, 100, f, &inSpeed, "Input Target Speed: ");
+		if (IM::Button(pos + XY{ 40,40 + 30 * y++ }, f, "Set")) {
+			targetSpeed = std::stoi(spdtxt);
+		}
+	}
+	if (IM::Button(pos + XY{ 40,40 + 30 * y++ }, f, "Max pitch angle: " + std::to_string(maxPitch))) {
+		open = (open == 3) ? 0 : 3;
+	}
+	if (open == 3) {
+		IM::TextInput(pos + XY{ 40,40 + 30 * y++ }, 100, f, &inMP, "Input Max Pitch: ");
+		if (IM::Button(pos + XY{ 40,40 + 30 * y++ }, f, "Set")) {
+			maxPitch = std::stoi(maxpitchtxt);
+		}
+	}
+	if (IM::Button(pos + XY{ 40,40 + 30 * y++ }, f, "Max AoA: " + std::to_string(maxAoA))) {
+		open = (open == 4) ? 0 : 4;
+	}
+	if (open == 4) {
+		IM::TextInput(pos + XY{ 40,40 + 30 * y++ }, 100, f, &inMAOA, "Input Max AoA: ");
+		if (IM::Button(pos + XY{ 40,40 + 30 * y++ }, f, "Set")) {
+			maxAoA = std::stoi(maxaoatxt);
+		}
+	}
 
-	float maxAngle = Registry["AP_MAX_AOA"], alt = Registry["AP_ALT"], speed = Registry["AP_SPEED"];
+	if (maintainAlt) {
+		client.Control.SetMainControl(MC_SAS, true);
+		client.Control.SASMode = SAS_HOLD_VECTOR;
 
-	lastPos.y += 135;
-	lastPos.x -= 50;
-	FloatPM(pos, "Max AoA", &maxAngle, 1, 2, false);
-	maxAngle = CLAMP(maxAngle, 0.f, 20.f);
-	FloatPM(pos, "Target Altatude", &alt, 10, 5, false);
-	alt = CLAMP(alt, 0, 20000);
+		float deltaAlt = targetAlt - client.Vessel.Alt;
+		Registry["SASS_HEADING"] = client.Vessel.Heading;
+		Registry["SASS_ROLL"] = client.Vessel.Roll;
 
-	FloatPM(pos, "Target Airspeed", &speed, 5, 3, false);
-	speed = CLAMP(speed, 0, 500);
-
-	Registry["AP_MAX_AOA"] = maxAngle;
-	Registry["AP_SPEED"] = speed;
-	Registry["AP_ALT"] = alt;
-
-	if (enabled) {
+		float pitchTarg;
+		float result;
+		if (abs(deltaAlt) < 200) {
+			result = glm::max(sqrt(abs(deltaAlt / 200)) * maxPitch, 0.1f) * SIGN(deltaAlt);
+		}
+		else {
+			result = maxPitch * SIGN(deltaAlt);
+		}
+		if (result > client.Vessel.Prograde.Pitch + maxAoA) {
+			result = client.Vessel.Prograde.Pitch + maxAoA;
+		}
+		if (result < client.Vessel.Prograde.Pitch - maxAoA) {
+			result = client.Vessel.Prograde.Pitch - maxAoA;
+		}
+		Registry["SASS_PITCH"] = result;
+	}
+	if (maintainSpeed) {
 		client.Control.SetControlerMode(CONTROLLER_THROTTLE, AXIS_OVERIDE);
 		if (client.Vessel.ID > lastID) { //If we got a new packet
-			lastID = client.Vessel.ID;
-
-			float deltaAlt = alt - client.Vessel.Alt;
-			//printf("vessel: %f, taget: %f, d: %f\n", client.Vessel.Alt, alt, deltaAlt);
-
-			Registry["SASS_HEADING"] = client.Vessel.Heading;
-			Registry["SASS_ROLL"] = client.Vessel.Roll;
-
-			float pitchTarg;
-			if (abs(deltaAlt) < 200) {
-				Registry["SASS_PITCH"] = glm::max(sqrt(abs(deltaAlt / 200)) * maxAngle, 0.1f) * SIGN(deltaAlt);
-			}
-			else {
-				Registry["SASS_PITCH"] = maxAngle * SIGN(deltaAlt);
-			}
-
-			double thisSpead = client.Vessel.Vsurf;
-			double dSpeed = thisSpead - lastSpead; //Calculate change in speed between packets
-			lastSpead = thisSpead;
-
+			printf("a\n");
 			double thisTime = client.Vessel.MissionTime;
 			double dTime = thisTime - lastTime; //Calulate change in time between packets
-			lastTime = thisTime;
+			if (dTime > 0.001) {
+				lastTime = thisTime;
 
-			double dSpeedPerSecond = dSpeed / dTime; //change in speed per second 
+				double thisSpead = client.Vessel.Vsurf;
+				double dSpeed = thisSpead - lastSpead; //Calculate change in speed between packets
+				lastSpead = thisSpead;
+				printf("%f\n", dSpeed);
 
-			double speedError = speed - thisSpead; //how much we need to change our speed
-
-			double timeToGoal = (speedError) / dSpeedPerSecond; //how much time to reach the goal speed
-
-			double dir = SIGN(dSpeedPerSecond * speedError);
-
-		//	printf("dSpeedPerSecond: %f, speedError: %f timeToGoal: %f ", dSpeedPerSecond, speedError, timeToGoal);
-
-
-			float p = speed - thisSpead;
-			float d = dSpeedPerSecond * (-0.5);
-			float thr = glm::min(glm::max(p + d, 0.f), 1.f);
-
-			printf("%f \n", thr);
-			THROTTLE = 1000.f * thr;
-
-			if (dSpeedPerSecond < 0) {
-				if (speedError < 0) {
-					//use curve
-				}
-				else {
-					//speed up
-					//printf("speed up\n");
-					//THROTTLE = 1000;
-				}
+				float p = targetSpeed - client.Vessel.Vsurf;
+				float d = -(dSpeed / dTime) / 10;
+				float thr = glm::min(glm::max(p + d, 0.f), 1.f);
+				Registry["THROTTLE"] = 1000.f * thr;
 			}
-			else {
-				if (speedError < 0) {
-					//slow down
-					//printf("slow down\n");
-					//THROTTLE = 0;
-				}
-				else {
-					//use curve
-				}
+			else if (thisTime < lastTime) {
+				lastTime = 0;
 			}
 		}
-		client.Control.SASMode = SAS_HOLD_VECTOR;
-		Registry["THROTTLE"] = THROTTLE;
-
 	}
-	else {
-		client.Control.SetControlerMode(CONTROLLER_THROTTLE, AXIS_EXT_NZ);
-	}
-	//if (win->HasJoyStick()) {
-	//Option("Fly-By-Wire", "ENABLE_FLYBYWIRE", draw);
-	//Option("Rocket Mode", "FLYBYWIRE_ROCKETMODE", draw);
-	//Option("Smart Attitude control", "FORCE_SASS", draw);
-	//}
 }

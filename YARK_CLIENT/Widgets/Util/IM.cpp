@@ -30,7 +30,7 @@ void IM::TextInput(XY pos, int width, Font* f, TextBox* tb, std::string prompt) 
 
 	draw->DrawRect2D(pos.x, pos.y, pos.x + size.x, pos.y + size.y);
 	draw->SwitchShader(SHADER_TEXT);
-	draw->DrawString(f, *tb->text, pos.x +  10, pos.y + 15);
+	draw->DrawString(f, *tb->text, pos.x + 10, pos.y + 15);
 	if (tb->type) {
 		if (win->KeyRepeating(SDL_SCANCODE_LEFT) && tb->pos != 0) {
 			tb->pos--;
@@ -38,30 +38,36 @@ void IM::TextInput(XY pos, int width, Font* f, TextBox* tb, std::string prompt) 
 		if (win->KeyRepeating(SDL_SCANCODE_RIGHT) && tb->pos < tb->text->size()) {
 			tb->pos++;
 		}
-		for (int i = SDL_SCANCODE_A; i <= SDL_SCANCODE_Z; i++) {
-			if (win->KeyRepeating(i)) {
-				int add = (win->KeyDown(SDL_SCANCODE_LSHIFT) || win->KeyDown(SDL_SCANCODE_RSHIFT)) ? 'A' : 'a';
-				tb->text->insert(tb->text->begin() + tb->pos, (i - SDL_SCANCODE_A + add));
+		if (tb->flag && TEXT_ALLOW_CHAR) {
+			for (int i = SDL_SCANCODE_A; i <= SDL_SCANCODE_Z; i++) {
+				if (win->KeyRepeating(i)) {
+					int add = (win->KeyDown(SDL_SCANCODE_LSHIFT) || win->KeyDown(SDL_SCANCODE_RSHIFT)) ? 'A' : 'a';
+					tb->text->insert(tb->text->begin() + tb->pos, (i - SDL_SCANCODE_A + add));
+					tb->pos++;
+				}
+			}
+		}
+		if (tb->flag && TEXT_ALLOW_NUM) {
+			for (int i = SDL_SCANCODE_1; i <= SDL_SCANCODE_9; i++) {
+				if (win->KeyRepeating(i)) {
+					tb->text->insert(tb->text->begin() + tb->pos, (i - SDL_SCANCODE_1 + '1'));
+					tb->pos++;
+				}
+			}
+			if (win->KeyRepeating(SDL_SCANCODE_0)) {
+				tb->text->insert(tb->text->begin() + tb->pos, '0');
 				tb->pos++;
 			}
 		}
-		for (int i = SDL_SCANCODE_1; i <= SDL_SCANCODE_9; i++) {
-			if (win->KeyRepeating(i)) {
-				tb->text->insert(tb->text->begin() + tb->pos, (i - SDL_SCANCODE_1 + '1'));
+		if (tb->flag && TEXT_ALLOW_OTHER) {
+			if (win->KeyRepeating(SDL_SCANCODE_PERIOD)) {
+				tb->text->insert(tb->text->begin() + tb->pos, '.');
 				tb->pos++;
 			}
-		}
-		if (win->KeyRepeating(SDL_SCANCODE_0)) {
-			tb->text->insert(tb->text->begin() + tb->pos, '0');
-			tb->pos++;
-		}
-		if (win->KeyRepeating(SDL_SCANCODE_PERIOD)) {
-			tb->text->insert(tb->text->begin() + tb->pos, '.');
-			tb->pos++;
-		}
-		if (win->KeyRepeating(SDL_SCANCODE_SEMICOLON) && (win->KeyDown(SDL_SCANCODE_LSHIFT) || win->KeyDown(SDL_SCANCODE_RSHIFT))) {
-			tb->text->insert(tb->text->begin() + tb->pos, ':');
-			tb->pos++;
+			if (win->KeyRepeating(SDL_SCANCODE_SEMICOLON) && (win->KeyDown(SDL_SCANCODE_LSHIFT) || win->KeyDown(SDL_SCANCODE_RSHIFT))) {
+				tb->text->insert(tb->text->begin() + tb->pos, ':');
+				tb->pos++;
+			}
 		}
 		if (win->KeyRepeating(SDL_SCANCODE_BACKSPACE) && tb->pos != 0) {
 			tb->text->erase(tb->pos - 1, 1);
@@ -216,12 +222,15 @@ bool IM::Button(XY pos, XY size, GLuint tex) {
 	return in && win->MouseClicked(SDL_BUTTON_LEFT);
 }
 
-bool IM::Radio(XY pos, bool* ptr) {
+bool IM::Radio(XY pos, bool* ptr, Font* f, std::string text) {
 	draw->SwitchShader(SHADER_2D);
 	draw->SetDrawColor2D(1, 1, 1);
 	draw->BindTex2D(*ptr ? IM::rad1 : IM::rad0);
 	draw->DrawRect2D(pos.x, pos.y, pos.x + 16, pos.y + 16);
 	draw->BindTex2D();
+	draw->SwitchShader(SHADER_TEXT);
+	draw->SetTextColor(1, 1, 1);
+	draw->DrawString(f, text, pos.x + 20, pos.y + 14);
 	if (win->MouseX() > pos.x && win->MouseY() > pos.y && win->MouseX() < pos.x + 16 && win->MouseY() < pos.y + 16) {
 		if (win->MouseClicked(SDL_BUTTON_LEFT)) {
 			*ptr = !*ptr;

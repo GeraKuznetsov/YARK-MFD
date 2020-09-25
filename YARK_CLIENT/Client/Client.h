@@ -29,6 +29,7 @@ struct OrbitPlan {
 };
 
 class Client {
+#pragma pack(push, 1)
 	struct {
 		Header header;
 		uint8_t mode; //0=set //1=new //2=delete
@@ -36,6 +37,7 @@ class Client {
 		double UT;
 		float X, Y, Z;
 	} ManChangePacket;
+#pragma pack(pop)
 
 #ifdef _WIN32
 	SOCKET ConnectSocket;

@@ -85,7 +85,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\CPP_LIB\freetype\include;C:\CPP_LIB\glew-2.0.0\include\GL;C:\CPP_LIB\SDL2\include;C:\CPP_LIB\glm\;C:\CPP_LIB\lodepng\;C:\CPP_LIB\Dirent\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\CPP_LIB\freetype\include;C:\CPP_LIB\glew-2.0.0\include\;C:\CPP_LIB\SDL2\include;C:\CPP_LIB\;C:\CPP_LIB\lodepng\;C:\CPP_LIB\Dirent\</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
     </ClCompile>
     <Link>
@@ -115,7 +115,8 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\CPP_LIB\freetype\include;C:\CPP_LIB\glew-2.0.0\include\GL;C:\CPP_LIB\SDL2\include;C:\CPP_LIB\glm\;C:\CPP_LIB\lodepng\;C:\CPP_LIB\Dirent\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\CPP_LIB\freetype\include;C:\CPP_LIB\glew-2.0.0\include\;C:\CPP_LIB\SDL2\include;C:\CPP_LIB\;C:\CPP_LIB\lodepng\;C:\CPP_LIB\Dirent\</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -128,12 +129,16 @@
     <ClCompile Include="Arduino\Arduino.cpp" />
     <ClCompile Include="Arduino\Serial.cpp" />
     <ClCompile Include="Client\Client.cpp" />
-    <ClCompile Include="Engine\Draw.cpp" />
-    <ClCompile Include="Engine\Font.cpp" />
-    <ClCompile Include="Engine\Shader.cpp" />
-    <ClCompile Include="Engine\Sound.cpp" />
-    <ClCompile Include="Engine\Texture.cpp" />
-    <ClCompile Include="Engine\Window.cpp" />
+    <ClCompile Include="Log.cpp" />
+    <ClCompile Include="Widgets\Fuel.h" />
+    <ClCompile Include="Widgets\Fuel.cpp" />
+    <ClCompile Include="Widgets\Grapher.cpp" />
+    <ClCompile Include="Wrap\Draw.cpp" />
+    <ClCompile Include="Wrap\Font.cpp" />
+    <ClCompile Include="Wrap\Shader.cpp" />
+    <ClCompile Include="Wrap\Sound.cpp" />
+    <ClCompile Include="Wrap\Texture.cpp" />
+    <ClCompile Include="Wrap\Window.cpp" />
     <ClCompile Include="lodepng\lodepng.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Widgets\AirMap.cpp" />
@@ -141,9 +146,11 @@
     <ClCompile Include="Widgets\AtitudeIndicator.cpp" />
     <ClCompile Include="Widgets\Container.cpp" />
     <ClCompile Include="Widgets\Control.cpp" />
+    <ClCompile Include="Widgets\Dock.cpp" />
     <ClCompile Include="Widgets\NavBall.cpp" />
     <ClCompile Include="Widgets\Orbit.cpp" />
     <ClCompile Include="Widgets\SoyuzNavBall.cpp" />
+    <ClCompile Include="Widgets\Util\BodyInfo.cpp" />
     <ClCompile Include="Widgets\Util\IM.cpp" />
     <ClCompile Include="Widgets\Util\TextureLoader.cpp" />
     <ClCompile Include="Widgets\Widget.cpp" />
@@ -154,12 +161,14 @@
     <ClInclude Include="Arduino\Serial.h" />
     <ClInclude Include="Client\Client.h" />
     <ClInclude Include="Client\Structs.h" />
-    <ClInclude Include="Engine\Draw.h" />
-    <ClInclude Include="Engine\Font.h" />
-    <ClInclude Include="Engine\Shader.h" />
-    <ClInclude Include="Engine\Sound.h" />
-    <ClInclude Include="Engine\Texture.h" />
-    <ClInclude Include="Engine\Window.h" />
+    <ClInclude Include="Log.h" />
+    <ClInclude Include="Widgets\Grapher.h" />
+    <ClInclude Include="Wrap\Draw.h" />
+    <ClInclude Include="Wrap\Font.h" />
+    <ClInclude Include="Wrap\Shader.h" />
+    <ClInclude Include="Wrap\Sound.h" />
+    <ClInclude Include="Wrap\Texture.h" />
+    <ClInclude Include="Wrap\Window.h" />
     <ClInclude Include="JoyStick.h" />
     <ClInclude Include="lodepng\lodepng.h" />
     <ClInclude Include="Reg.h" />
@@ -169,9 +178,11 @@
     <ClInclude Include="Widgets\AtitudeIndicator.h" />
     <ClInclude Include="Widgets\Container.h" />
     <ClInclude Include="Widgets\Control.h" />
+    <ClInclude Include="Widgets\Dock.h" />
     <ClInclude Include="Widgets\NavBall.h" />
     <ClInclude Include="Widgets\Orbit.h" />
     <ClInclude Include="Widgets\SoyuzNavBall.h" />
+    <ClInclude Include="Widgets\Util\BodyInfo.h" />
     <ClInclude Include="Widgets\Util\IM.h" />
     <ClInclude Include="Widgets\Util\TextureLoader.h" />
     <ClInclude Include="Widgets\Widget.h" />
@@ -179,9 +190,6 @@
   <ItemGroup>
     <None Include="Shaders\sphere.frag" />
     <None Include="Shaders\sphere.vert" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="config.txt" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="YARK_CLIENT.rc" />

@@ -1,8 +1,8 @@
 #pragma once
 #include "Widget.h"
 #include "../Client/Client.h"
-#include "../Engine/Texture.h"
-#include "../Engine/Draw.h"
+#include "../Wrap/Texture.h"
+#include "../Wrap/Draw.h"
 #include <vector>
 
 struct wayPoint {
@@ -19,8 +19,9 @@ struct Target {
 };
 
 class AirMap : public Widget {
+	GLuint shader, unifView;
+
 	Target* target;
-	GLuint mapTexture;
 	bool longLatFixed;
 	glm::vec2 longLat;
 

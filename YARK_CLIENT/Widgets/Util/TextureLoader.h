@@ -1,18 +1,23 @@
 #pragma once
 #include <string>
-#include "../../Engine/Draw.h"
-#define NUM_PLANETS 17
-
-const std::string SOIs[NUM_PLANETS] = { "sun", "moho", "eve", "gilly","kerbin","mun","minmus","duna","ike","dres","jool","laythe","vall","tylo","bop","pol","eeloo" };
-
+#include "../../Wrap/Draw.h"
+#include "BodyInfo.h"
 #include "../../Client/Structs.h"
 
+#define BIG_TEX_NUM_X 2
+#define BIG_TEX_NUM_Y 1
+
+struct PlanetTexCache {
+	GLuint ID;
+};
+
 class TextureLoader {
-	GLuint planetTextureCache[NUM_PLANETS];
-	//GLuint PGTex, RGTex, RITex, ROTex, NTex, ANTex, TRGTex, TPGTex, MTex, SASSTex;
-	GLuint sasModeTexs[SAS_HOLD_VECTOR + 2];
-	bool sasModesLoaded = false;
+	GLuint sasModeTexs[SAS_HOLD_VECTOR + 4];
+	PlanetTexCache planetTexHigh[NUM_BODIES];
+	PlanetTexCache planetTexLow[NUM_BODIES];
 public:
-	GLuint getPlanetTexture(int SOI);
+	void Start();
+	GLuint getPlanetTextureHigh(int SOI);
+	GLuint getPlanetTextureLow(int SOI);
 	GLuint SASModeTex(int SASMode);
 };

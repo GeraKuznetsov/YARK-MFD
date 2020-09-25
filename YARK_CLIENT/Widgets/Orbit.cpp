@@ -11,7 +11,6 @@
 #define sprintf_s sprintf
 #endif
 
-
 OrbitDisplay::Orbit::Orbit(int vertCount) {
 	this->vertCount = vertCount;
 	glGenBuffers(1, &VBOID);
@@ -82,30 +81,14 @@ OrbitDisplay::OrbitDisplay() {
 	colorUnif = glGetUniformLocation(shader, "color");
 
 	View v = View{ glm::vec2(0, 0), 1.f };
-
-	planets.push_back(Planet{ "Kerbol",     261600000.f,     115000000000.f,(float) 1.757e28, v });
-	planets.push_back(Planet{ "Moho",       250000.f  ,      9646.66f ,    (float) 2.526e21, v });
-	planets.push_back(Planet{ "Eve",        700000.f  ,      85109.36f,    (float) 1.224e23, v });
-	planets.push_back(Planet{ "Gilly",      13000.f  ,       126.12f,      (float) 1.242e17, v });
-	planets.push_back(Planet{ "Kerbin",     600000.f,        84159.29f,    (float) 5.292e22, v });
-	planets.push_back(Planet{ "Mun",        200000.f  ,      2429.56f,     (float) 9.760e20, v });
-	planets.push_back(Planet{ "Minmus",     60000.f,         2247.43f,     (float) 2.646e19, v });
-	planets.push_back(Planet{ "Duna",       320000.f ,       47921.95f,    (float) 4.515e21, v });
-	planets.push_back(Planet{ "Ike",        130000.f  ,      1049.60f,     (float) 2.782e20, v });
-	planets.push_back(Planet{ "Dres",       138000.f ,       32832.84f,    (float) 3.219e20, v });
-	planets.push_back(Planet{ "Jool",       6000000.f,       2455985.19f,  (float) 4.233e24, v });
-	planets.push_back(Planet{ "Laythe",     500000.f,        3723.65f,     (float) 2.940e22, v });
-	planets.push_back(Planet{ "Vall",       300000.f ,       2406.40f,     (float) 3.109e21, v });
-	planets.push_back(Planet{ "Tylo",       600000.f ,       10856.52f,    (float) 4.233e22, v });
-	planets.push_back(Planet{ "Bop",        65000.f   ,      1221.06f,     (float) 3.726e19, v });
-	planets.push_back(Planet{ "Pol",        44000.f   ,      1042.14f ,    (float) 1.081e19, v });
-	planets.push_back(Planet{ "Eeloo",      210000.f,        119082.94f,   (float) 1.115e21, v });
+	for (int i = 0; i < NUM_BODIES; i++)views[i] = v;
 
 	//planetCircle = MakeCircle(0, 0, 1);
 	equator = new Orbit(360);
 	primeMerid = new Orbit(360);
 	primeMerid2 = new Orbit(360);
 	targetOrbit = new Orbit(360);
+	orthToCam = new Orbit(360);
 
 	for (int i = 0; i < ORBIT_MAX_PATCHES; i++) {
 		OrbitPatches[i] = new Orbit(360);
@@ -122,16 +105,16 @@ glm::dvec3 kep_2_cart(double semi_latus_rectum, double anomaly, double eccentric
 	double co = glm::cos(long_AN); double so = glm::sin(long_AN);
 	//double co = glm::cos(arg_PE); double so = glm::sin(arg_PE);
 	double ci = glm::cos(inclination);     double si = glm::sin(inclination);
-	glm::dmat3 dcmPQW2ECI_ = glm::dmat3(cO * co - sO * ci*so, -cO * so - sO * ci*co, sO*si,
-		sO*co + cO * ci*so, -sO * so + cO * ci*co, -cO * si,
-		si*so, si*co, ci);
+	glm::dmat3 dcmPQW2ECI_ = glm::dmat3(cO * co - sO * ci * so, -cO * so - sO * ci * co, sO * si,
+		sO * co + cO * ci * so, -sO * so + cO * ci * co, -cO * si,
+		si * so, si * co, ci);
 
 	posECI_ = dcmPQW2ECI_ * posPQW_;
 	return glm::vec3(-posECI_.x, posECI_.y, posECI_.z);
 }
 
-void OrbitDisplay::Orbit::PropogateOrbit(OrbitData* o, std::vector<Planet> planets, glm::vec3 col, bool forceSolid) {
-	pRad = planets[o->SOINumber].rad;
+void OrbitDisplay::Orbit::PropogateOrbit(OrbitData* o, glm::vec3 col, bool forceSolid) {
+	pRad = Bodies[o->SOINumber].rad;
 	isFinal = o->transEnd == T_FINAL;
 	this->col = col;
 	float data[360 * 4];
@@ -152,7 +135,7 @@ void OrbitDisplay::Orbit::PropogateOrbit(OrbitData* o, std::vector<Planet> plane
 				strength = float(i) / 360.f / 2.f + 0.5f;
 			}
 
-			if (height < planets[o->SOINumber].rad) {
+			if (height < Bodies[o->SOINumber].rad) {
 				strength = 0;
 			}
 		}
@@ -172,7 +155,7 @@ void OrbitDisplay::Orbit::PropogateOrbit(OrbitData* o, std::vector<Planet> plane
 			renderPE = (o->anomolyEnd > 0);
 		}
 	}
-	renderPE = renderPE && (glm::length(PE) > planets[o->SOINumber].rad);
+	renderPE = renderPE && (glm::length(PE) > Bodies[o->SOINumber].rad);
 	renderAP = (o->anomolyEnd > PI);
 	AP = kep_2_cart(o->SemiLatusRectum, PI, o->e, glm::radians(o->inc), glm::radians(o->argOfPE), glm::radians(o->longOfAscNode));
 	EN = kep_2_cart(o->SemiLatusRectum, -o->anomolyEnd, o->e, glm::radians(o->inc), glm::radians(o->argOfPE), glm::radians(o->longOfAscNode));
@@ -195,48 +178,52 @@ void OrbitDisplay::Draw(XY pos, XY size) {
 	draw->SetDrawColor2D(0, 0, 0);
 	draw->DrawRect2D(pos.x, pos.y, pos.x + size.x, pos.y + size.y);
 
+
 	float rad = (glm::min(size.x, size.y) - 100) / 2;
-	Planet p = planets[SOI];
+	BodyInfo p = Bodies[SOI];
 	bool mouseInWindow = win->MouseX() > pos.x && win->MouseX() < pos.x + size.x && win->MouseY() > pos.y && win->MouseY() < pos.y + size.y;
 	if (mouseInWindow && win->MouseDown(3)) {
-		planets[SOI].view.viewAngle += glm::vec2(win->MouseDXY()) * glm::vec2(0.5);
+		views[SOI].viewAngle += glm::vec2(win->MouseDXY()) * glm::vec2(0.5);
 	}
 	if (win->KeyDown(SDL_SCANCODE_W)) {
-		planets[SOI].view.viewAngle.y++;
+		views[SOI].viewAngle.y++;
 	}
 	if (win->KeyDown(SDL_SCANCODE_S)) {
-		planets[SOI].view.viewAngle.y--;
+		views[SOI].viewAngle.y--;
 	}
 	if (win->KeyDown(SDL_SCANCODE_A)) {
-		planets[SOI].view.viewAngle.x++;
+		views[SOI].viewAngle.x++;
 	}
 	if (win->KeyDown(SDL_SCANCODE_D)) {
-		planets[SOI].view.viewAngle.x--;
+		views[SOI].viewAngle.x--;
 	}
 	if (win->KeyDown(SDL_SCANCODE_E)) {
-		planets[SOI].view.zoom += planets[SOI].view.zoom / 8;
+		views[SOI].zoom += views[SOI].zoom / 8;
 	}
 	if (win->KeyDown(SDL_SCANCODE_Q)) {
-		planets[SOI].view.zoom -= planets[SOI].view.zoom / 8;
+		views[SOI].zoom -= views[SOI].zoom / 8;
 	}
-	if (planets[SOI].view.viewAngle.y > 90) {
-		planets[SOI].view.viewAngle.y = 90;
+	if (views[SOI].viewAngle.y > 90) {
+		views[SOI].viewAngle.y = 90;
 	}
-	else if (planets[SOI].view.viewAngle.y < -90) {
-		planets[SOI].view.viewAngle.y = -90;
+	else if (views[SOI].viewAngle.y < -90) {
+		views[SOI].viewAngle.y = -90;
 	}
-	if (planets[SOI].view.viewAngle.x < 0) {
-		planets[SOI].view.viewAngle.x += 360;
+	if (views[SOI].viewAngle.x < 0) {
+		views[SOI].viewAngle.x += 360;
 	}
-	if (planets[SOI].view.viewAngle.x > 360) {
-		planets[SOI].view.viewAngle.x -= 360;
+	if (views[SOI].viewAngle.x > 360) {
+		views[SOI].viewAngle.x -= 360;
 	}
-
+	if (LockView && lockTo) {
+		views[SOI].viewAngle.y = 90 - abs(lockTo->inc);
+		views[SOI].viewAngle.x = lockTo->longOfAscNode + 180;
+	}
 	bool hasTarget = client.Vessel.HasTarget;
-	planets[SOI].view.zoom += win->getMouseWheelDelta().y * planets[SOI].view.zoom / 8;
-	float scale = 1.f / p.soiDist * planets[SOI].view.zoom;
+	views[SOI].zoom += win->getMouseWheelDelta().y * views[SOI].zoom / 8;
+	float scale = 1.f / p.soiDist * views[SOI].zoom;
 	if (p.rad * scale > rad) {
-		scale = 1.f / p.soiDist * (planets[SOI].view.zoom = rad / p.rad * p.soiDist);
+		scale = 1.f / p.soiDist * (views[SOI].zoom = rad / p.rad * p.soiDist);
 	}
 
 	OrbitData* lastPatch = 0;
@@ -250,76 +237,62 @@ void OrbitDisplay::Draw(XY pos, XY size) {
 	}
 
 	OrbitData* o = &client.Vessel.CurrentOrbit;
-	OrbitRecalcFrameSkip++;
-	if ((OrbitRecalcFrameSkip % (60 / 15)) == 0 || SOI != lastSOI) {
-		if (SOI != lastSOI) {
-			OrbitData o_;
-			o_.SOINumber = SOI;
-			o_.e = 0;
-			o_.SemiLatusRectum = p.rad;
-			o_.inc = 0;
-			o_.argOfPE = o_.longOfAscNode = 0;
-			o_.anomoly = 0; o_.anomolyEnd = PI * 2;
-			glm::vec3 red = glm::vec3(1, 0, 0);
-			equator->PropogateOrbit(&o_, planets, red, true);
+		OrbitData o_;
+		o_.SOINumber = SOI;
+		o_.e = 0;
+		o_.SemiLatusRectum = p.rad;
+		o_.inc = 0;
+		o_.argOfPE = o_.longOfAscNode = 0;
+		o_.anomoly = 0; o_.anomolyEnd = PI * 2;
+		glm::vec3 red = glm::vec3(1, 0, 0);
+		equator->PropogateOrbit(&o_, red, true);
 
-			o_.inc = 90;
-			primeMerid->PropogateOrbit(&o_, planets, red, true);
+		o_.inc = 90;
+		primeMerid->PropogateOrbit(&o_, red, true);
 
-			o_.longOfAscNode = 90;
-			primeMerid2->PropogateOrbit(&o_, planets, red, true);
+		o_.longOfAscNode = 90;
+		primeMerid2->PropogateOrbit(&o_, red, true);
+
+		o_.inc = 90 - views[SOI].viewAngle.y;
+		o_.longOfAscNode = -views[SOI].viewAngle.x + 180;
+		orthToCam->PropogateOrbit(&o_, red, true);
+
+	lastSOI = SOI;
+	OrbitPatchesCount = 0;
+	for (int i = 0; i < client.orbitPlan.CurrentOrbitPatches.size(); i++) {
+		if (client.orbitPlan.CurrentOrbitPatches[i].SOINumber == SOI) {
+			OrbitPatches[OrbitPatchesCount]->PropogateOrbit(&client.orbitPlan.CurrentOrbitPatches[i], GetCol(false, i), false);
+			OrbitPatchesCount++;
 		}
-
-		lastSOI = SOI;
-		OrbitPatchesCount = 0;
-		for (int i = 0; i < client.orbitPlan.CurrentOrbitPatches.size(); i++) {
-			if (client.orbitPlan.CurrentOrbitPatches[i].SOINumber == SOI) {
-				OrbitPatches[OrbitPatchesCount]->PropogateOrbit(&client.orbitPlan.CurrentOrbitPatches[i], planets, GetCol(false, i), false);
-				OrbitPatchesCount++;
-			}
+	}
+	for (int i = 0; i < client.orbitPlan.PlannedOrbitPatches.size(); i++) {
+		if (client.orbitPlan.PlannedOrbitPatches[i].SOINumber == SOI) {
+			OrbitPatches[OrbitPatchesCount]->PropogateOrbit(&client.orbitPlan.PlannedOrbitPatches[i], GetCol(true, i), false);
+			OrbitPatchesCount++;
 		}
-		for (int i = 0; i < client.orbitPlan.PlannedOrbitPatches.size(); i++) {
-			if (client.orbitPlan.PlannedOrbitPatches[i].SOINumber == SOI) {
-				OrbitPatches[OrbitPatchesCount]->PropogateOrbit(&client.orbitPlan.PlannedOrbitPatches[i], planets, GetCol(true, i), false);
-				OrbitPatchesCount++;
-			}
-		}
-		if (hasTarget && client.orbitPlan.TargetOrbit.SOINumber == SOI) {
-			targetOrbit->PropogateOrbit(&client.orbitPlan.TargetOrbit, planets, glm::vec3(1, 0, 1), false);
+	}
+	if (hasTarget && client.orbitPlan.TargetOrbit.SOINumber == SOI) {
+		targetOrbit->PropogateOrbit(&client.orbitPlan.TargetOrbit, glm::vec3(1, 0, 1), false);
 
-			OrbitData *targetOrbit = &client.orbitPlan.TargetOrbit;
-			V_AN = kep_2_cart(lastPatch->SemiLatusRectum, -client.orbitPlan.CAD.ANAnom, lastPatch->e, glm::radians(lastPatch->inc), glm::radians(lastPatch->argOfPE), glm::radians(lastPatch->longOfAscNode));
-			T_AN = kep_2_cart(targetOrbit->SemiLatusRectum, -client.orbitPlan.CAD.TargetANAnom, targetOrbit->e, glm::radians(targetOrbit->inc), glm::radians(targetOrbit->argOfPE), glm::radians(targetOrbit->longOfAscNode));
+		OrbitData* targetOrbit = &client.orbitPlan.TargetOrbit;
+		V_AN = kep_2_cart(lastPatch->SemiLatusRectum, -client.orbitPlan.CAD.ANAnom, lastPatch->e, glm::radians(lastPatch->inc), glm::radians(lastPatch->argOfPE), glm::radians(lastPatch->longOfAscNode));
+		T_AN = kep_2_cart(targetOrbit->SemiLatusRectum, -client.orbitPlan.CAD.TargetANAnom, targetOrbit->e, glm::radians(targetOrbit->inc), glm::radians(targetOrbit->argOfPE), glm::radians(targetOrbit->longOfAscNode));
 
-			V_DN = kep_2_cart(lastPatch->SemiLatusRectum, -client.orbitPlan.CAD.ANAnom - PI, lastPatch->e, glm::radians(lastPatch->inc), glm::radians(lastPatch->argOfPE), glm::radians(lastPatch->longOfAscNode));
-			T_DN = kep_2_cart(targetOrbit->SemiLatusRectum, -client.orbitPlan.CAD.TargetANAnom - PI, targetOrbit->e, glm::radians(targetOrbit->inc), glm::radians(targetOrbit->argOfPE), glm::radians(targetOrbit->longOfAscNode));
+		V_DN = kep_2_cart(lastPatch->SemiLatusRectum, -client.orbitPlan.CAD.ANAnom - PI, lastPatch->e, glm::radians(lastPatch->inc), glm::radians(lastPatch->argOfPE), glm::radians(lastPatch->longOfAscNode));
+		T_DN = kep_2_cart(targetOrbit->SemiLatusRectum, -client.orbitPlan.CAD.TargetANAnom - PI, targetOrbit->e, glm::radians(targetOrbit->inc), glm::radians(targetOrbit->argOfPE), glm::radians(targetOrbit->longOfAscNode));
 
-			V_CA = kep_2_cart(lastPatch->SemiLatusRectum, -client.orbitPlan.CAD.CAAnom, lastPatch->e, glm::radians(lastPatch->inc), glm::radians(lastPatch->argOfPE), glm::radians(lastPatch->longOfAscNode));
-			T_CA = kep_2_cart(targetOrbit->SemiLatusRectum, -client.orbitPlan.CAD.TargetCAAnom, targetOrbit->e, glm::radians(targetOrbit->inc), glm::radians(targetOrbit->argOfPE), glm::radians(targetOrbit->longOfAscNode));
-		}
+		V_CA = kep_2_cart(lastPatch->SemiLatusRectum, -client.orbitPlan.CAD.CAAnom, lastPatch->e, glm::radians(lastPatch->inc), glm::radians(lastPatch->argOfPE), glm::radians(lastPatch->longOfAscNode));
+		T_CA = kep_2_cart(targetOrbit->SemiLatusRectum, -client.orbitPlan.CAD.TargetCAAnom, targetOrbit->e, glm::radians(targetOrbit->inc), glm::radians(targetOrbit->argOfPE), glm::radians(targetOrbit->longOfAscNode));
 	}
 
 	glm::vec2 centr = glm::vec2(pos) + glm::vec2(size.x / 2, size.y / 2);
 	glm::mat4 orthroMat = glm::ortho(float(-centr.x), float(win->getSize().x - centr.x), float(win->getSize().y - centr.y), float(-centr.y), -1000000.f, 1000000.f);
 
 	//glm::mat4 view = glm::translate(glm::mat4(1), glm::vec3(-0, 0, -002));
-	glm::mat4 view = glm::rotate(glm::mat4(1), glm::radians(planets[SOI].view.viewAngle.y + 90), glm::vec3(1, 0, 0));
-	view = glm::rotate(view, glm::radians(planets[SOI].view.viewAngle.x), glm::vec3(0, 0, 1));
+	glm::mat4 view = glm::rotate(glm::mat4(1), glm::radians(views[SOI].viewAngle.y + 90), glm::vec3(1, 0, 0));
+	view = glm::rotate(view, glm::radians(views[SOI].viewAngle.x), glm::vec3(0, 0, 1));
 	view = glm::scale(view, glm::vec3(scale));
-	//float radius = 50;
 
-	/*draw->SetDrawColor3D(1, 0.5, 0.5, 0.5);
-	draw->DrawTri3D(glm::vec3(p.rad, 0, p.rad), glm::vec3(-p.rad, 0, p.rad), glm::vec3(-p.rad, 0, -p.rad));
-	draw->DrawTri3D(glm::vec3(-p.rad, 0, -p.rad), glm::vec3(p.rad, 0, -p.rad), glm::vec3(p.rad, 0, p.rad));
-
-	glm::vec3 offset = glm::vec3(0, 0, 0);
-
-	draw->SetDrawColor3D(1, 0, 0);
-	draw->DrawTri3DLine(glm::vec3(0, 0, 0) + offset, glm::vec3(radius, 0, 0) + offset);
-	draw->SetDrawColor3D(0, 1, 0);
-	draw->DrawTri3DLine(glm::vec3(0, 0, 0) + offset, glm::vec3(0, radius, 0) + offset);
-	draw->SetDrawColor3D(0, 0, 1);
-	draw->DrawTri3DLine(glm::vec3(0, 0, 0) + offset, glm::vec3(0, 0, radius) + offset);*/
 	glUseProgram(shader);
 	SetShaderMat4(projUnif, orthroMat);
 	SetShaderMat4(viewUnif, view);
@@ -327,6 +300,7 @@ void OrbitDisplay::Draw(XY pos, XY size) {
 	primeMerid->DrawPath(colorUnif);
 	primeMerid2->DrawPath(colorUnif);
 	equator->DrawPath(colorUnif);
+	orthToCam->DrawPath(colorUnif);
 
 	for (int i = 0; i < OrbitPatchesCount; i++) {
 		OrbitPatches[i]->DrawPath(colorUnif);
@@ -335,9 +309,9 @@ void OrbitDisplay::Draw(XY pos, XY size) {
 		targetOrbit->DrawPath(colorUnif);
 	}
 
+	draw->SwitchShader(SHADER_3D);
 	draw->SetView3D(view);
 	draw->SetProj3D(orthroMat);
-	draw->SwitchShader(SHADER_3D);
 	draw->BindTex3D();
 
 	glPointSize(6);
@@ -362,7 +336,7 @@ void OrbitDisplay::Draw(XY pos, XY size) {
 	}
 
 	//TODO fix
-	/*if (hasTarget/* && lastPatch->SOINumber == SOI && lastPatch->transEnd == T_FINAL) {
+	if (hasTarget && lastPatch->SOINumber == SOI && lastPatch->transEnd == T_FINAL) {
 		glLineWidth(2);
 		draw->SetDrawColor3D(1, 0, 1);
 		draw->DrawTri3DLine(T_AN, V_DN);
@@ -370,7 +344,7 @@ void OrbitDisplay::Draw(XY pos, XY size) {
 		draw->SetDrawColor3D(0, 0.5, 1);
 		draw->DrawPoint3D(V_CA);
 		draw->DrawPoint3D(T_CA);
-	}*/
+	}
 
 	olc = 0;
 	olx = pos.x + size.x - 120;
@@ -381,15 +355,23 @@ void OrbitDisplay::Draw(XY pos, XY size) {
 	}
 	targetOrbit->selected = false;
 
-		draw->SwitchShader(SHADER_TEXT);
+	draw->SwitchShader(SHADER_TEXT);
 	draw->SetTextColor(1, 1, 1);
+	std::string lockText = LockView ? "[V] - Unlock View" : "[V] - Lock View To Normal";
+	draw->DrawString(f, lockText, pos.x + (size.x - f->GetTextWidth(lockText)) / 2, pos.y + 20);
+
+	if (win->KeyTyped(SDL_SCANCODE_V)) {
+		LockView ^= 1;
+	}
 	draw->DrawString(f, "==Current Orbit==", olx - f->GetTextWidth("==Current Orbit==") / 2, oly); oly += 15;
 
 	int OCount = 0;
+	OrbitData* prev = 0;
 	for (int i = 0; i < client.orbitPlan.CurrentOrbitPatches.size(); i++) {
-		OrbitData *next = (i == (client.orbitPlan.CurrentOrbitPatches.size() - 1)) ? 0 : &client.orbitPlan.CurrentOrbitPatches[i + 1];
-		ClosestAprouchData *CAD = ((i == client.orbitPlan.CurrentOrbitPatches.size() - 1) && (client.orbitPlan.PlannedOrbitPatches.size() == 0) && hasTarget) ? &client.orbitPlan.CAD : 0;
-		OrbitListOption(pos, &client.orbitPlan.CurrentOrbitPatches[i], OrbitPatches[OCount], 0, next, CAD, 0);
+		OrbitData* next = (i == (client.orbitPlan.CurrentOrbitPatches.size() - 1)) ? 0 : &client.orbitPlan.CurrentOrbitPatches[i + 1];
+		ClosestAprouchData* CAD = ((i == client.orbitPlan.CurrentOrbitPatches.size() - 1) && (client.orbitPlan.PlannedOrbitPatches.size() == 0) && hasTarget) ? &client.orbitPlan.CAD : 0;
+		OrbitListOption(pos, size, &client.orbitPlan.CurrentOrbitPatches[i], OrbitPatches[OCount], 0, 0, next, CAD, 0, prev);
+		prev = &client.orbitPlan.CurrentOrbitPatches[i];
 		if (client.orbitPlan.CurrentOrbitPatches[i].SOINumber == SOI) {
 			OCount++;
 		}
@@ -400,21 +382,25 @@ void OrbitDisplay::Draw(XY pos, XY size) {
 	if (hasTarget) {
 		draw->SetTextColor(1, 1, 1);
 		draw->DrawString(f, "==Target==", olx - f->GetTextWidth("==Target==") / 2, oly); oly += 15;
-		OrbitListOption(pos, &client.orbitPlan.TargetOrbit, targetOrbit, 0, 0, 0, (char *)client.orbitPlan.TargetName.c_str()); oly += 15;
+		OrbitListOption(pos, size, &client.orbitPlan.TargetOrbit, targetOrbit, 0, 0, 0, 0, (char*)client.orbitPlan.TargetName.c_str(), 0); oly += 15;
 	}
 
 	if (client.orbitPlan.PlannedOrbitPatches.size() != 0) {
 		draw->SetTextColor(1, 1, 1);
 		draw->DrawString(f, "==Planned Orbit==", olx - f->GetTextWidth("==Planned Orbit==") / 2, oly); oly += 15;
+		OrbitData* prev = 0;
+
 		for (int i = 0; i < client.orbitPlan.PlannedOrbitPatches.size(); i++) {
-			OrbitData *next = (i == (client.orbitPlan.PlannedOrbitPatches.size() - 1)) ? 0 : &client.orbitPlan.PlannedOrbitPatches[i + 1];
-			ManData *md = 0;
-			ClosestAprouchData *CAD = ((i == client.orbitPlan.PlannedOrbitPatches.size() - 1) && hasTarget) ? &client.orbitPlan.CAD : 0;
+
+			OrbitData* next = (i == (client.orbitPlan.PlannedOrbitPatches.size() - 1)) ? 0 : &client.orbitPlan.PlannedOrbitPatches[i + 1];
+			ManData* md = 0;
+			ClosestAprouchData* CAD = ((i == client.orbitPlan.PlannedOrbitPatches.size() - 1) && hasTarget) ? &client.orbitPlan.CAD : 0;
 			if (client.orbitPlan.PlannedOrbitPatches[i].transStart == T_MANEUVER) {
 				md = &client.orbitPlan.Mans[MCount];
 				MCount++;
 			}
-			OrbitListOption(pos, &client.orbitPlan.PlannedOrbitPatches[i], OrbitPatches[OCount], md, next, CAD, 0);
+			OrbitListOption(pos, size, &client.orbitPlan.PlannedOrbitPatches[i], OrbitPatches[OCount], md, MCount - 1, next, CAD, 0, prev);
+			prev = &client.orbitPlan.PlannedOrbitPatches[i];
 			if (client.orbitPlan.PlannedOrbitPatches[i].SOINumber == SOI) {
 				OCount++;
 			}
@@ -432,16 +418,16 @@ glm::vec3 OrbitDisplay::GetCol(bool man, int i) {
 
 }
 
-void OrbitDisplay::OrbitListOption(XY pos, OrbitData* o, Orbit *orb, ManData *manD, OrbitData* next, ClosestAprouchData *CAD, char *forceName) {
+void OrbitDisplay::OrbitListOption(XY pos, XY size, OrbitData* o, Orbit* orb, ManData* manD, int mID, OrbitData* next, ClosestAprouchData* CAD, char* forceName, OrbitData* prev) {
 	std::string text;
 	if (forceName) {
 		text = forceName;
 	}
 	else {
-		std::string nextName = next ? planets[next->SOINumber].name : "?";
+		std::string nextName = next ? Bodies[next->SOINumber].name : "?";
 		switch (o->transEnd) {
 		case T_FINAL:
-			text = "Final (" + planets[o->SOINumber].name + ")";
+			text = "Final (" + Bodies[o->SOINumber].name + ")";
 			break;
 		case T_ENCOUNTER:
 			text = nextName + " Encounter";
@@ -453,7 +439,6 @@ void OrbitDisplay::OrbitListOption(XY pos, OrbitData* o, Orbit *orb, ManData *ma
 			text = "Transfer";
 			break;
 		default:
-			printf("%d\n", o->transStart);
 			text = "foo";
 		}
 		if (o->transStart == T_MANEUVER) {
@@ -464,10 +449,11 @@ void OrbitDisplay::OrbitListOption(XY pos, OrbitData* o, Orbit *orb, ManData *ma
 	char buff[64];
 
 	if (orbitSelected == olc) {
+		lockTo = o;
 		orb->selected = true;
 		draw->SetTextColor(1, 1, 1);
 		int sy = pos.y + 15;
-		draw->DrawString(f, "SOI: " + planets[SOI = o->SOINumber].name, pos.x + 10, sy); sy += 15;
+		draw->DrawString(f, "SOI: " + Bodies[SOI = o->SOINumber].name, pos.x + 10, sy); sy += 15;
 		if (olc == 0) {
 			sprintf_s(buff, "Alt: %.0f m", client.Vessel.Alt);
 			draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
@@ -542,6 +528,15 @@ void OrbitDisplay::OrbitListOption(XY pos, OrbitData* o, Orbit *orb, ManData *ma
 			//draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
 
 		}
+		draw->DrawString(f, "[C] - Create Manuever", pos.x + 20, pos.y + size.y - 40); {}
+		if (win->KeyTyped(SDL_SCANCODE_C)) {
+			if (prev) {
+				client.SendManChange(1, mID, (o->T2PatchEnd + prev->T2PatchEnd) / 2 + client.Vessel.UT, glm::vec3());
+			}
+			else {
+				client.SendManChange(1, mID, client.Vessel.UT + o->period / 2, glm::vec3());
+			}
+		}
 		if (o->transStart == T_MANEUVER) {
 			sy += 15; sy += 15;
 			sprintf_s(buff, "Man dV: %.1f m/s", manD->DV);
@@ -554,7 +549,51 @@ void OrbitDisplay::OrbitListOption(XY pos, OrbitData* o, Orbit *orb, ManData *ma
 			draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
 			sprintf_s(buff, "dV-Radial: %.2f m/s", manD->X);
 			draw->DrawString(f, buff, pos.x + 10, sy); sy += 15;
-			printf("%f\n", float(client.Vessel.UT));
+			draw->DrawString(f, "Manuever Controls: [X] - Delete [H/N] - Prograde [J/L] - radial [I/K] - Normal [U/O] - Time", pos.x + 20, pos.y + size.y - 20);
+			bool mod = false;
+			if (win->KeyTyped(SDL_SCANCODE_X)) {
+				client.SendManChange(2, mID, 0, glm::vec3());
+			}
+			else {
+				float speed = win->KeyDown(SDL_SCANCODE_LSHIFT) ? 10 : 1;
+				glm::vec3 change = glm::vec3(manD->X, manD->Y, manD->Z);
+				double UT = manD->UT;
+				if (win->KeyDown(SDL_SCANCODE_L)) {
+					mod = true;
+					change.x += speed;
+				}
+				else if (win->KeyDown(SDL_SCANCODE_J)) {
+					mod = true;
+					change.x -= speed;
+				}
+				if (win->KeyDown(SDL_SCANCODE_H)) {
+					mod = true;
+					change.z += speed;
+				}
+				else if (win->KeyDown(SDL_SCANCODE_N)) {
+					mod = true;
+					change.z -= speed;
+				}
+				if (win->KeyDown(SDL_SCANCODE_I)) {
+					mod = true;
+					change.y += speed;
+				}
+				else if (win->KeyDown(SDL_SCANCODE_K)) {
+					mod = true;
+					change.y -= speed;
+				}
+				if (win->KeyDown(SDL_SCANCODE_O)) {
+					mod = true;
+					UT += speed;
+				}
+				else if (win->KeyDown(SDL_SCANCODE_U)) {
+					mod = true;
+					UT -= speed;
+				}
+				if (mod) {
+					client.SendManChange(0, mID, UT, change);
+				}
+			}
 		}
 		draw->SetTextColor(1, 1, 0);
 		text = ">" + text;
@@ -575,6 +614,7 @@ OrbitDisplay::~OrbitDisplay() {
 	delete equator;
 	delete primeMerid;
 	delete 	primeMerid2;
+	delete 	orthToCam;
 	for (int i = 0; i < ORBIT_MAX_PATCHES; i++) {
 		delete OrbitPatches[i];
 	}

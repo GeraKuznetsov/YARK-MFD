@@ -1,13 +1,20 @@
 #pragma once
-#include "../../Engine/Window.h"
+#include "../../Wrap/Window.h"
 #include <string>
+
+#define TEXT_ALLOW_NUM 1
+#define TEXT_ALLOW_CHAR 2
+#define TEXT_ALLOW_OTHER 4
+#define TEXT_ALLOW_ALL 7
 
 struct TextBox {
 	std::string* text;
 	bool type = 0;
 	int pos = 0;
-	TextBox(std::string* t){
+	int flag;
+	TextBox(std::string* t, int f){
 		text = t;
+		flag = f;
 	}
 };
 
@@ -20,7 +27,7 @@ namespace IM {
 	bool PushButton(XY renderAt);
 	bool Button(XY pos, Font* f, std::string text);
 	bool Button(XY pos, XY size, GLuint tex);
-	bool Radio(XY pos, bool* ptr);
+	bool Radio(XY pos, bool* ptr, Font* f, std::string text);
 	void LED(XY pos, bool state);
 	bool ToggleSwitch(XY pos, std::string text, bool* ptr);
 
