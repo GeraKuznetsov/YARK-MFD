@@ -1,12 +1,12 @@
 #include "Fuel.h"
 #include <glm/vec3.hpp>
 
-std::string FuelDisplay::GetTitle() {
-	return "Fuel levels";
-}
-
 FuelDisplay::FuelDisplay() {
 
+}
+
+std::string FuelDisplay::GetTitle() {
+	return "Fuel levels";
 }
 
 #define PADDING 30

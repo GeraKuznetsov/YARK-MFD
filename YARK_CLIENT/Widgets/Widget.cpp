@@ -72,8 +72,7 @@ void Widget::Draw(XY pos, XY size) {
 	}
 	RadioOpt(pos + XY{ 15  ,40 + 30 * 6 }, "Fly-By-Wire", "ENABLE_FLYBYWIRE");
 	RadioOpt(pos + XY{ 15 + 30,40 + 30 * 7 }, "Rocket Mode", "FLYBYWIRE_ROCKETMODE");
-	RadioOpt(pos + XY{ 15 + 30,40 + 30 * 8 }, "Joystick Vector Mode", "FORCE_SASS");
-	RadioOpt(pos + XY{ 15 ,40 + 30 * 9 }, "Fullscreen (Restart)", "FULLSCREEN");
+	RadioOpt(pos + XY{ 15, 40 + 30 * 8 }, "Fullscreen (Restart)", "FULLSCREEN");
 
 	draw->SwitchShader(SHADER_TEXT);
 #if ENABLE_ARDUINO

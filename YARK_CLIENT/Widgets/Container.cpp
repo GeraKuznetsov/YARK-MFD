@@ -3,6 +3,7 @@
 #include "Util/IM.h"
 #include "Fuel.h"
 #include "Grapher.h"
+#include "GroundTrack.h"
 #include <string>
 std::vector<Widget*> widgets;
 
@@ -67,6 +68,7 @@ void ContainerLoadWidgets() {
 	widgets.push_back(new AtitudeIndicator());
 	widgets.push_back(new SoyuzNavBall());
 	widgets.push_back(new OrbitDisplay());
+	widgets.push_back(new GroundTrack());
 	widgets.push_back(new Control());
 	widgets.push_back(new AirPlaneAutoPilot());
 	widgets.push_back(new FuelDisplay());

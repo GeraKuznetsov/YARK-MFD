@@ -26,7 +26,6 @@ class Window {
 	bool mouseDown[NUMER_MOUSE_BUTTONS];
 	bool mouseClicked[NUMER_MOUSE_BUTTONS];
 	bool mouseDoubleClicked[NUMER_MOUSE_BUTTONS];
-
 	XY mouseXY, mouseDXY;
 
 	XY MouseScroll;
@@ -36,6 +35,8 @@ class Window {
 public:
 	bool running = false;
 	int16_t joystickDir[4];
+	int joystickHAT[2];
+	bool joyButtonDown[16];
 	XY size;
 	SDL_Window* gWindow = NULL; //move back
 

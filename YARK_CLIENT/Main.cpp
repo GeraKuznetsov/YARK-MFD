@@ -74,6 +74,8 @@ bool OnExit() {
 
 bool smart_ass_was_on;
 
+int timeWarp = TIMEWARP_x1;
+
 void Tick(float delta) {
 	VesselPacket VP = client.Vessel;
 	glViewport(0, 0, win->size.x, win->size.y);
@@ -100,10 +102,18 @@ void Tick(float delta) {
 			float(client.Vessel.CurrentStage)},
 	};
 	UpdateLog(&log);
-
+	//printf("%f/%f %f/%f \n",client.Vessel.LiquidFuel, client.Vessel.LiquidFuelTot, client.Vessel.LiquidFuelS, client.Vessel.LiquidFuelTotS);
 	client.Control.SetControlerMode(CONTROLLER_ROT, AXIS_IGNORE);
 	client.Control.SetControlerMode(CONTROLLER_THROTTLE, AXIS_IGNORE);
 	client.Control.SetControlerMode(CONTROLLER_TRANS, AXIS_IGNORE);
+	client.Control.InputTran(0, 0, 0);
+	if (win->KeyTyped(SDL_SCANCODE_PERIOD)) {
+		timeWarp += (timeWarp < TIMEWARP_x100000);
+	}
+	else if (win->KeyTyped(SDL_SCANCODE_COMMA)) {
+		timeWarp -= (timeWarp > TIMEWARP_x1);
+	}
+	client.Control.timeWarpRateIndex = timeWarp;
 
 	if (topLevel->Update(true, WID_BORDER, WID_BORDER, win->size.x - WID_BORDER * 2, win->size.y - WID_BORDER * 2)) win->running = false;
 		
@@ -156,6 +166,7 @@ void Tick(float delta) {
 			smart_ass_was_on = false;
 			client.Control.ReSetSASHoldVector();
 		}
+
 		client.Control.InputThrottle(Registry["THROTTLE"]);
 		client.SendControls();
 	}

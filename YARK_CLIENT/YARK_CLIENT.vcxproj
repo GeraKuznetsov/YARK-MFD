@@ -133,6 +133,8 @@
     <ClCompile Include="Widgets\Fuel.h" />
     <ClCompile Include="Widgets\Fuel.cpp" />
     <ClCompile Include="Widgets\Grapher.cpp" />
+    <ClCompile Include="Widgets\GroundTrack.cpp" />
+    <ClCompile Include="Widgets\Util\OrbitCalc.cpp" />
     <ClCompile Include="Wrap\Draw.cpp" />
     <ClCompile Include="Wrap\Font.cpp" />
     <ClCompile Include="Wrap\Shader.cpp" />
@@ -163,6 +165,8 @@
     <ClInclude Include="Client\Structs.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="Widgets\Grapher.h" />
+    <ClInclude Include="Widgets\GroundTrack.h" />
+    <ClInclude Include="Widgets\Util\OrbitCalc.h" />
     <ClInclude Include="Wrap\Draw.h" />
     <ClInclude Include="Wrap\Font.h" />
     <ClInclude Include="Wrap\Shader.h" />

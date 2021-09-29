@@ -63,7 +63,6 @@ void Dock::Draw(XY pos, XY size) {
 	draw->DrawLine2D(xc, y1, xc, y2);
 	draw->DrawLine2D(x1, yc, x2, yc);
 
-
 	if (client.Vessel.HasTarget) {
 		char buff[32];
 

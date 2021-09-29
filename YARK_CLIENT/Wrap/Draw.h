@@ -30,8 +30,8 @@ private:
 	GLuint Dyn2DDrawVBOID = 0, Dyn2DDrawVAOID = 0;
 	GLuint Dyn3DDrawVBOID = 0, Dyn3DDrawVAOID = 0;
 	GLuint DynTextDrawVBOID = 0, DynTextDrawVAOID = 0;
-
 public:
+
 	glm::mat4 orthroMat;
 
 	Draw(int w, int h);

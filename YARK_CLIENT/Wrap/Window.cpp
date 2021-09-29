@@ -174,6 +174,18 @@ void Window::Run(void(*tick)(float delta)) {
 						joystickDir[i] = sdlEvent.jaxis.value;
 					}
 				}
+				break;
+			case SDL_JOYHATMOTION:
+			{int hat = sdlEvent.jhat.value;
+			joystickHAT[0] = !!(hat & SDL_HAT_RIGHT) - !!(hat & SDL_HAT_LEFT);
+			joystickHAT[1] = !!(hat & SDL_HAT_UP) - !!(hat & SDL_HAT_DOWN); }
+				break;
+			case SDL_JOYBUTTONDOWN:
+				joyButtonDown[sdlEvent.jbutton.button] = 1;
+				break;
+			case SDL_JOYBUTTONUP:
+				joyButtonDown[sdlEvent.jbutton.button] = 0;
+				break;
 			case SDL_WINDOWEVENT:
 				switch (sdlEvent.window.event) {
 				case SDL_WINDOWEVENT_SHOWN:

@@ -38,7 +38,7 @@ struct {
 #pragma pack(pop)
 
 #pragma region helper methods
-#include <glm.hpp>
+#include <glm/glm.hpp>
 byte getVertSpeedValue(float VS) {
 	float e = 0.001;
 	float sign;
@@ -73,6 +73,9 @@ byte BCD[10] = {
 	0b01110011
 };
 
+byte TW_LUT_1[TIMEWARP_x100000 + 1] = { 1,2,3,4,5,1,5,1,1,1,1 };
+byte TW_LUT_2[TIMEWARP_x100000 + 1] = { 0,0,0,0,0,1,1,2,3,4,5 };
+
 const byte neg = 0b00000001;
 
 byte getBCD(byte i, bool dec = false) {
@@ -81,17 +84,24 @@ byte getBCD(byte i, bool dec = false) {
 }
 
 void format_float_4_chars(byte* data, float f, bool sign, bool dec) {
-	if (dec)
-		f *= 10;
-	int INT = round(abs(f));
-	int chars = sign ? 3 : 4;
-	for (int i = 0; i < chars; i++) {
-		int iPart = INT % 10;
-		*(data + i) = getBCD(iPart, (i == 1) && dec);
-		INT /= 10;
+	if (f > 9999 || isnan(f)) {
+		for (int i = 0; i < 4; i++) {
+			*(data + i) = neg;
+		}
 	}
-	if (sign && f < 0) {
-		*(data + 3) = neg;
+	else {
+		if (dec)
+			f *= 10;
+		int INT = round(abs(f));
+		int chars = sign ? 3 : 4;
+		for (int i = 0; i < chars; i++) {
+			int iPart = INT % 10;
+			*(data + i) = getBCD(iPart, (i == 1) && dec);
+			INT /= 10;
+		}
+		if (sign && f < 0) {
+			*(data + 3) = neg;
+		}
 	}
 }
 
@@ -115,7 +125,7 @@ void format_float_8_chars(byte* data, float f, bool dec) {
 
 float rad[] = { 261600000.f ,250000.f  ,700000.f  ,	13000.f  ,	600000.f,	200000.f  ,	60000.f,	320000.f ,	130000.f  ,	138000.f ,	6000000.f,	500000.f,	300000.f ,	600000.f ,	65000.f   ,	44000.f   ,	210000.f };
 
-int I = 0, test = 0;
+int I = 0;
 
 std::string byte_to_binary(byte x) {
 	std::string out;
@@ -146,7 +156,10 @@ byte fuelValue(float* per, float a0, float b0, float a1, float b1, bool choose) 
 	else {
 		*per = a1 / b1;
 	}
-	return byte(*per * 255.f);
+	int out = *per * 255.f;
+	if (out > 255) out = 255;
+	else if (out < 0) out = 0;
+	return byte(out);
 }
 
 byte fuelValue(float* per, float a0, float b0) {
@@ -158,10 +171,10 @@ bool blink(int state, int i) { //0 == off, 1 == blink 2 == on
 }
 
 byte fuel_state(float per) {
-	if (per > 0.30f) {
+	if (per > 0.20f) {
 		return 0;
 	}
-	else if (per > 0.15f) {
+	else if (per > 0.0f) {
 		return 1;
 	}return 2;
 }
@@ -174,18 +187,39 @@ byte heat_state(float per) {
 		return 1;
 	}return 0;
 }
+#define GLM_ENABLE_EXPERIMENTAL
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtx/rotate_vector.hpp"
+glm::vec3 CalcV(NavHeading NH, VesselPacket* VP);
 #pragma endregion
+
+bool altRalt, stg, targetTrans;
 
 //this method fills dataout with data to be sent to arduino
 void ArduinoOutput() {
+	glm::vec3 ToTarget = -CalcV(CV.Target, &CV) * CV.TargetDist;
 	for (int i = 0; i < 8; i++) {
 		for (int n = 0; n < 12; n++) {
 			DataOut.max[n][i] = 0;
 		}
 	}
+
+	DataOut.max[9][2] |= (Registry["ENABLE_FLYBYWIRE"]) << 4;
+
 	//OXY HEAT EC
 	float per;
+
+	float vvi = (log(abs(CV.VVI) + 1.f) / log(21.f) * -(CV.VVI < 0.f ? -1.f : 1.f));
+	vvi = vvi * 128.f + 128.f;
+	unsigned char  vviOut;
+	if (vvi > 255) vviOut = 255;
+	else if (vvi < 0) vviOut = 0;
+	else vviOut = vvi;
+	DataOut.analog[0] = vviOut;
+	DataOut.max[9][3] |= (CV.VVI < -5) << 3;
+
 	DataOut.analog[1] = fuelValue(&per, CV.G, 10.f);
+	DataOut.max[9][2] |= (CV.G > 5) << 3;
 
 	DataOut.analog[2] = fuelValue(&per, CV.MonoProp, CV.MonoPropTot); //Mono
 	DataOut.max[9][3] |= blink(fuel_state(per), I) << 2;
@@ -193,24 +227,30 @@ void ArduinoOutput() {
 	DataOut.analog[3] = fuelValue(&per, CV.SolidFuel, CV.SolidFuelTot); //SF
 	DataOut.max[9][3] |= blink(fuel_state(per), I) << 1;
 
-	DataOut.analog[4] = fuelValue(&per, CV.LiquidFuel, CV.LiquidFuelTot, CV.LiquidFuelS, CV.LiquidFuelTotS, true); //LF
+	DataOut.analog[4] = fuelValue(&per, CV.LiquidFuel, CV.LiquidFuelTot, CV.LiquidFuelS, CV.LiquidFuelTotS, stg); //LF
 	DataOut.max[9][3] |= blink(fuel_state(per), I) << 0;
 
-	DataOut.analog[5] = fuelValue(&per, CV.Oxidizer, CV.OxidizerTot, CV.OxidizerS, CV.OxidizerTotS, true); //oxy
+	DataOut.analog[5] = fuelValue(&per, CV.Oxidizer, CV.OxidizerTot, CV.OxidizerS, CV.OxidizerTotS, stg); //oxy
 	DataOut.max[9][2] |= blink(fuel_state(per), I) << 0;
 
 	DataOut.analog[6] = fuelValue(&per, CV.MaxOverHeat, 100.f); //heat
-	DataOut.max[9][2] |= blink(heat_state(per), I) << 1;
+	int gblink = 0;
+	if (per > 50) gblink = 1;
+	else if (per > 80) gblink = 2;
+	DataOut.max[9][2] |= blink(gblink, I) << 1;
+
 
 	DataOut.analog[7] = fuelValue(&per, CV.ECharge, CV.EChargeTot); //EC
 	DataOut.max[9][2] |= blink(fuel_state(per), I) << 2;
 
 
-	DataOut.max[9][3] |= (blink(2, I) << 3);
-	DataOut.max[9][2] |= (blink(2, I) << 3);
-
 	I++;
-	format_float_8_chars(DataOut.max[0], CV.Alt, true);
+	if (altRalt) {
+		format_float_8_chars(DataOut.max[0], CV.Alt, true);
+	}
+	else {
+		format_float_8_chars(DataOut.max[0], CV.RAlt, true);
+	}
 	float speed = -1;
 	switch (CV.SpeedMode) {
 	case 1: speed = CV.VOrbit; break;
@@ -220,12 +260,35 @@ void ArduinoOutput() {
 	}
 	format_float_8_chars(DataOut.max[1], speed, true);
 
-	format_float_4_chars(DataOut.max[2], CV.Pitch, true, true);
 	format_float_4_chars(DataOut.max[2] + 4, throttle_in / 10, false, false);
 	format_float_4_chars(DataOut.max[3] + 0, CV.CurrentStage * 100 + CV.TotalStage, false, false);
-	format_float_4_chars(DataOut.max[3] + 4, CV.TargetDist, false, false);
-	format_float_4_chars(DataOut.max[8], CV.Heading, false, true);
-	format_float_4_chars(DataOut.max[8] + 4, CV.Roll, true, false);
+
+	format_float_4_chars(DataOut.max[8], ToTarget.z, true, false);
+
+	int TW = client.Vessel.timeWarpRateIndex;
+	DataOut.max[3][7] = BCD[TW_LUT_1[TW]];
+	DataOut.max[3][6] = 0b1001111;
+	DataOut.max[3][5] = BCD[0];
+	DataOut.max[3][4] = BCD[TW_LUT_2[TW]];
+
+	if (targetTrans) {
+		format_float_4_chars(DataOut.max[2], CV.Pitch, true, true);
+		format_float_4_chars(DataOut.max[8], CV.Heading, false, true);
+		format_float_4_chars(DataOut.max[8] + 4, CV.Roll, true, false);
+	}
+	else {
+		if (CV.HasTarget) {
+			format_float_4_chars(DataOut.max[2], ToTarget.x, true, true);
+			format_float_4_chars(DataOut.max[8], ToTarget.y, false, true);
+			format_float_4_chars(DataOut.max[8] + 4, ToTarget.z, true, false);
+		}
+		else {
+			format_float_4_chars(DataOut.max[2], NAN, true, true);
+			format_float_4_chars(DataOut.max[8], NAN, false, true);
+			format_float_4_chars(DataOut.max[8] + 4, NAN, true, false);
+		}
+	}
+
 	bool dispPE = CV.CurrentOrbit.PE > 0;
 	format_float_8_chars(DataOut.max[4], dispPE ? CV.CurrentOrbit.PE : NAN, false);
 	format_float_8_chars(DataOut.max[5], CV.CurrentOrbit.AP, false);
@@ -240,20 +303,14 @@ void ArduinoOutput() {
 	format_float_8_chars(DataOut.max[7], t2ap, false);
 
 	DataOut.max[9][7] = CB(GMC(MC_GEAR), GMC(MC_LIGHTS), GMC(MC_BRAKES), GMC(MC_RCS), CV.SASMode == SAS_ANTINORMAL, CV.SASMode == SAS_NORMAL, CV.SASMode == SAS_PROGRADE, CV.SASMode == SAS_HOLD);
-	if (!(I % 5)) {
-		test++;
-	}
+
 	DataOut.max[9][5] = CB(GAG(AG_5), GAG(AG_4), GAG(AG_3), GAG(AG_2), GAG(AG_1), GMC(MC_SAS), CV.SASMode == SAS_TARGET, CV.SASMode == SAS_RADOUT);
 	DataOut.max[9][6] = CB(GAG(AG_10), GAG(AG_9), GAG(AG_8), GAG(AG_7), GAG(AG_6), CV.SASMode == SAS_MAN, CV.SASMode == SAS_ANTITARGET, CV.SASMode == SAS_RADIN);
 	DataOut.max[9][4] = CB(0, 0, 0, CV.SpeedMode == 3, CV.SpeedMode == 1, CV.SpeedMode == 2, CV.SASMode == SAS_RETROGRADE, CV.SASMode == SAS_HOLD_VECTOR);
 
-	bool dispMan = client.OrbitPlan.Mans.size() != 0;
-	format_float_8_chars(DataOut.max[10], dispMan ? CV.MNTime : NAN, false);
-	format_float_8_chars(DataOut.max[11], dispMan ? CV.MNDeltaV : NAN, false);
-
-	for (int i = 0; i < 8; i++) {
-		DataOut.max[9][i] = blink(1, I) ? 0xFF : 0;
-	}
+	bool dispMan = client.orbitPlan.Mans.size() != 0;
+	format_float_8_chars(DataOut.max[10], dispMan ? CV.MNDeltaV : NAN, false);
+	format_float_8_chars(DataOut.max[11], dispMan ? CV.MNTime : NAN, false);
 }
 
 //this method takes code from DataIn struct and uses it to update the controls
@@ -261,14 +318,14 @@ void ArduinoInput() {
 	CC.SetControlerMode(CONTROLLER_THROTTLE, AXIS_OVERIDE);
 
 	byte row = DataIn.switches[0]; //ROW 0
-	(!BIT(row, 0)); //OPT xxx
+	Registry["FLYBYWIRE_ROCKETMODE"] = BIT(row, 0);
 	CC.SetMainControl(MC_GEAR, BIT(row, 1));    //GEAR
 	CC.SetMainControl(MC_LIGHTS, BIT(row, 2));  //LIGHTS
 	CC.SetMainControl(MC_BRAKES, BIT(row, 3));  //BREAKS
 	CC.SetMainControl(MC_RCS, BIT(row, 4));     //RCS
-	!BIT(row, 5); //OPT xxx
-	!BIT(row, 6); //OPT xxx
-	!BIT(row, 7); //OPT xxx
+	targetTrans = BIT(row, 5);
+	stg = BIT(row, 6);
+	altRalt = BIT(row, 7);
 
 	row = DataIn.switches[1]; //ROW 1
 	CC.SetActionGroup(AG_10, BIT(row, 0));      //AG 10
@@ -304,7 +361,16 @@ void ArduinoInput() {
 	CC.SetMainControl(MC_STAGE, !BIT(row, 0));
 	CC.SetMainControl(MC_ABORT, !BIT(row, 1));
 	if (!BIT(row, 2)) CC.SpeedMode = 2;
-	Registry["THROTTLE"] = throttle_in = int(float(DataIn.throttle) * 1000.f / 1024.f);
+	float deadSpace = 100;
+	if (DataIn.throttle < deadSpace) {
+		Registry["THROTTLE"] = throttle_in = 0;
+	}
+	else if (DataIn.throttle > 1024 - deadSpace) {
+		Registry["THROTTLE"] = throttle_in = 1000;
+	}
+	else {
+		Registry["THROTTLE"] = throttle_in = int((float(DataIn.throttle) - deadSpace) * 1000.f / (1024.f - deadSpace - deadSpace));
+	}
 }
 
 

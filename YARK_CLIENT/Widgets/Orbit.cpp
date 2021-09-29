@@ -2,7 +2,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
-#define PI ((double)(3.14159265358979323846264338327950288))
+#include "Util/OrbitCalc.h"
 
 #undef min
 #undef max
@@ -93,24 +93,6 @@ OrbitDisplay::OrbitDisplay() {
 	for (int i = 0; i < ORBIT_MAX_PATCHES; i++) {
 		OrbitPatches[i] = new Orbit(360);
 	}
-}
-
-glm::dvec3 kep_2_cart(double semi_latus_rectum, double anomaly, double eccentricity, float inclination, float arg_PE, double long_AN) {
-	glm::dvec3 posPQW_;
-	glm::dvec3 posECI_;
-	posPQW_ = glm::vec3(semi_latus_rectum * glm::cos(anomaly) / (1 + eccentricity * glm::cos(anomaly)), semi_latus_rectum * glm::sin(anomaly) / (1 + eccentricity * glm::cos(anomaly)), 0);
-
-	double cO = glm::cos(arg_PE); double sO = glm::sin(arg_PE);
-	//double cO = glm::cos(long_AN); double sO = glm::sin(long_AN);
-	double co = glm::cos(long_AN); double so = glm::sin(long_AN);
-	//double co = glm::cos(arg_PE); double so = glm::sin(arg_PE);
-	double ci = glm::cos(inclination);     double si = glm::sin(inclination);
-	glm::dmat3 dcmPQW2ECI_ = glm::dmat3(cO * co - sO * ci * so, -cO * so - sO * ci * co, sO * si,
-		sO * co + cO * ci * so, -sO * so + cO * ci * co, -cO * si,
-		si * so, si * co, ci);
-
-	posECI_ = dcmPQW2ECI_ * posPQW_;
-	return glm::vec3(-posECI_.x, posECI_.y, posECI_.z);
 }
 
 void OrbitDisplay::Orbit::PropogateOrbit(OrbitData* o, glm::vec3 col, bool forceSolid) {
